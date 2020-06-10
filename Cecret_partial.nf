@@ -26,7 +26,7 @@ params.log_directory = params.outdir + '/logs'
 params.sample_file = file(params.outdir + '/covid_samples.txt' )
 
 println("The files and directory for results is " + params.outdir)
-if (!params.sample_file.exists()) exit 1, println "FATAL: ${params.sample_file} could not be found!\nPlease include a file name covid_samples.txt with the sample_id\tsubmission_id\tcollection_date at ${params.outdir}"
+if (!params.sample_file.exists()) println "FATAL: ${params.sample_file} could not be found!\nPlease include a file name covid_samples.txt with the sample_id\tsubmission_id\tcollection_date at ${params.outdir}", exit 1
   else println "List of COVID19 samples: " + params.sample_file
 
 samples = []
