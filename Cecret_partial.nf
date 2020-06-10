@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 
-println("Currently using the Cecret workflow adjusted for use after UPHL artic-Illumina hybrid library prep and pipeline")
+println("Currently using the Cecret workflow adjusted for use after UPHL artic-Illumina hybrid library prep and Referecen-free pipeline")
 println("v.20200912")
 
 //# nextflow run /home/eriny/sandbox/Cecret/Cecret_partial.nf -c /home/eriny/sandbox/Cecret/config/partial.singularity.nextflow.config
