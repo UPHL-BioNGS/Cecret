@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 println("Currently using the Cecret workflow adjusted for use after UPHL artic-Illumina hybrid library prep and Referecen-free pipeline")
-println("v.20200912")
+println("v.20200612")
 
 //# nextflow run /home/eriny/sandbox/Cecret/Cecret_partial.nf -c /home/eriny/sandbox/Cecret/config/partial.singularity.nextflow.config
 //# To be used with the ivar container staphb/ivar:1.2.2_artic20200528, this includes all artic and reference files, plus the index files already exist
