@@ -160,4 +160,11 @@ To create a report, use `-with-report` with your nextflow command.
 
 # References
 
+
+# Directed Acyclic Diagrams (DAG)
+### Full workflow
+![alt text](images/Cecret_workflow.png)
+### Partial workflow
+![alt text](images/Partial.png)
+
 ![alt text](https://uphl.utah.gov/wp-content/uploads/New-UPHL-Logo.png)
