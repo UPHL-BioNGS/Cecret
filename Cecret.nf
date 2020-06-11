@@ -103,7 +103,7 @@ process bwa {
   set val(sample), file(reads) from clean_reads
 
   output:
-  tuple sample, file("covid/bwa/${sample}.sorted.bam") into bams, bams2, bams3, bams4, bams5, bams6
+  tuple sample, file("covid/bwa/${sample}.sorted.bam") into bams, bams2, bams3
   file("covid/bwa/${sample}.sorted.bam.bai") into bais
   file("logs/bwa_covid/${sample}.${workflow.sessionId}.log")
   file("logs/bwa_covid/${sample}.${workflow.sessionId}.err")
