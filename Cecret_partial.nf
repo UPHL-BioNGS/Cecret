@@ -6,6 +6,8 @@ println("v.20200612")
 //# nextflow run /home/eriny/sandbox/Cecret/Cecret_partial.nf -c /home/eriny/sandbox/Cecret/config/partial.singularity.nextflow.config
 //# To be used with the ivar container staphb/ivar:1.2.2_artic20200528, this includes all artic and reference files, plus the index files already exist
 
+// To Be Added : pangolin for lineage tracing
+
 maxcpus = Runtime.runtime.availableProcessors()
 
 params.artic_version = 'V3'
@@ -229,7 +231,7 @@ process samtools_stats {
   set val(sample), file(bam), file(sorted_bam) from combined_bams
 
   output:
-  file("covid/samtools_stats/bwa/${sample}.stats.txt") into samtools_stats_results
+  file("covid/samtools_stats/bwa/${sample}.stats.txt")
   file("covid/samtools_stats/sort/${sample}.stats.trim.txt")
   file("logs/samtools_stats/${sample}.${workflow.sessionId}.{log,err}")
 
@@ -240,7 +242,6 @@ process samtools_stats {
 
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
-
 
     samtools stats !{bam} > covid/samtools_stats/bwa/!{sample}.stats.txt 2>> $err_file
     samtools stats !{sorted_bam} > covid/samtools_stats/sort/!{sample}.stats.trim.txt 2>> $err_file
