@@ -11,6 +11,7 @@ println("v.20200612")
 
 params.artic_version = 'V3'
 params.year = '2020'
+params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
 
 maxcpus = Runtime.runtime.availableProcessors()
 println("The maximum number of CPUS used in this workflow is ${maxcpus}")
@@ -73,7 +74,7 @@ process seqyclean {
   }
 
   output:
-  tuple sample, file("Sequencing_reads/QCed/${sample}_clean_PE{1,2}.fastq") into clean_reads, clean_reads2
+  tuple sample, file("Sequencing_reads/QCed/${sample}_clean_PE{1,2}.fastq") into clean_reads, clean_reads2, clean_reads3
   file("Sequencing_reads/QCed/${sample}_clean_SE.fastq")
   file("Sequencing_reads/QCed/${sample}_clean_SummaryStatistics.{txt,tsv}")
   file("logs/seqyclean/${sample}.${workflow.sessionId}.{log,err}")
@@ -370,6 +371,39 @@ process samtools_coverage {
   '''
 }
 
+process kraken2 {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "${sample}"
+  echo true
+  cpus 1
+
+  beforeScript 'mkdir -p kraken2 logs/kraken2'
+
+  input:
+  set val(sample), file(clean) from clean_reads3
+
+  output:
+//  file("kraken2/${sample}.report.txt")
+  file("logs/kraken2/${sample}.${workflow.sessionId}.{log,err}")
+  tuple sample, env(percentage_human), env(percentage_sars) into kraken2_results
+
+  shell:
+  '''
+    log_file=logs/kraken2/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/kraken2/!{sample}.!{workflow.sessionId}.err
+
+    date | tee -a $log_file $err_file > /dev/null
+    #kraken2 --version >> $log_file
+
+    #kraken2 --version
+
+    echo "Work in progress. Sorry!"
+    #exit 1
+    percentage_human="TBD"
+    percentage_sars="TBD"
+  '''
+}
+
 process bedtools {
   publishDir "${params.outdir}", mode: 'copy'
   tag "bedtools"
@@ -550,7 +584,7 @@ process file_submission {
 fastqc_results
   .combine(samtools_coverage_results2, by: 0)
 //  .combine(pangolin, by: 0)
-//  .combine(kraken2, by: 0)
+  .combine(kraken2_results, by: 0)
   .set { all_results }
 
 process run_results {
@@ -562,7 +596,7 @@ process run_results {
   beforeScript 'mkdir -p covid/summary logs/run_results'
 
   input:
-  set val(sample), val(raw_1), val(raw_2), val(clean_1), val(clean_2), val(coverage_before_trimming), val(depth_before_trimming), val(coverage_after_trimming), val(depth_after_trimming) from all_results
+  set val(sample), val(raw_1), val(raw_2), val(clean_1), val(clean_2), val(coverage_before_trimming), val(depth_before_trimming), val(coverage_after_trimming), val(depth_after_trimming), val(per_hum), val(per_sars) from all_results
 
   output:
   file("covid/summary/${sample}.run_results.txt") into run_result
@@ -578,7 +612,7 @@ process run_results {
     sample_id=$(echo !{sample} | cut -f 1 -d "-" )
 
     echo -e "sample_id\tsample\tspecies\tpangolin_lineage\tpangolin_aLRT\tpangolin_stats\tdepth_before_trimming\tdepth_after_trimming\tcoverage_before_trimming\tcoverage_after_trimming\tfastqc_raw_reads_1\tfastqc_raw_reads_2\tfastqc_clean_reads_PE1\tfastqc_clean_reads_PE2\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\t%_human_reads\t%_SARS-COV-2_reads" > covid/summary/!{sample}.run_results.txt
-    echo -e "$sample_id\t!{sample}\tSARS-COV-2\tpangolin_lineage\tpangolin_aLRT\tpangolin_stats\t!{depth_before_trimming}\t!{depth_after_trimming}\t!{coverage_before_trimming}\t!{coverage_after_trimming}\t!{raw_1}\t!{raw_2}\t!{clean_1}\t!{clean_2}\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\t%_human_reads\t%_SARS-COV-2_reads" >> covid/summary/!{sample}.run_results.txt
+    echo -e "$sample_id\t!{sample}\tSARS-COV-2\tpangolin_lineage\tpangolin_aLRT\tpangolin_stats\t!{depth_before_trimming}\t!{depth_after_trimming}\t!{coverage_before_trimming}\t!{coverage_after_trimming}\t!{raw_1}\t!{raw_2}\t!{clean_1}\t!{clean_2}\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\t!{per_hum}\t!{per_sars}" >> covid/summary/!{sample}.run_results.txt
   '''
 }
 
