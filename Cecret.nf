@@ -60,7 +60,7 @@ Channel
 process seqyclean {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p Sequencing_reads/QCed logs/seqyclean'
@@ -95,7 +95,7 @@ process seqyclean {
 process bwa {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus maxcpus
 
   beforeScript 'mkdir -p covid/bwa logs/bwa_covid'
@@ -132,7 +132,7 @@ process bwa {
 process ivar_trim {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/trimmed logs/ivar_trim'
@@ -161,7 +161,7 @@ process ivar_trim {
 process samtools_sort {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/sorted logs/samtools_sort'
@@ -192,7 +192,7 @@ process samtools_sort {
 process ivar_variants {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/variants logs/ivar_variants'
@@ -222,7 +222,7 @@ process ivar_variants {
 process ivar_consensus {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/consensus logs/ivar_consensus'
@@ -231,7 +231,7 @@ process ivar_consensus {
   set val(sample), file(bam) from sorted_bams2
 
   output:
-  tuple sample, file("covid/consensus/${sample}.consensus.fa") into consensus
+  tuple sample, file("covid/consensus/${sample}.consensus.fa") into consensus, consensus2
   file("logs/ivar_consensus/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(degenerate), env(num_of_N) into degenerate_check, num_of_N
 
@@ -263,7 +263,7 @@ fastq_reads2
 process fastqc {
   publishDir "${params.outdir}", mode: 'copy'
   tag "$sample"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p fastqc logs/fastqc'
@@ -272,7 +272,7 @@ process fastqc {
   set val(sample), file(raw), file(clean) from raw_clean_reads
 
   output:
-  path("fastqc/")
+  file("fastqc/*.{html,zip}")
   tuple sample, env(raw_1), env(raw_2), env(clean_1), env(clean_2) into fastqc_results
   file("logs/fastqc/${sample}.${workflow.sessionId}.{log,err}")
 
@@ -301,7 +301,7 @@ bams3
 process samtools_stats {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/samtools_stats/bwa covid/samtools_stats/sort logs/samtools_stats'
@@ -327,11 +327,10 @@ process samtools_stats {
   '''
 }
 
-
 process samtools_coverage {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/samtools_coverage/bwa covid/samtools_coverage/sort logs/samtools_coverage'
@@ -407,7 +406,7 @@ process kraken2 {
 process bedtools {
   publishDir "${params.outdir}", mode: 'copy'
   tag "bedtools"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/bedtools logs/bedtools'
@@ -436,10 +435,51 @@ process bedtools {
   '''
 }
 
-process ids {
+process pangolin {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
   echo true
+  cpus 1
+//  cpus medcpus
+//  cpus maxcpus
+
+  beforeScript 'mkdir -p covid/pangolin logs/pangolin'
+
+  input:
+  set val(sample), file(fasta) from consensus2
+
+  output:
+  file("covid/pangolin/${sample}/lineage_report.csv")
+  tuple sample, env(pangolin_lineage), env(pangolin_aLRT), env(pangolin_stats) into pangolin_results
+  file("logs/pangolin/${sample}.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+    log_file=logs/pangolin/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/pangolin/!{sample}.!{workflow.sessionId}.err
+
+    date | tee -a $log_file $err_file > /dev/null
+    pangolin --version >> $log_file
+    pangolin -lv >> $log_file
+
+    pangolin --threads !{task.cpus} --outdir covid/pangolin/!{sample} !{fasta} 2>> $err_file >> $log_file
+
+    pangolin_lineage=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 2 -d "," | grep -v "lineage" )
+    while [ -z "$pangolin_lineage" ]
+    do
+      pangolin --threads !{task.cpus} --outdir covid/pangolin/!{sample} !{fasta} 2>> $err_file >> $log_file
+      pangolin_lineage=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 2 -d "," | grep -v "lineage" )
+    done
+
+    pangolin_aLRT=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 3 -d "," )
+    pangolin_stats=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 4 -d "," )
+  '''
+}
+
+process ids {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "${sample}"
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/bedtools logs/bedtools'
@@ -486,7 +526,7 @@ degenerate_check
 process summary {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/summary logs/summary'
@@ -527,7 +567,7 @@ fastq_reads4
 process file_submission {
   publishDir "${params.outdir}", mode: 'copy'
   tag "$sample"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/submission_files logs/submission'
@@ -583,43 +623,43 @@ process file_submission {
 
 fastqc_results
   .combine(samtools_coverage_results2, by: 0)
-//  .combine(pangolin, by: 0)
+  .combine(pangolin_results, by: 0)
   .combine(kraken2_results, by: 0)
   .set { all_results }
 
 process run_results {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/summary logs/run_results'
 
   input:
-  set val(sample), val(raw_1), val(raw_2), val(clean_1), val(clean_2), val(coverage_before_trimming), val(depth_before_trimming), val(coverage_after_trimming), val(depth_after_trimming), val(per_hum), val(per_sars) from all_results
+  set val(sample), val(raw_1), val(raw_2), val(clean_1), val(clean_2), val(coverage_before_trimming), val(depth_before_trimming), val(coverage_after_trimming), val(depth_after_trimming), val(pangolin_lineage), val(pangolin_aLRT), val(pangolin_stats), val(per_hum), val(per_sars) from all_results
 
   output:
   file("covid/summary/${sample}.run_results.txt") into run_result
-  file("logs/run_results/run_results.${workflow.sessionId}.{log,err}")
+  file("logs/run_results/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    log_file=logs/run_results/run_results.!{workflow.sessionId}.log
-    err_file=logs/run_results/run_results.!{workflow.sessionId}.err
+    log_file=logs/run_results/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/run_results/!{sample}.!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
 
     sample_id=$(echo !{sample} | cut -f 1 -d "-" )
 
     echo -e "sample_id\tsample\tspecies\tpangolin_lineage\tpangolin_aLRT\tpangolin_stats\tdepth_before_trimming\tdepth_after_trimming\tcoverage_before_trimming\tcoverage_after_trimming\tfastqc_raw_reads_1\tfastqc_raw_reads_2\tfastqc_clean_reads_PE1\tfastqc_clean_reads_PE2\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\t%_human_reads\t%_SARS-COV-2_reads" > covid/summary/!{sample}.run_results.txt
-    echo -e "$sample_id\t!{sample}\tSARS-COV-2\tpangolin_lineage\tpangolin_aLRT\tpangolin_stats\t!{depth_before_trimming}\t!{depth_after_trimming}\t!{coverage_before_trimming}\t!{coverage_after_trimming}\t!{raw_1}\t!{raw_2}\t!{clean_1}\t!{clean_2}\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\t!{per_hum}\t!{per_sars}" >> covid/summary/!{sample}.run_results.txt
+    echo -e "$sample_id\t!{sample}\tSARS-COV-2\t!{pangolin_lineage}\t!{pangolin_aLRT}\t!{pangolin_stats}\t!{depth_before_trimming}\t!{depth_after_trimming}\t!{coverage_before_trimming}\t!{coverage_after_trimming}\t!{raw_1}\t!{raw_2}\t!{clean_1}\t!{clean_2}\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\t!{per_hum}\t!{per_sars}" >> covid/summary/!{sample}.run_results.txt
   '''
 }
 
 process final_summary {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "summary"
-  echo true
+  echo false
   cpus 1
 
   beforeScript 'mkdir -p covid/submission_files logs/summary'
