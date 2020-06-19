@@ -448,7 +448,7 @@ process file_submission {
   if [ "!{num_n}" -lt 14952 ]
   then
     # removing leading Ns, folding sequencing to 75 bp wide, and adding metadata for genbank submissions
-    echo ">!{submission_id} [organism=Severe acute respiratory syndrome coronavirus 2][isolate=SARS-CoV-2/Human/USA/!{submission_id}/!{params.year}][host=Human][country=USA][collection_date=!{collection_date}" > covid/submission_files/!{submission_id}.genbank.fa  2>> $err_file
+    echo ">!{submission_id} [organism=Severe acute respiratory syndrome coronavirus 2][isolate=SARS-CoV-2/Human/USA/!{submission_id}/!{params.year}][host=Human][country=USA][collection_date=!{collection_date}]" > covid/submission_files/!{submission_id}.genbank.fa  2>> $err_file
     grep -v ">" !{consensus} | sed 's/^N*N//g' | fold -w 75 >> covid/submission_files/!{submission_id}.genbank.fa  2>> $err_file
     if [ "!{num_n}" -lt 4903 ]
     then
