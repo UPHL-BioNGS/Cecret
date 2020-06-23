@@ -1,13 +1,12 @@
 #!/usr/bin/env nextflow
 
 println("Currently using the Cecret workflow for use with artic-Illumina hybrid library prep on MiSeq")
-println("v.20200612")
+println("v.20200626")
 
 //# nextflow run /home/eriny/sandbox/Cecret/Cecret.nf -c /home/eriny/sandbox/Cecret/config/cecret.singularity.nextflow.config
 //# To be used with the ivar container staphb/ivar:1.2.2_artic20200528, this includes all artic and reference files, plus the index files already exist
 
 // To Be Added : Some sort of contamination check like Kraken2 or Blobtools
-// To Be Added : pangolin for lineage tracing
 
 params.artic_version = 'V3'
 params.year = '2020'
@@ -21,7 +20,7 @@ if ( maxcpus < 5 ) {
   medcpus = 5
 }
 
-// param that coincide with the staphb/seqyclean:1.10.09 container run with singularity
+// param that coincides with the staphb/seqyclean:1.10.09 container run with singularity
 params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
 
 // params that coincide with the staphb/ivar:1.2.2_artic20200528 container run with singularity
@@ -30,6 +29,9 @@ params.primer_bed = file("/artic-ncov2019/primer_schemes/nCoV-2019/${params.arti
 params.reference_genome = file("/artic-ncov2019/primer_schemes/nCoV-2019/${params.artic_version}/nCoV-2019.reference.fasta")
 params.gff_file = file("/reference/GCF_009858895.2_ASM985889v3_genomic.gff")
 params.amplicon_bed = file("/artic-ncov2019/primer_schemes/nCoV-2019/${params.artic_version}/nCoV-2019_amplicon.bed")
+
+// param that coincides with the staphb/kraken2:2.0.8-beta_hv container run with singularity
+params.kraken2_db="/home/IDGenomics_NAS/Data/kraken_standard/SARS-CoV-2"
 
 // This is where the results will be
 params.outdir = workflow.launchDir
@@ -42,8 +44,8 @@ params.sample_file = file(params.outdir + '/covid_samples.txt' )
 println("The files and directory for results is " + params.outdir)
 if (params.sample_file.exists()) { println("List of COVID19 samples: " + params.sample_file) }
   else {
-    println "FATAL: ${params.sample_file} could not be found!\nPlease include a file name covid_samples.txt with the sample_id\tsubmission_id\tcollection_date at ${params.outdir}"
-    exit 1
+    println("${params.sample_file} could not be found!")
+    println("For file submission renaming, please include a file named ${params.outdir}/covid_samples.txt with the sample_id\tsubmission_id\tcollection_date")
     }
 
 samples = []
@@ -52,9 +54,11 @@ params.sample_file
   .each { samples << it.split('\t')[0] }
 
 Channel
-  .fromFilePairs(["${params.outdir}/Sequencing_reads/Raw/*_R{1,2}_001.fastq.gz", "${params.outdir}/Sequencing_reads/Raw/*_{1,2}.fastq" ], size: 2 )
+  .fromFilePairs(["${params.reads}/*_R{1,2}_001.fastq.gz",
+                  "${params.reads}/*_{1,2}.fastq*",
+                  "${params.reads}/*_R{1,2}*.fastq.gz" ], size: 2 )
   .map{ reads -> [reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1]] }
-  .ifEmpty{ exit 1, println("No paired fastq or fastq.gz files were found at ${params.outdir}/Sequencing_reads/Raw") }
+  .ifEmpty{ println("No paired fastq or fastq.gz files were found at ${reads}"), exit 1 }
   .into { fastq_reads; fastq_reads2; fastq_reads3; fastq_reads4 }
 
 process seqyclean {
@@ -67,11 +71,6 @@ process seqyclean {
 
   input:
   set val(sample), file(reads) from fastq_reads
-
-  when:
-  for(int i =0; i < samples.size(); i++) {
-    if(sample.contains(samples[i])) { return true }
-  }
 
   output:
   tuple sample, file("Sequencing_reads/QCed/${sample}_clean_PE{1,2}.fastq") into clean_reads, clean_reads2, clean_reads3
@@ -374,7 +373,7 @@ process kraken2 {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
   echo true
-  cpus 1
+  cpus maxcpus
 
   beforeScript 'mkdir -p kraken2 logs/kraken2'
 
@@ -397,7 +396,8 @@ process kraken2 {
     #kraken2 --version
 
     echo "Work in progress. Sorry!"
-    #exit 1
+    kraken2 --paired --classified-out cseqs#.fq --threads !{task.cpus} --db !{params.kraken2_db} !{clean[0]} !{clean[1]} --report kraken2/!{sample}_kraken2_report.txt
+    exit 1
     percentage_human="TBD"
     percentage_sars="TBD"
   '''
@@ -438,10 +438,9 @@ process bedtools {
 process pangolin {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
 //  cpus medcpus
-//  cpus maxcpus
 
   beforeScript 'mkdir -p covid/pangolin logs/pangolin'
 
@@ -488,9 +487,7 @@ process ids {
   set val(sample), file(reads) from fastq_reads3
 
   when:
-  for(int i =0; i < samples.size(); i++) {
-    if(sample.contains(samples[i])) { return true }
-  }
+  params.sample_file.exists()
 
   output:
   tuple val(sample), env(sample_id), env(submission_id), env(collection_date) into submission_ids
@@ -516,6 +513,10 @@ process ids {
         collection_date=$(echo $line | awk '{print $3}' )
       fi
     done < !{params.sample_file}
+
+    if [ -z "$sample_id" ] ; then sample_id=!{sample} ; fi
+    if [ -z "$submission_id" ] ; then submission_id=!{sample} ; fi
+    if [ -z "$collection_date" ] ; then collection_date='NA' ; fi
   '''
 }
 
