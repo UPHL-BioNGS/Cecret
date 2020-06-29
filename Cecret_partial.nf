@@ -1,12 +1,10 @@
 #!/usr/bin/env nextflow
 
 println("Currently using the Cecret workflow adjusted for use after UPHL artic-Illumina hybrid library prep and Referecen-free pipeline")
-println("v.20200612")
+println("v.20200626")
 
 //# nextflow run /home/eriny/sandbox/Cecret/Cecret_partial.nf -c /home/eriny/sandbox/Cecret/config/partial.singularity.nextflow.config
 //# To be used with the ivar container staphb/ivar:1.2.2_artic20200528, this includes all artic and reference files, plus the index files already exist
-
-// To Be Added : pangolin for lineage tracing
 
 maxcpus = Runtime.runtime.availableProcessors()
 
@@ -194,7 +192,7 @@ process ivar_consensus {
   set val(sample), file(bam) from sorted_bams2
 
   output:
-  tuple sample, file("covid/consensus/${sample}.consensus.fa") into consensus
+  tuple sample, file("covid/consensus/${sample}.consensus.fa") into consensus, consensus2
   file("logs/ivar_consensus/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(degenerate), env(num_of_N) into degenerate_check, num_of_N
 
@@ -288,6 +286,46 @@ process samtools_coverage {
     depth=$(cut -f 7 covid/samtools_coverage/bwa/!{sample}.cov.txt | tail -n 1)
     if [ -z "$coverage" ] ; then coverage="0" ; fi
     if [ -z "$depth" ] ; then coverage="0" ; fi
+  '''
+}
+
+process pangolin {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "${sample}"
+  echo false
+  cpus 1
+//  cpus medcpus
+
+  beforeScript 'mkdir -p covid/pangolin logs/pangolin'
+
+  input:
+  set val(sample), file(fasta) from consensus2
+
+  output:
+  file("covid/pangolin/${sample}/lineage_report.csv")
+  tuple sample, env(pangolin_lineage), env(pangolin_aLRT), env(pangolin_stats) into pangolin_results
+  file("logs/pangolin/${sample}.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+    log_file=logs/pangolin/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/pangolin/!{sample}.!{workflow.sessionId}.err
+
+    date | tee -a $log_file $err_file > /dev/null
+    pangolin --version >> $log_file
+    pangolin -lv >> $log_file
+
+    pangolin --threads !{task.cpus} --outdir covid/pangolin/!{sample} !{fasta} 2>> $err_file >> $log_file
+
+    pangolin_lineage=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 2 -d "," | grep -v "lineage" )
+    while [ -z "$pangolin_lineage" ]
+    do
+      pangolin --threads !{task.cpus} --outdir covid/pangolin/!{sample} !{fasta} 2>> $err_file >> $log_file
+      pangolin_lineage=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 2 -d "," | grep -v "lineage" )
+    done
+
+    pangolin_aLRT=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 3 -d "," )
+    pangolin_stats=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 4 -d "," )
   '''
 }
 
