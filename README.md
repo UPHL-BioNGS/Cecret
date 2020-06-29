@@ -38,7 +38,7 @@ Example covid_samples.txt file contents:
 ```
 Where the files named `123456-UT-M03999-200602_S9_L001_R1_001.fastq.gz`, `123456-UT-M03999-200602_S9_L001_R2_001.fastq.gz` will be renamed `UT-NA001.fastq.R1.fastq.gz` and `UT-NA001.fastq.R2.fastq.gz` with the corresponding consensus file named `UT-NA001.consensus.fa`. Collection date is used in Genbank fasta file creation.
 
-### arrange the fastq.gz reads
+### arrange the fastq.gz reads or specify reads paramater
 ```
 directory
 |-covid_samples.txt
@@ -105,7 +105,7 @@ directory
   | | |-sample.flagstat.txt             # samtools stats for aligned reads
   | |-trimmed
   |   |-sample.flagstat.trim.txt        # samtools stats for trimmed reads
-  |-submission_files
+  |-submission_files                    # is only created if covid_samples.txt exists
   | |-run_id.genbank_submission.fasta   # multifasta for direct genbank
   | |-run_id.gisaid_submission.fasta    # multifasta file bulk upload to gisaid
   | |-sample.consensus.fa               # renamed consensus fasta file
@@ -141,7 +141,7 @@ nextflow run Cecret.nf -c config/cecret.singularity.nextflow.config --outdir new
 
 Adjustable workflow paramaters with default values:
 ```
-reads = workflow.launchDir + '/Sequencing_reads/Raw'
+reads = current_directory + '/Sequencing_reads/Raw'
 artic_version = 'V3'
 year = '2020'
 outdir = current_directory
