@@ -24,11 +24,11 @@ So that you can use `git pull` can be used for updates.
 
 ## Prior to starting the workflow
 
-### install dependencies
+### Install dependencies
 - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html) 
 - [Singularity](https://singularity.lbl.gov/install-linux)
 
-### create covid_samples.txt for easy file submissions (optional)
+### Create covid_samples.txt for easy file submissions (Optional)
 
 This pipeline is meant to enable quick and easy file renaming for sample submission to public repositories. As such, a text file with the following columns (no header please): `Laboratory_id submission_id collection_date`
 
@@ -38,7 +38,7 @@ Example covid_samples.txt file contents:
 ```
 Where the files named `123456-UT-M03999-200602_S9_L001_R1_001.fastq.gz`, `123456-UT-M03999-200602_S9_L001_R2_001.fastq.gz` will be renamed `UT-NA001.fastq.R1.fastq.gz` and `UT-NA001.fastq.R2.fastq.gz` with the corresponding consensus file named `UT-NA001.consensus.fa`. Collection date is used in Genbank fasta file creation.
 
-### arrange the fastq.gz reads or specify reads paramater
+### Arrange the fastq.gz reads or specify reads paramater
 ```
 directory
 |-covid_samples.txt
