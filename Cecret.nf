@@ -37,7 +37,7 @@ params.kraken2_db="/home/IDGenomics_NAS/Data/kraken_standard/SARS-CoV-2"
 // This is where the results will be
 params.outdir = workflow.launchDir
 println("The files and directory for results is " + params.outdir)
-params.log_directory = params.outdir + '/logs'
+//params.log_directory = params.outdir + '/logs'
 println("A table summarizing results will be created: ${workflow.launchDir}/run_results.txt")
 
 // this sample file contains metadata for renaming files and adding collection dates to submission files
@@ -53,7 +53,7 @@ if (params.sample_file.exists()) {
   }
   else {
     println("${params.sample_file} could not be found!")
-    println("\tFor file submission renaming, please include a file named\n\t${params.outdir}/covid_samples.txt\n\twith columns of sample_id\tsubmission_id\tcollection_date")
+    println("\tFor file submission renaming, please include a file named\n\t${params.outdir}/covid_samples.txt\n\twith columns of\n\tsample_id\tsubmission_id\tcollection_date")
     }
 
 Channel
