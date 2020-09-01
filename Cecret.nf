@@ -1,8 +1,9 @@
 #!/usr/bin/env nextflow
 
 println("Currently using the Cecret workflow for use with artic-Illumina hybrid library prep on MiSeq")
-println("Version: v.20200703")
+println("Version: v.20200901")
 
+println(workflow.projectDir)
 
 //# nextflow run /home/eriny/sandbox/Cecret/Cecret.nf -c /home/eriny/sandbox/Cecret/config/cecret.singularity.nextflow.config
 //# To be used with the ivar container staphb/ivar:1.2.2_artic20200528, this includes all artic and reference files, plus the index files already exist
@@ -701,11 +702,12 @@ process file_submission {
   if [ "!{num_n}" -lt 15000 ] && [ "!{num_total}" -gt 28000 ]
   then
     # removing leading Ns, folding sequencing to 75 bp wide, and adding metadata for genbank submissions
-    echo ">!{submission_id} [organism=Severe acute respiratory syndrome coronavirus 2][isolate=SARS-CoV-2/Human/USA/!{submission_id}/!{params.year}][host=Human][country=USA][collection_date=!{collection_date}]" > covid/submission_files/!{submission_id}.genbank.fa  2>> $err_file
-    grep -v ">" !{consensus} | sed 's/^N*N//g' | fold -w 75 >> covid/submission_files/!{submission_id}.genbank.fa  2>> $err_file
+    !{workflow.projectDir}/scripts/genbank_submission.sh !{workflow.launchDir} !{sample}
+
     if [ "!{num_ACTG}" -gt 25000 ]
     then
-      cp covid/submission_files/!{submission_id}.consensus.fa covid/submission_files/!{submission_id}.gisaid.fa  2>> $err_file
+      echo ">hCoV-19/USA/!{submission_id}/!{params.year}" > covid/submission_files/!{submission_id}.gisaid.fa
+      grep -v ">" covid/submission_files/!{submission_id}.consensus.fa >> covid/submission_files/!{submission_id}.gisaid.fa  2>> $err_file
       echo "!{sample} had !{num_n} Ns and is part of the genbank and gisaid submission fasta" >> $log_file
     else
       echo "!{sample} had !{num_n} Ns and is part of the genbank submission fasta, but not gisaid" >> $log_file
