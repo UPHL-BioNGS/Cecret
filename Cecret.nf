@@ -3,16 +3,13 @@
 println("Currently using the Cecret workflow for use with artic-Illumina hybrid library prep on MiSeq")
 println("Version: v.20200901")
 
-println(workflow.projectDir)
-
 //# nextflow run /home/eriny/sandbox/Cecret/Cecret.nf -c /home/eriny/sandbox/Cecret/config/cecret.singularity.nextflow.config
 //# To be used with the ivar container staphb/ivar:1.2.2_artic20200528, this includes all artic and reference files, plus the index files already exist
-
-// To Be Added : Some sort of contamination check like Kraken2 or Blobtools
 
 params.artic_version = 'V3'
 params.year = '2020'
 params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
+params.msa_reference = workflow.projectDir + "/config/reference.fasta"
 
 maxcpus = Runtime.runtime.availableProcessors()
 println("The maximum number of CPUS used in this workflow is ${maxcpus}")
@@ -33,7 +30,7 @@ params.gff_file = file("/reference/GCF_009858895.2_ASM985889v3_genomic.gff")
 params.amplicon_bed = file("/artic-ncov2019/primer_schemes/nCoV-2019/${params.artic_version}/nCoV-2019_amplicon.bed")
 
 // param that coincides with the staphb/kraken2:2.0.8-beta_hv container run with singularity
-params.kraken2_db="/home/IDGenomics_NAS/Data/kraken_standard/SARS-CoV-2"
+params.kraken2_db="/kraken2-db"
 
 // This is where the results will be
 params.outdir = workflow.launchDir
@@ -41,8 +38,8 @@ println("The files and directory for results is " + params.outdir)
 //params.log_directory = params.outdir + '/logs'
 println("A table summarizing results will be created: ${workflow.launchDir}/run_results.txt")
 
-// this sample file contains metadata for renaming files and adding collection dates to submission files
-// The columns should be file_name\tsubmission_id\tcollection_date
+// this sample file contains metadata for renaming files
+// The columns should have the sample id in the first column, and a column with a header of submission_id
 params.sample_file = file(params.outdir + '/covid_samples.txt' )
 
 samples = []
@@ -54,7 +51,7 @@ if (params.sample_file.exists()) {
   }
   else {
     println("${params.sample_file} could not be found!")
-    println("\tFor file submission renaming, please include a file named\n\t${params.outdir}/covid_samples.txt\n\twith columns of\n\tsample_id\tsubmission_id\tcollection_date")
+    println("\tFor file submission renaming, please include a file named\n\t${params.outdir}/covid_samples.txt\n\twith the first column being the sample_id\n\tand one column being the submission_id.\n\tNote: headers cannot have spaces.")
     }
 
 Channel
@@ -245,7 +242,7 @@ process ivar_consensus {
   set val(sample), file(bam) from sorted_bams2
 
   output:
-  tuple sample, file("covid/consensus/${sample}.consensus.fa") into consensus, consensus2
+  tuple sample, file("covid/consensus/${sample}.consensus.fa") into consensus, consensus2, consensus3
   file("logs/ivar_consensus/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results, consensus_results2
 
@@ -419,19 +416,18 @@ process samtools_flagstat {
 process kraken2 {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-//  echo true
   echo false
   cpus maxcpus
 
-  beforeScript 'mkdir -p kraken2 logs/kraken2'
+  beforeScript 'mkdir -p covid/kraken2 logs/kraken2'
 
   input:
   set val(sample), file(clean) from clean_reads3
 
   output:
-//  file("kraken2/${sample}.report.txt")
+  file("covid/kraken2/${sample}_kraken2_report.txt")
   file("logs/kraken2/${sample}.${workflow.sessionId}.{log,err}")
-  tuple sample, env(percentage_human), env(percentage_sars) into kraken2_results
+  tuple sample, env(percentage_human), env(percentage_cov) into kraken2_results
 
   shell:
   '''
@@ -439,14 +435,18 @@ process kraken2 {
     err_file=logs/kraken2/!{sample}.!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
-    #kraken2 --version >> $log_file
+    kraken2 --version >> $log_file
 
-    #kraken2 --version
-    echo "Work in progress. Sorry!" | tee -a $log_file $err_file > /dev/null
-#    kraken2 --paired --classified-out cseqs#.fq --threads !{task.cpus} --db !{params.kraken2_db} !{clean[0]} !{clean[1]} --report kraken2/!{sample}_kraken2_report.txt
-#    exit 1
-    percentage_human="TBD"
-    percentage_sars="TBD"
+    kraken2 --paired \
+      --classified-out cseqs#.fq \
+      --threads !{task.cpus} \
+      --db !{params.kraken2_db} \
+      !{clean[0]} !{clean[1]} \
+      --report covid/kraken2/!{sample}_kraken2_report.txt \
+      2>> $err_file >> $log_file
+
+    percentage_human=$(grep "Homo sapiens" covid/kraken2/!{sample}_kraken2_report.txt | awk '{print $1}')
+    percentage_cov=$(grep "Severe acute respiratory syndrome coronavirus 2" covid/kraken2/!{sample}_kraken2_report.txt | awk '{print $1}')
   '''
 }
 
@@ -496,7 +496,7 @@ process pangolin {
 
   output:
   file("covid/pangolin/${sample}/lineage_report.csv")
-  tuple sample, env(pangolin_lineage), env(pangolin_aLRT), env(pangolin_stats) into pangolin_results
+  tuple sample, env(pangolin_lineage), env(pangolin_probability), env(pangolin_status) into pangolin_results
   file("logs/pangolin/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -517,8 +517,8 @@ process pangolin {
       pangolin_lineage=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 2 -d "," | grep -v "lineage" )
     done
 
-    pangolin_aLRT=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 3 -d "," )
-    pangolin_stats=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 4 -d "," )
+    pangolin_probability=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 3 -d "," )
+    pangolin_status=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 5 -d "," )
   '''
 }
 
@@ -533,7 +533,7 @@ seqyclean_results
   .combine(samtools_coverage_results, by: 0)
   // tuple sample, env(coverage), env(depth), env(coverage_trim), env(depth_trim) into samtools_coverage_results
   .combine(kraken2_results, by: 0)
-  // tuple sample, env(percentage_human), env(percentage_sars) into kraken2_results
+  // tuple sample, env(percentage_human), env(percentage_cov) into kraken2_results
   .combine(pangolin_results, by: 0)
   // tuple sample, env(pangolin_lineage), env(pangolin_aLRT), env(pangolin_stats) into pangolin_results
   .set { results }
@@ -552,8 +552,8 @@ process summary {
     val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
     val(raw_1), val(raw_2), val(clean_1), val(clean_2),
     val(coverage), val(depth), val(coverage_trim), val(depth_trim),
-    val(percentage_human), val(percentage_sars),
-    val(pangolin_lineage), val(pangolin_aLRT), val(pangolin_stats) from results
+    val(percentage_human), val(percentage_cov),
+    val(pangolin_lineage), val(pangolin_probability), val(pangolin_status) from results
   file(multicov) from bedtools_results.collect()
 
   output:
@@ -573,8 +573,8 @@ process summary {
 
     sample_id=$(echo !{sample} | cut -f 1 -d "-" )
 
-    echo -e "sample_id\tsample\tspecies\tpangolin_lineage\tpangolin_aLRT\tpangolin_stats\tfastqc_raw_reads_1\tfastqc_raw_reads_2\tfastqc_clean_reads_PE1\tfastqc_clean_reads_PE2\tpairs_kept_after_cleaning\tpercent_kept_after_cleaning\tdepth_before_trimming\tdepth_after_trimming\tcoverage_before_trimming\tcoverage_after_trimming\t%_human_reads\t%_SARS-COV-2_reads\tnum_failed_amplicons\tnum_variants\tnum_N\tnum_degenerage\tnum_ACTG\tnum_total" > covid/summary/!{sample}.summary.txt
-    echo -e "${sample_id}\t!{sample}\tSars-CoV-2\t!{pangolin_lineage}\t!{pangolin_aLRT}\t!{pangolin_stats}\t!{raw_1}\t!{raw_2}\t!{clean_1}\t!{clean_2}\t!{PairsKept}\t!{Perc_Kept}\t!{depth}\t!{depth_trim}\t!{coverage}\t!{coverage_trim}\t!{percentage_human}\t!{percentage_sars}\t!{variants_num}\t$amp_fail\t!{num_N}\t!{num_degenerate}\t!{num_ACTG}\t!{num_total}" >> covid/summary/!{sample}.summary.txt
+    echo -e "sample_id\tsample\tspecies\tpangolin_lineage\tpangolin_probability\tpangolin_status\tfastqc_raw_reads_1\tfastqc_raw_reads_2\tfastqc_clean_reads_PE1\tfastqc_clean_reads_PE2\tpairs_kept_after_cleaning\tpercent_kept_after_cleaning\tdepth_before_trimming\tdepth_after_trimming\tcoverage_before_trimming\tcoverage_after_trimming\t%_human_reads\t%_SARS-COV-2_reads\tnum_failed_amplicons\tnum_variants\tnum_N\tnum_degenerage\tnum_ACTG\tnum_total" > covid/summary/!{sample}.summary.txt
+    echo -e "${sample_id}\t!{sample}\tSars-CoV-2\t!{pangolin_lineage}\t!{pangolin_probability}\t!{pangolin_status}\t!{raw_1}\t!{raw_2}\t!{clean_1}\t!{clean_2}\t!{PairsKept}\t!{Perc_Kept}\t!{depth}\t!{depth_trim}\t!{coverage}\t!{coverage_trim}\t!{percentage_human}\t!{percentage_cov}\t!{variants_num}\t$amp_fail\t!{num_N}\t!{num_degenerate}\t!{num_ACTG}\t!{num_total}" >> covid/summary/!{sample}.summary.txt
   '''
 }
 
@@ -601,8 +601,8 @@ process combined_summary {
 
     date | tee -a $log_file $err_file > /dev/null
 
-    echo -e "sample_id\tsample\tspecies\tpangolin_lineage\tpangolin_aLRT\tpangolin_stats\tfastqc_raw_reads_1\tfastqc_raw_reads_2\tfastqc_clean_reads_PE1\tfastqc_clean_reads_PE2\tpairs_kept_after_cleaning\tpercent_kept_after_cleaning\tdepth_before_trimming\tdepth_after_trimming\tcoverage_before_trimming\tcoverage_after_trimming\t%_human_reads\t%_SARS-COV-2_reads\tnum_variants\tnum_failed_amplicons\tnum_N\tnum_degenerage\tnum_ACTG\tnum_total" > covid/summary.txt
-    cat *summary.txt | grep -v "pangolin_lineage" | sort | uniq >> covid/summary.txt 2>> $err_file
+    cat *.summary.txt | grep "sample_id" | head -n 1 > covid/summary.txt
+    cat *summary.txt | grep -v "sample_id" | sort | uniq >> covid/summary.txt 2>> $err_file
 
     cp covid/summary.txt run_results.txt
   '''
@@ -623,7 +623,7 @@ process ids {
   if (params.sample_file.exists()) { return true }
 
   output:
-  tuple val(sample), env(sample_id), env(submission_id), env(collection_date) into submission_ids
+  tuple val(sample), env(sample_id), env(submission_id) into submission_ids
 
   shell:
   '''
@@ -634,7 +634,6 @@ process ids {
 
     sample_id='NA'
     submission_id='NA'
-    collection_date='NA'
 
     while read line
     do
@@ -643,13 +642,114 @@ process ids {
       then
         sample_id=$lab_accession
         submission_id=$(echo $line | awk '{print $2}' )
-        collection_date=$(echo $line | awk '{print $3}' )
       fi
     done < !{params.sample_file}
 
     if [ -z "$sample_id" ] ; then sample_id=!{sample} ; fi
     if [ -z "$submission_id" ] ; then submission_id=!{sample} ; fi
-    if [ -z "$collection_date" ] ; then collection_date='NA' ; fi
+  '''
+}
+
+process mafft {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "mafft"
+  echo false
+  cpus maxcpus
+
+  beforeScript 'mkdir -p covid/mafft logs/mafft'
+
+  input:
+  file(consensus) from consensus3.collect()
+  file(reference) from params.msa_reference
+
+  output:
+  file("covid/mafft/mafft_aligned.fasta") into msa_file
+  file("covid/mafft/mafft_aligned.fasta") into msa_file2
+  file("logs/mafft/mafft.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+  log_file=logs/mafft/mafft.!{workflow.sessionId}.log
+  err_file=logs/mafft/mafft.!{workflow.sessionId}.err
+
+  date | tee -a $log_file $err_file > /dev/null
+  # note: mafft prints its version number to stderr
+  #echo "mafft version: $(mafft --version 2>&1 )" 2>&1 | tee -a $log_file
+
+  # getting the consensus fasta file
+  cat *fa !{reference} > ultimate_consensus.fasta
+  mafft --reorder \
+    --anysymbol \
+    --adjustdirection \
+    --thread !{task.cpus} \
+    ultimate_consensus.fasta \
+    > covid/mafft/mafft_aligned.fasta \
+    2> $err_file
+  '''
+}
+
+process snpdists {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "snp-dists"
+  echo false
+  cpus medcpus
+
+  beforeScript 'mkdir -p covid/snp-dists logs/snp-dists'
+
+  input:
+  file(msa) from msa_file
+
+  output:
+  file("covid/snp-dists/snp-dists.txt")
+  file("logs/snp-dists/snp-dists.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+  log_file=logs/snp-dists/snp-dists.!{workflow.sessionId}.log
+  err_file=logs/snp-dists/snp-dists.!{workflow.sessionId}.err
+
+  date | tee -a $log_file $err_file > /dev/null
+  snp-dists -v >> $log_file
+
+  snp-dists !{msa} > covid/snp-dists/snp-dists.txt 2> $err_file
+  '''
+}
+
+//msa_file2.view()
+
+process iqtree {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "iqtree"
+  echo false
+  cpus maxcpus
+
+  beforeScript 'mkdir -p covid/iqtree logs/iqtree'
+
+  input:
+  file(msa) from msa_file2
+
+  output:
+  file("covid/iqtree/iqtree.{iqtree,treefile,mldist,log}")
+  file("logs/iqtree/iqtree.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+  log_file=logs/iqtree/iqtree.!{workflow.sessionId}.log
+  err_file=logs/iqtree/iqtree.!{workflow.sessionId}.err
+
+  date | tee -a $log_file $err_file > /dev/null
+  iqtree --version >> $log_file
+
+  # creating a tree
+	iqtree -ninit 2 \
+    -n 2 \
+    -me 0.05 \
+    -ntmax !{task.cpus} \
+    -s !{msa} \
+    -pre covid/iqtree/iqtree \
+    -m GTR  \
+    -o MN908947.3 \
+    >> $log_file 2>> $err_file
   '''
 }
 
@@ -659,7 +759,7 @@ fastq_reads4
   .combine(consensus_results2, by:0)
   // tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
   .combine(submission_ids, by:0)
-  // tuple val(sample), env(sample_id), env(submission_id), env(collection_date) into submission_ids
+  // tuple val(sample), env(sample_id), env(submission_id) into submission_ids
   .set{ reads_consensus }
 
 process file_submission {
@@ -674,7 +774,7 @@ process file_submission {
   set val(sample), file(reads),
     file(consensus),
     val(num_n), val(num_ACTG), val(num_degen), val(num_total),
-    val(sample_id), val(submission_id), val(collection_date) from reads_consensus
+    val(sample_id), val(submission_id) from reads_consensus
 
   when:
   for(int i =0; i < samples.size(); i++) {
