@@ -62,7 +62,9 @@ Channel
     println("No paired fastq or fastq.gz files were found at ${params.reads}")
     exit 1
   }
-  .into { fastq_reads; fastq_reads2; fastq_reads3; fastq_reads4 }
+  .into { fastq_reads; fastq_reads2; fastq_reads3; fastq_reads4; fastq_reads5 }
+
+fastq_reads5.view()
 
 process seqyclean {
   publishDir "${params.outdir}", mode: 'copy'
@@ -837,7 +839,7 @@ process multifasta_submission {
   if (params.sample_file.exists()) { return true }
 
   output:
-  file("covid/submission_files/*.{gisaid_submission,genbank_submission}.fasta")
+  file("covid/submission_files/*.{gisaid_submission,genbank_submission}.fasta") optional true
   file("logs/multifasta_submission/multifasta_submission.${workflow.sessionId}.{log,err}")
 
   shell:
