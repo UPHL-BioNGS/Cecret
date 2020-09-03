@@ -3,13 +3,14 @@
 println("Currently using the Cecret workflow for use with artic-Illumina hybrid library prep on MiSeq")
 println("Version: v.20200901")
 
-//# nextflow run /home/eriny/sandbox/Cecret/Cecret.nf -c /home/eriny/sandbox/Cecret/config/cecret.singularity.nextflow.config
+//# nextflow run Cecret/Cecret.nf -c Cecret/config/cecret.singularity.nextflow.config
 //# To be used with the ivar container staphb/ivar:1.2.2_artic20200528, this includes all artic and reference files, plus the index files already exist
 
 params.artic_version = 'V3'
 params.year = '2020'
 params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
 params.msa_reference = workflow.projectDir + "/config/reference.fasta"
+params.relatedness = false
 
 maxcpus = Runtime.runtime.availableProcessors()
 println("The maximum number of CPUS used in this workflow is ${maxcpus}")
@@ -62,7 +63,9 @@ Channel
     println("No paired fastq or fastq.gz files were found at ${params.reads}")
     exit 1
   }
-  .into { fastq_reads; fastq_reads2; fastq_reads3; fastq_reads4 }
+  .into { fastq_reads; fastq_reads2; fastq_reads3; fastq_reads4; fastq_reads5 }
+
+//fastq_reads5.view()
 
 process seqyclean {
   publishDir "${params.outdir}", mode: 'copy'
@@ -667,6 +670,9 @@ process mafft {
   file("covid/mafft/mafft_aligned.fasta") into msa_file2
   file("logs/mafft/mafft.${workflow.sessionId}.{log,err}")
 
+  when:
+  params.relatedness
+
   shell:
   '''
   log_file=logs/mafft/mafft.!{workflow.sessionId}.log
@@ -771,6 +777,7 @@ process file_submission {
   beforeScript 'mkdir -p covid/submission_files logs/submission'
 
   input:
+  file(metadata) from params.sample_file
   set val(sample), file(reads),
     file(consensus),
     val(num_n), val(num_ACTG), val(num_degen), val(num_total),
@@ -802,7 +809,7 @@ process file_submission {
   if [ "!{num_n}" -lt 15000 ] && [ "!{num_total}" -gt 28000 ]
   then
     # removing leading Ns, folding sequencing to 75 bp wide, and adding metadata for genbank submissions
-    !{workflow.projectDir}/scripts/genbank_submission.sh !{workflow.launchDir} !{sample}
+    !{workflow.projectDir}/bin/genbank_submission.sh -f !{metadata} -y !{params.year} -s !{sample}
 
     if [ "!{num_ACTG}" -gt 25000 ]
     then
@@ -837,7 +844,7 @@ process multifasta_submission {
   if (params.sample_file.exists()) { return true }
 
   output:
-  file("covid/submission_files/*.{gisaid_submission,genbank_submission}.fasta")
+  file("covid/submission_files/*.{gisaid_submission,genbank_submission}.fasta") optional true
   file("logs/multifasta_submission/multifasta_submission.${workflow.sessionId}.{log,err}")
 
   shell:
