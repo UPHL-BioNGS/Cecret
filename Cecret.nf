@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 println("Currently using the Cecret workflow for use with artic-Illumina hybrid library prep on MiSeq")
-println("Version: v.20200901")
+println("Version: v.20200908")
 
 //# nextflow run Cecret/Cecret.nf -c Cecret/config/cecret.singularity.nextflow.config
 //# To be used with the ivar container staphb/ivar:1.2.2_artic20200528, this includes all artic and reference files, plus the index files already exist
@@ -97,6 +97,7 @@ process seqyclean {
     seqyclean -minlen 25 -qual -c !{params.seqyclean_contaminant_file} -1 !{reads[0]} -2 !{reads[1]} -o Sequencing_reads/QCed/!{sample}_clean 2>> $err_file >> $log_file
     pairskept=$(cut -f 58 Sequencing_reads/QCed/!{sample}_clean_SummaryStatistics.tsv | grep -v "PairsKept" | head -n 1)
     perc_kept=$(cut -f 59 Sequencing_reads/QCed/!{sample}_clean_SummaryStatistics.tsv | grep -v "Perc_Kept" | head -n 1)
+
     if [ -z "$pairskept" ] ; then pairskept="0" ; fi
     if [ -z "$perc_kept" ] ; then perc_kept="0" ; fi
   '''
@@ -229,6 +230,7 @@ process ivar_variants {
       ivar variants -p covid/variants/!{sample}.variants -q 20 -t 0.6 -r !{params.reference_genome} -g !{params.gff_file} 2>> $err_file >> $log_file
 
     variants_num=$(grep "TRUE" covid/variants/!{sample}.variants.tsv | wc -l)
+
     if [ -z "$variants_num" ] ; then variants_num="0" ; fi
   '''
 }
@@ -309,6 +311,11 @@ process fastqc {
     raw_2=$(unzip -p fastqc/!{raw[1].simpleName}*fastqc.zip */fastqc_data.txt | grep "Total Sequences" | awk '{ print $3 }' )
     clean_1=$(unzip -p fastqc/!{clean[0].simpleName}*fastqc.zip */fastqc_data.txt | grep "Total Sequences" | awk '{ print $3 }' )
     clean_2=$(unzip -p fastqc/!{clean[1].simpleName}*fastqc.zip */fastqc_data.txt | grep "Total Sequences" | awk '{ print $3 }' )
+
+    if [ -z "$raw_1" ] ; then raw_1="0" ; fi
+    if [ -z "$raw_2" ] ; then raw_2="0" ; fi
+    if [ -z "$clean_1" ] ; then clean_1="0" ; fi
+    if [ -z "$clean_2" ] ; then clean_2="0" ; fi
   '''
 }
 
@@ -450,6 +457,9 @@ process kraken2 {
 
     percentage_human=$(grep "Homo sapiens" covid/kraken2/!{sample}_kraken2_report.txt | awk '{print $1}')
     percentage_cov=$(grep "Severe acute respiratory syndrome coronavirus 2" covid/kraken2/!{sample}_kraken2_report.txt | awk '{print $1}')
+
+    if [ -z "$percentage_human" ] ; then percentage_human="0" ; fi
+    if [ -z "$percentage_cov" ] ; then percentage_cov="0" ; fi
   '''
 }
 
@@ -522,6 +532,11 @@ process pangolin {
 
     pangolin_probability=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 3 -d "," )
     pangolin_status=$(tail -n 1 covid/pangolin/!{sample}/lineage_report.csv | cut -f 5 -d "," )
+
+    if [ -z "$pangolin_lineage" ] ; then pangolin_lineage="NA" ; fi
+    if [ -z "$pangolin_probability" ] ; then pangolin_probability="NA" ; fi
+    if [ -z "$pangolin_status" ] ; then pangolin_status="NA" ; fi
+
   '''
 }
 
