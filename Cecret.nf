@@ -765,6 +765,7 @@ process iqtree {
 	iqtree -ninit 2 \
     -n 2 \
     -me 0.05 \
+    -nt AUTO \
     -ntmax !{task.cpus} \
     -s !{msa} \
     -pre covid/iqtree/iqtree \
