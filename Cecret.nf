@@ -820,17 +820,17 @@ process file_submission {
   # getting the consensus fasta file
   # changing the fasta header
   echo ">!{submission_id}" > covid/submission_files/!{submission_id}.consensus.fa 2>> $err_file
-  grep -v ">" !{consensus} >> covid/submission_files/!{submission_id}.consensus.fa 2>> $err_file
+  grep -v ">" !{consensus} | fold -w 75 >> covid/submission_files/!{submission_id}.consensus.fa 2>> $err_file
 
   if [ "!{num_n}" -lt 15000 ] && [ "!{num_total}" -gt 28000 ]
   then
     # removing leading Ns, folding sequencing to 75 bp wide, and adding metadata for genbank submissions
-    !{workflow.projectDir}/bin/genbank_submission.sh -f !{metadata} -y !{params.year} -s !{sample}
+    !{workflow.projectDir}/bin/genbank_submission.sh -f !{consensus} -m !{metadata} -y !{params.year} -o covid/submission_files/!{submission_id}.genbank.fa
 
     if [ "!{num_ACTG}" -gt 25000 ]
     then
       echo ">hCoV-19/USA/!{submission_id}/!{params.year}" > covid/submission_files/!{submission_id}.gisaid.fa
-      grep -v ">" covid/submission_files/!{submission_id}.consensus.fa >> covid/submission_files/!{submission_id}.gisaid.fa  2>> $err_file
+      grep -v ">" !{consensus} | fold -w 75 >> covid/submission_files/!{submission_id}.gisaid.fa  2>> $err_file
       echo "!{sample} had !{num_n} Ns and is part of the genbank and gisaid submission fasta" >> $log_file
     else
       echo "!{sample} had !{num_n} Ns and is part of the genbank submission fasta, but not gisaid" >> $log_file
