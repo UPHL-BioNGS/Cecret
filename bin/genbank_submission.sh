@@ -1,33 +1,33 @@
 USAGE="
-genbank_submission.sh is meant to combine consensus fastas
-with enough metadata to make submitting to GenBank easy. It
-takes the metadata found in covid_samples.txt and adds them
-to the header line. The following headers are accepted:
-
-  Sample_id        (required, must match sample_id*.fa*)
-  Submission_id    (if file needs renaming)
-  Country          (default is 'USA')
-  Host             (default is 'Human')
-  Isolate          (default is submission_id)
-  Collection_Date
-  Isolation_Source (default is 'SARS-CoV-2/host/location/isolate/date')
-  Clone
-  Collected_By
-  Fwd_Primer_Name
-  Fwd_Primer_Seq
-  Latitude_Longitude
-  Rev_Primer_Name
-  Rev_Primer_Seq
-  Note
-  Bioproject
-  Biosample
-  Sra
-
-./genbank_submission.sh
-  -f <fasta with sample_id in first column of metadata file and in filename like sample_id*.fa*>
-  -m <file with metadata. Default is covid_samples.txt>
-  -o <output fasta for genbank submission>
-  -y <(optional) 4 digit year for isolate label. Default is current year ($(date +"%Y"))>
+\ngenbank_submission.sh is meant to combine consensus fastas
+\nwith enough metadata to make submitting to GenBank easy. It
+\ntakes the metadata found in covid_samples.txt and adds them
+\nto the header line. The following headers are accepted:\n
+\n
+\tSample_id\t\t(required, must match sample_id*.fa*)\n
+\tSubmission_id\t\t(if file needs renaming)\n
+\tCountry\t\t\t(default is 'USA')\n
+\tHost\t\t\t(default is 'Human')\n
+\tIsolate\t\t\t(default is submission_id)\n
+\tCollection_Date\n
+\tIsolation_Source\t(default is 'SARS-CoV-2/host/location/isolate/date')\n
+\tClone\n
+\tCollected_By\n
+\tFwd_Primer_Name\n
+\tFwd_Primer_Seq\n
+\tLatitude_Longitude\n
+\tRev_Primer_Name\n
+\tRev_Primer_Seq\n
+\tNote\n
+\tBioproject\n
+\tBiosample\n
+\tSra\n
+\n
+./genbank_submission.sh\n
+\t-f <fasta with sample_id in first column of metadata file and in filename like sample_id*.fa*>\n
+\t-m <file with metadata. Default is covid_samples.txt>\n
+\t-o <output fasta for genbank submission>\n
+\t-y <(optional) 4 digit year for isolate label. Default is current year ($(date +"%Y"))>\n
 "
 ############################################################
 
@@ -53,7 +53,7 @@ do
     year=$OPTARG
     ;;
     h)
-    echo "$USAGE"
+    echo -e $USAGE
     exit 0
     ;;
     v)
@@ -62,11 +62,11 @@ do
     ;;
     :)
     echo "Invalid option: $OPTARG requires an argument"
-    echo "$USAGE"
+    echo -e $USAGE
     exit 1
     ;;
     \?)
-    echo "$USAGE"
+    echo -e $USAGE
     exit 1
     ;;
   esac
@@ -76,14 +76,14 @@ shift "$(($OPTIND -1))"
 if [ ! -f "$metadata_file" ]
 then
   echo "File with metadata for genbank header not found at $metadata_file"
-  echo $USAGE
+  echo -e $USAGE
   exit 1
 fi
 
 if [ ! -f "$fasta_file" ]
 then
   echo "Fasta file not found at $fasta_file"
-  echo $USAGE
+  echo -e $USAGE
   exit 1
 fi
 fasta=$(basename $fasta_file)
@@ -91,7 +91,7 @@ fasta=$(basename $fasta_file)
 if [ -z "$genbank_fasta" ] && [ ! -d "$(pwd)/covid/submission_files" ]
 then
   echo "-o specifies the name of the final file for genbank submission"
-  echo $USAGE
+  echo -e $USAGE
   exit 1
 fi
 
@@ -101,6 +101,7 @@ date
 
 header_columns=($(head -n 1 $metadata_file ))
 sample_id_column=$(echo ${header_columns[@]}          | tr " " "\n" | tr "\t" "\n" | grep -in "sample_id"                    | cut -f 1 -d ":" | head -n 1 )
+if [ -z "$sample_id_column" ] ; then echo -e "No sample_id column. Could not determine ids for samples.\nFix $metadata_file so that one of the column headers is sample_id.\n$USAGE" ; exit 1 ; fi
 submission_id_column=$(echo ${header_columns[@]}      | tr " " "\n" | tr "\t" "\n" | grep -in "submission"                   | cut -f 1 -d ":" | head -n 1 )
 country_column=$(echo ${header_columns[@]}            | tr " " "\n" | tr "\t" "\n" | grep -in "country"                      | cut -f 1 -d ":" | head -n 1 )
 host_column=$(echo ${header_columns[@]}               | tr " " "\n" | tr "\t" "\n" | grep -in "host"                         | cut -f 1 -d ":" | head -n 1 )
