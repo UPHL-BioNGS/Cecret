@@ -5,6 +5,8 @@ println("Version: v.20201215")
 
 //# nextflow run Cecret/Cecret.nf -c Cecret/config/singularity.config
 //nextflow run /home/eriny/sandbox/Cecret/Cecret.nf -c /home/eriny/sandbox/Cecret/config/UPHL.config -resume -with-dag flowchart_$(date +"%H%M%S").png
+// TBA plot-ampliconstats
+// plot-ampliconstats results_SAMPLEID ampliconstats.txt
 
 params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
 params.outdir = workflow.launchDir + "/cecret"
@@ -42,13 +44,14 @@ if ( maxcpus < 5 ) {
 }
 
 // this sample file contains metadata for renaming files . See README for more information
-params.sample_file = file(workflow.launchDir + '/covid_samples.txt' )
+params.sample_file = workflow.launchDir + '/covid_samples.txt'
+sample_file = file(params.sample_file)
 params.year = Calendar.getInstance().get(Calendar.YEAR)
 params.country = 'USA'
 samples = []
-if (params.sample_file.exists()) {
+if (sample_file.exists()) {
   println("List of COVID19 samples: " + params.sample_file)
-  params.sample_file
+  sample_file
     .readLines()
     .each { samples << it.split('\t')[0] }
   }
@@ -81,7 +84,7 @@ Channel
 //fastq_reads5.view()
 
 process prepare_reference {
-  publishDir "${params.outdir}", mode: 'copy', pattern: "*{log,err}"
+  publishDir "${params.outdir}", mode: 'copy', pattern: "logs/prepare_reference/*{log,err}"
   tag "reference"
   echo false
   cpus 1
@@ -184,8 +187,7 @@ process fastqc {
 }
 
 process bwa {
-  publishDir "${params.outdir}", mode: 'copy', pattern: "*.log"
-  publishDir "${params.outdir}", mode: 'copy', pattern: "*.err"
+  publishDir "${params.outdir}", mode: 'copy', pattern: "logs/bwa/*.{log,err}"
   tag "${sample}"
   echo false
   cpus maxcpus
@@ -250,6 +252,7 @@ process sort {
 
 process ivar_trim {
   publishDir "${params.outdir}", mode: 'copy'
+  tag "${sample}"
   echo false
   cpus 1
 
@@ -368,9 +371,8 @@ process ivar_variants {
 }
 
 process ivar_consensus {
-  publishDir "${params.outdir}", mode: 'copy', pattern: "*.log"
-  publishDir "${params.outdir}", mode: 'copy', pattern: "*.err"
-  publishDir "${params.outdir}", mode: 'copy', pattern: "*consensus/*.consensus.fa"
+  publishDir "${params.outdir}", mode: 'copy', pattern: "logs/ivar_consensus/*.{log,err}"
+  publishDir "${params.outdir}", mode: 'copy', pattern: "consensus/*.consensus.fa"
   tag "${sample}"
   echo false
   cpus 1
@@ -476,8 +478,8 @@ process samtools_stats {
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
 
-    samtools stats !{bam} > samtools_stats/bwa/!{sample}.stats.txt 2>> $err_file
-    samtools stats !{sorted_bam} > samtools_stats/trimmed/!{sample}.stats.trim.txt 2>> $err_file
+    samtools stats !{bam} 2>> $err_file > samtools_stats/bwa/!{sample}.stats.txt
+    samtools stats !{sorted_bam} 2>> $err_file > samtools_stats/trimmed/!{sample}.stats.trim.txt
   '''
 }
 
@@ -542,8 +544,8 @@ process samtools_flagstat {
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
 
-    samtools flagstat !{bwa} > samtools_flagstat/bwa/!{sample}.flagstat.txt 2>> $err_file
-    samtools flagstat !{trimmed} > samtools_flagstat/trimmed/!{sample}.flagstat.txt 2>> $err_file
+    samtools flagstat !{bwa} 2>> $err_file > samtools_flagstat/bwa/!{sample}.flagstat.txt
+    samtools flagstat !{trimmed} 2>> $err_file > samtools_flagstat/trimmed/!{sample}.flagstat.txt
   '''
 }
 
@@ -654,7 +656,7 @@ process samtools_ampliconstats {
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
 
-    samtools ampliconstats !{params.primer_bed} !{bam} > samtools_ampliconstats/!{sample}_ampliconstats.txt
+    samtools ampliconstats !{params.primer_bed} !{bam} 2>> $err_file > samtools_ampliconstats/!{sample}_ampliconstats.txt
 
     num_failed_amplicons=$(grep ^FREADS samtools_ampliconstats/!{sample}_ampliconstats.txt | cut -f 2- | tr '\t' '\n' | awk '{ if ($1 < 20) print $0 }' | wc -l)
     if [ -z "$num_failed_amplicons" ] ; then num_failed_amplicons=0 ; fi
@@ -767,7 +769,7 @@ process summary {
 
 process combined_summary {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true, pattern: "summary.txt"
-  publishDir "${params.outdir}", mode: 'copy', overwrite: true, pattern: "*.{log,err}"
+  publishDir "${params.outdir}", mode: 'copy', overwrite: true, pattern: "logs/summary/*.{log,err}"
   publishDir "${workflow.launchDir}", mode: 'copy', overwrite: true, pattern: "run_results.txt"
   tag "summary"
   echo false
@@ -825,16 +827,16 @@ process mafft {
     date | tee -a $log_file $err_file > /dev/null
     echo "mafft version:" >> $log_file
     mafft --version 2>&1 >> $log_file
-    echo !{params.max_ambiguous}
 
-    head !{params.reference_genome}
+    echo ">!{params.outgroup}" > reference.fasta
+    grep -v ">" !{params.reference_genome} >> reference.fasta
 
     cat *fa > ultimate_consensus.fasta
     mafft --auto \
       --thread !{task.cpus} \
       --maxambiguous !{params.max_ambiguous} \
       --addfragments ultimate_consensus.fasta \
-      !{params.reference_genome} \
+      reference.fasta \
       > mafft/mafft_aligned.fasta \
       2>> $err_file
   '''
@@ -918,6 +920,7 @@ process rename_fastq {
 
   input:
   set val(sample), file(reads) from fastq_reads3
+  sample_file
 
   when:
   for(int i =0; i < samples.size(); i++) {
@@ -936,6 +939,8 @@ process rename_fastq {
 
     date | tee -a $log_file $err_file > /dev/null
 
+    sample_id=''
+    submission_id=''
     while read line
     do
       lab_accession=$(echo $line | awk '{print $1}' )
@@ -944,7 +949,7 @@ process rename_fastq {
         sample_id=$lab_accession
         submission_id=$(echo $line | awk '{print $2}' )
       fi
-    done < !{params.sample_file}
+    done < !{sample_file}
 
     if [ -z "$sample_id" ] ; then sample_id=!{sample} ; fi
     if [ -z "$submission_id" ] ; then submission_id=!{sample} ; fi
@@ -1010,7 +1015,7 @@ process prepare_genbank {
 
   input:
   set val(sample), file(consensus), val(sample_id), val(submission_id) from ids_genbank
-  params.sample_file
+  sample_file
 
   when:
   for(int i =0; i < samples.size(); i++) {
@@ -1028,7 +1033,7 @@ process prepare_genbank {
 
     date | tee -a $log_file $err_file > /dev/null
 
-    !{workflow.projectDir}/bin/genbank_submission.sh -f !{consensus} -m !{params.sample_file} -y !{params.year} -o submission_files/!{submission_id}.genbank.fa
+    !{workflow.projectDir}/bin/genbank_submission.sh -f !{consensus} -m !{sample_file} -y !{params.year} -o submission_files/!{submission_id}.genbank.fa 2>> $err_file >> $log_file
   '''
 }
 
@@ -1044,7 +1049,7 @@ process combine_gisaid {
   file(fastas) from gisaid_fasta.collect()
 
   when:
-  if (params.sample_file.exists()) { return true }
+  if (file(params.sample_file).exists()) { return true }
 
   output:
   file("submission_files/*.gisaid_submission.fasta") optional true
@@ -1076,7 +1081,7 @@ process combine_genbank {
   file(fastas) from genbank_fasta.collect()
 
   when:
-  if (params.sample_file.exists()) { return true }
+  if (file(params.sample_file).exists()) { return true }
 
   output:
   file("submission_files/*.genbank_submission.fasta") optional true
@@ -1099,6 +1104,6 @@ process combine_genbank {
 workflow.onComplete {
     println("Pipeline completed at: $workflow.complete")
     println("A summary of results can be found in a tab-delimited file: ${workflow.launchDir}/run_results.txt")
-    if (params.sample_file.exists()) { println("SRA, GenBank, and GISAID submission-ready files are located at ${workflow.launchDir}/submission_files") }
+    if (file(params.sample_file).exists()) { println("SRA, GenBank, and GISAID submission-ready files are located at ${workflow.launchDir}/submission_files") }
     println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
 }
