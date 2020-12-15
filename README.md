@@ -21,25 +21,84 @@ cd Cecret
 git init
 ```
 
-so that you can use `git pull` can be used for updates.
+so that you can use `git pull` for updates.
 
 ## Prior to starting the workflow
 
 ### Install dependencies
-- [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html) 
+- [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html)
+   - Nextflow version 20+ is required (`nextflow -v` to check your installation)
 - [Singularity](https://singularity.lbl.gov/install-linux)
 
-### Set default variables
+or 
+- [Docker](https://docs.docker.com/get-docker/) (*with the caveat that the creator and maintariner uses singularity and may not be able to troublshoot all docker issues*)
 
-Pangolin and Kraken2 images are both very large, and may cause an error if downloading normally. If this occurs, set `SINGULARITY_TMPDIR` to a location with a large amount of space and export the variable into the environment.
+# Usage
+
+### Arrange the fastq.gz reads as follows
+```
+directory
+|-Sequencing_reads
+   |-Raw
+     |-*fastq.gz
+```
 
 ```
-export SINGULARITY_TMPDIR=/scratch
+nextflow run Cecret.nf -c config/singularity.config
 ```
 
-### Create covid_samples.txt for easy file submissions (Optional)
+## Optional usage:
 
-This pipeline is meant to enable quick and easy file renaming for sample submission to public repositories. Essentially, the script parses a file named `covid_samples.txt` and assigns values based on the columns, with the first two coluns being the id used in the fastq file names (generally an accession number), and the second column being the id desired for submission to repositories, such as GenBank. Required values are the lab accession, submission id, and collection date.
+### Determining relatedness
+Resuming a create a multiple sequence alignment, phylogenetic tree, and count SNPs by setting the relatedness paramter to `true`
+```
+nextflow run Cecret.nf -c config/singularity.config -resume --relatedness true
+```
+
+### Using samtools to trim amplicons instead of ivar
+Setting trimmer parameter to `samtools`
+```
+nextflow run Cecret.nf -c config/singularity.config -resume --trimmer 'samtools'
+```
+
+### Classify reads with kraken2
+
+Example download of kraken2 database for human and viral reads (including SARS-CoV-2)
+```
+mkdir -p kraken2_db
+cd kraken2_db
+wget https://storage.googleapis.com/sars-cov-2/kraken2_h%2Bv_20200319.tar.gz
+tar -zxf kraken2_h+v_20200319.tar.gz
+rm -rf kraken2_h+v_20200319.tar.gz
+```
+
+```
+nextflow run Cecret.nf -c config/singularity.config --kraken2 true --kraken2_db=kraken2_db
+```
+
+### Add Genbank parsable header to consensus fasta
+
+This requires a covid_samples.txt file with a row for each sample and a tab-delimited column for each item to add to the header.
+
+The following headers are accepted
+- Sample_id          (required, must match sample_id*.fa*)
+- Submission_id      (if file needs renaming)
+- Country            (default is 'USA')
+- Host               (default is 'Human')
+- Isolate            (default is submission_id)
+- Collection_Date
+- Isolation_Source   (default is 'SARS-CoV-2/host/location/isolate/date')
+- Clone
+- Collected_By
+- Fwd_Primer_Name
+- Fwd_Primer_Seq
+- Latitude_Longitude
+- Rev_Primer_Name
+- Rev_Primer_Seq
+- Note
+- Bioproject
+- Biosample
+- Sra
 
 Example covid_samples.txt file contents:
 ```
@@ -55,143 +114,130 @@ Where the files named `12345-UT-M03999-200822_S9_L001_R1_001.fastq.gz`, `12345-U
 NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 ```
 
-### Arrange the fastq.gz reads or specify reads paramater
-```
-directory
-|-covid_samples.txt
-|-Sequencing_reads
-   |-Raw
-     |-*fastq.gz
-```
-
-# Usage
-With basic usage:
-```
-nextflow run Cecret.nf -c config/cecret.singularity.nextflow.config
-```
-Resuming a run to create a phylogenetic tree by setting the relatedness paramter to `"true"`
-```
-nextflow run Cecret.nf -c config/cecret.singularity.nextflow.config -resume --relatedness "true"
-```
-
-The main components of Cecret are:
+## The main components of Cecret are:
 
 - [seqyclean](https://github.com/ibest/seqyclean) - for cleaning reads
 - [bwa](http://bio-bwa.sourceforge.net/) - for aligning reads to the reference
-- [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - for trimming primers, calling variants, and creating a consensus fasta
-- [samtools](http://www.htslib.org/) - for QC metrics and sorting
+- [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - calling variants and creating a consensus fasta; optional primer trimmer
+- [samtools](http://www.htslib.org/) - for QC metrics and sorting; optional primer trimmer
 - [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics
 - [bedtools](https://bedtools.readthedocs.io/en/latest/) - for depth estimation over amplicons
+- [bcftools](http://samtools.github.io/bcftools/bcftools.html) - calling variants into vcf file format
 - [kraken2](https://ccb.jhu.edu/software/kraken2/) - for read classification
 - [pangolin](https://github.com/cov-lineages/pangolin) - for lineage classification
 - [mafft](https://mafft.cbrc.jp/alignment/software/) - for multiple sequence alignment (optional, relatedness must be set to "true")
 - [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
 - [iqtree](http://www.iqtree.org/) - for phylogenetic tree generation (optional, relatedness must be set to "true")
 
+
 ## Final file structure
 ```
-directory
-|-covid_samples.txt
-|-run_results.txt                       # information about the sequencing run that's compatible with legacy workflows
+run_results.txt                        # information about the sequencing run that's compatible with legacy workflows
+covid_samples.txt                      # only if supplied initially
+cecret
+|-aligned
+| |-pretrimmed.sorted.bam
+|-bcftools_variants
+| |-sample.variants.vcf
+|-bedtools
+| |-sample.multicov.txt                # depth per amplicon
+|-consensus
+| |-consensus.fa                       # the likely reason you are running this workflow
 |-fastqc
 | |-sample.fastqc.html
 | |-sample.fastqc.zip
+|-iqtree                              # optional: relatedness parameter must be set to true
+| |-iqtree.treefile
+|-ivar_trim
+| |-sample.primertrim.bam             # aligned reads after primer trimming. trimmer parameter must be set to 'ivar'
+|-ivar_variants
+| |-sample.variants.tsv               # list of variants identified via ivar and corresponding scores
+|-kraken2
+| |-sample_kraken2_report.txt         # kraken2 report of the percentage of reads matching virus and human sequences
 |-logs
-| |-process_logs                        # for troubleshooting puroses
-|-Sequencing_reads
-| |-Raw
-| | |-sample_S1_L001_R1_001.fastq.gz    # initial file
-| | |-sample_S1_L001_R2_001.fastq.gz    # inital file
-| |-QCed
-|   |-sample_clean_PE1.fastq            # clean file
-|   |-sample_clean_PE2.fastq            # clean file
-|-covid
-  |-bedtools
-  | |-multicov.txt                      # coverage information for each amplicon
-  |-bwa
-  | |-sample.sorted.bam                 # aligned reads
-  | |-sample.sorted.bam.bai             # indexes
-  |-consensus
-  | |-sample.consensus.fa               # consensus fasta file generated by ivar
-  |-iqtree                              # optional: relatedness parameter must be set to true
-  | |-iqtree.treefile
-  |-ivar_trim
-  | |-sample.primertrim.bam             # aligned reads after primer trimming
-  |-kraken2
-  | |-sample_kraken2_report.txt         # kraken2 report of the percentage of reads matching virus and human sequences
-  |-mafft                               # optional: relatedness parameter must be set to true
-  | |-mafft_aligned.fasta               # multiple sequence alignement generated via mafft
-  |-pangolin
-  | |-sample
-  |   |-lineage_report.csv              # identification of pangolin lineages
-  |-samtools_coverage
-  | |-bwa
-  | | |-sample.cov.hist                 # histogram of coverage for aligned reads
-  | | |-sample.cov.txt                  # tabular information of coverage for aligned reads
-  | |-trimmed
-  |   |-sample.cov.trim.hist            # histogram of coverage for aligned reads after primer trimming
-  |   |-sample.cov.trim.txt             # tabular information of coverage for aligned reads after primer trimming
-  |-samtools_flagstat
-  | |-bwa
-  | | |-sample.flagstat.txt             # samtools stats for aligned reads
-  | |-trimmed
-  |   |-sample.flagstat.trim.txt        # samtools stats for trimmed reads
-  |-samtools_stats
-  | |-bwa
-  | | |-sample.stats.txt                # samtools stats for aligned reads
-  | |-trimmed
-  |   |-sample.stats.trim.txt           # samtools stats for trimmed reads
-  |-snp-dists                           # optional: relatedness parameter must be set to true
-  | |-snp-dists                         # file containing a table of the number of snps that differ between any two samples
-  |-submission_files                    # optional: is only created if covid_samples.txt exists
-  | |-run_id.genbank_submission.fasta   # multifasta for direct genbank
-  | |-run_id.gisaid_submission.fasta    # multifasta file bulk upload to gisaid
-  | |-sample.consensus.fa               # renamed consensus fasta file
-  | |-sample.genbank.fa                 # fasta file with formatting and header including metadata for genbank
-  | |-sample.gisaid.fa                  # fasta file with header for gisaid
-  | |-sample.R1.fastq.gz                # renamed raw fastq.gz file
-  | |-sample.R2.fastq.gz                # renamed raw fastq.gz file
-  |-summary
-  | |-sample.summary.txt
-  |-trimmed
-  | |-sample.primertrim.sorted.bam      # aligned reads after primer trimming and sorting
-  |-variants
-  | |-sample.variants.tsv               # list of variants identified via ivar and corresponding scores
-  |-summary.txt                         # comma separated file with coverage, depth, number of failed amplicons, and number of "N" information
+| |-process_logs                      # for troubleshooting puroses
+|-mafft                               # optional: relatedness parameter must be set to true
+| |-mafft_aligned.fasta               # multiple sequence alignement generated via mafft
+|-pangolin
+| |-sample
+|   |-lineage_report.csv              # identification of pangolin lineages
+|-samtools_coverage
+| |-bwa
+| | |-sample.cov.hist                 # histogram of coverage for aligned reads
+| | |-sample.cov.txt                  # tabular information of coverage for aligned reads
+| |-trimmed
+|   |-sample.cov.trim.hist            # histogram of coverage for aligned reads after primer trimming
+|   |-sample.cov.trim.txt             # tabular information of coverage for aligned reads after primer trimming
+|-samtools_flagstat
+| |-bwa
+| | |-sample.flagstat.txt             # samtools stats for aligned reads
+| |-trimmed
+|   |-sample.flagstat.trim.txt        # samtools stats for trimmed reads
+|-samtools_stats
+| |-bwa
+| | |-sample.stats.txt                # samtools stats for aligned reads
+| |-trimmed
+|   |-sample.stats.trim.txt           # samtools stats for trimmed reads
+|-seqyclean
+| |-sample_clean_PE1.fastq            # clean file
+| |-sample_clean_PE2.fastq            # clean file
+|-snp-dists                           # optional: relatedness parameter must be set to true
+| |-snp-dists                         # file containing a table of the number of snps that differ between any two samples
+|-submission_files                    # optional: is only created if covid_samples.txt exists
+| |-run_id.genbank_submission.fasta   # multifasta for direct genbank
+| |-run_id.gisaid_submission.fasta    # multifasta file bulk upload to gisaid
+| |-sample.consensus.fa               # renamed consensus fasta file
+| |-sample.genbank.fa                 # fasta file with formatting and header including metadata for genbank
+| |-sample.gisaid.fa                  # fasta file with header for gisaid
+| |-sample.R1.fastq.gz                # renamed raw fastq.gz file
+| |-sample.R2.fastq.gz                # renamed raw fastq.gz file
+|-summary
+| |-sample.summary.txt                # individual results
+|-summary.txt                         # tab-delimited summary of results from the workflow
+Sequencing_reads
+|-Raw
+| |-sample_S1_L001_R1_001.fastq.gz    # initial file
+| |-sample_S1_L001_R2_001.fastq.gz    # inital file
+work                                  # nextflows work directory. Likely fairly large.
 ```
 
-# Adjustable Paramters
+# Adjustable Paramters with their defaul values 
+Parameters can be adjusted in a config file or on the command line. Command line adjustments look like --trimmer 'samtools'
 
-All workflow parameters can be adjusted in a config file or on the command line as follows:
+### input and output directories
+params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
+params.outdir = workflow.launchDir + "/cecret"
+params.sample_file = workflow.launchDir + '/covid_samples.txt' (optional)
 
-```
-nextflow run Cecret.nf -c config/cecret.singularity.nextflow.config --outdir new_directory
-```
+### reference files for SARS-CoV-2 (part of the github repository)
+params.reference_genome = workflow.projectDir + "/config/MN908947.3.fasta"
+params.gff_file = workflow.projectDir + "/config/MN908947.3.gff"
+params.primer_bed = workflow.projectDir + "/config/artic_V3_nCoV-2019.bed"
 
-Adjustable workflow paramaters with default values:
-```
-reads = current_directory + '/Sequencing_reads/Raw'
-artic_version = 'V3'
-year = '2020'
-outdir = current_directory
-sample_file = current_directory/covid_samples.txt
-relatedness = false
-```
-For use with staphb/seqyclean:1.10.09 container run with singularity
-```
-seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
-```
-For use with staphb/ivar:1.2.2_artic20200528 container run with singularity
-```
-primer_bed = "/artic-ncov2019/primer_schemes/nCoV-2019/${params.artic_version}/nCoV-2019.bed"
-reference_genome = "/artic-ncov2019/primer_schemes/nCoV-2019/${params.artic_version}/nCoV-2019.reference.fasta"
-gff_file = "/reference/GCF_009858895.2_ASM985889v3_genomic.gff"
-amplicon_bed = "/artic-ncov2019/primer_schemes/nCoV-2019/${params.artic_version}/nCoV-2019_amplicon.bed"
-```
-For use with staphb/kraken2:2.0.8-beta_hv container run with singularity
-```
-kraken2_db="/kraken2-db"
-```
+### for ivar trimming and variant/consensus calling
+params.trimmer = 'ivar'
+params.ivar_quality = 20
+params.ivar_frequencing_threshold = 0.6
+params.ivar_minimum_read_depth = 0
+
+### for optional kraken2 contamination detection
+params.kraken2 = false
+params.kraken2_db = ''
+
+### for optional route of tree generation and counting snps between samples
+params.relatedness = false
+params.max_ambiguous = '0.50'
+params.outgroup = 'MN908947.3'
+
+### CPUS to use
+params.maxcpus = Runtime.runtime.availableProcessors()
+
+### for file submission headers
+params.year = Calendar.getInstance().get(Calendar.YEAR)
+params.country = 'USA'
+
+### contaminant file for seqyclean (inside the seqyclean container)
+params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
 
 ### Other useful options
 To create a report, use `-with-report` with your nextflow command.
