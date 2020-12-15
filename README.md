@@ -205,39 +205,39 @@ work                                  # nextflows work directory. Likely fairly 
 Parameters can be adjusted in a config file or on the command line. Command line adjustments look like --trimmer 'samtools'
 
 ### input and output directories
-params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
-params.outdir = workflow.launchDir + "/cecret"
-params.sample_file = workflow.launchDir + '/covid_samples.txt' (optional)
+* params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
+* params.outdir = workflow.launchDir + "/cecret"
+* params.sample_file = workflow.launchDir + '/covid_samples.txt' (optional)
 
 ### reference files for SARS-CoV-2 (part of the github repository)
-params.reference_genome = workflow.projectDir + "/config/MN908947.3.fasta"
-params.gff_file = workflow.projectDir + "/config/MN908947.3.gff"
-params.primer_bed = workflow.projectDir + "/config/artic_V3_nCoV-2019.bed"
+* params.reference_genome = workflow.projectDir + "/config/MN908947.3.fasta"
+* params.gff_file = workflow.projectDir + "/config/MN908947.3.gff"
+* params.primer_bed = workflow.projectDir + "/config/artic_V3_nCoV-2019.bed"
 
 ### for ivar trimming and variant/consensus calling
-params.trimmer = 'ivar'
-params.ivar_quality = 20
-params.ivar_frequencing_threshold = 0.6
-params.ivar_minimum_read_depth = 0
+* params.trimmer = 'ivar'
+* params.ivar_quality = 20
+* params.ivar_frequencing_threshold = 0.6
+* params.ivar_minimum_read_depth = 0
 
 ### for optional kraken2 contamination detection
-params.kraken2 = false
-params.kraken2_db = ''
+* params.kraken2 = false
+* params.kraken2_db = ''
 
 ### for optional route of tree generation and counting snps between samples
-params.relatedness = false
-params.max_ambiguous = '0.50'
-params.outgroup = 'MN908947.3'
+* params.relatedness = false
+* params.max_ambiguous = '0.50'
+* params.outgroup = 'MN908947.3'
 
 ### CPUS to use
-params.maxcpus = Runtime.runtime.availableProcessors()
+* params.maxcpus = Runtime.runtime.availableProcessors()
 
 ### for file submission headers
-params.year = Calendar.getInstance().get(Calendar.YEAR)
-params.country = 'USA'
+* params.year = Calendar.getInstance().get(Calendar.YEAR)
+* params.country = 'USA'
 
 ### contaminant file for seqyclean (inside the seqyclean container)
-params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
+* params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
 
 ### Other useful options
 To create a report, use `-with-report` with your nextflow command.
