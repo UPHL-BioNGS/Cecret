@@ -1,6 +1,8 @@
 #!/usr/bin/env nextflow
 
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq")
+println("Author: Erin Young")
+println("email: eriny@utah.gov")
 println("Version: v.20201215")
 
 //# nextflow run Cecret/Cecret.nf -c Cecret/config/singularity.config
