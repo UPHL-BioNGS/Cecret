@@ -22,7 +22,7 @@ params.primer_bed = workflow.projectDir + "/config/artic_V3_nCoV-2019.bed"
 params.trimmer = 'ivar'
 params.ivar_quality = 20
 params.ivar_frequencing_threshold = 0.6
-params.ivar_minimum_read_depth = 0
+params.ivar_minimum_read_depth = 10
 params.mpileup_depth = 8000
 
 // for optional kraken2 contamination detection
@@ -384,6 +384,7 @@ process ivar_consensus {
 
   input:
   set val(sample), file(bam) from trimmed_bams2
+  params.reference_genome
 
   output:
   tuple sample, file("consensus/${sample}.consensus.fa") into consensus
