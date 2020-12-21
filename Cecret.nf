@@ -22,7 +22,8 @@ params.primer_bed = workflow.projectDir + "/config/artic_V3_nCoV-2019.bed"
 params.trimmer = 'ivar'
 params.ivar_quality = 20
 params.ivar_frequencing_threshold = 0.6
-params.ivar_minimum_read_depth = 0
+params.ivar_minimum_read_depth = 10
+params.mpileup_depth = 8000
 
 // for optional kraken2 contamination detection
 params.kraken2 = false
@@ -363,7 +364,7 @@ process ivar_variants {
     samtools --version >> $log_file
     ivar version >> $log_file
 
-    samtools mpileup -A -d 600000 -B -Q 0 --reference !{params.reference_genome} !{bam} 2>> $err_file | \
+    samtools mpileup -A -d !{params.mpileup_depth} -B -Q 0 --reference !{params.reference_genome} !{bam} 2>> $err_file | \
       ivar variants -p ivar_variants/!{sample}.variants -q !{params.ivar_quality} -t !{params.ivar_frequencing_threshold} -m !{params.ivar_minimum_read_depth} -r !{params.reference_genome} -g !{params.gff_file} 2>> $err_file >> $log_file
 
     variants_num=$(grep "TRUE" ivar_variants/!{sample}.variants.tsv | wc -l)
@@ -383,6 +384,7 @@ process ivar_consensus {
 
   input:
   set val(sample), file(bam) from trimmed_bams2
+  params.reference_genome
 
   output:
   tuple sample, file("consensus/${sample}.consensus.fa") into consensus
@@ -400,7 +402,7 @@ process ivar_consensus {
     samtools --version >> $log_file
     ivar version >> $log_file
 
-    samtools mpileup -A -d 6000000 -B -Q 0 --reference !{params.reference_genome} !{bam} 2>> $err_file | \
+    samtools mpileup -A -d !{params.mpileup_depth} -B -Q 0 --reference !{params.reference_genome} !{bam} 2>> $err_file | \
       ivar consensus -q !{params.ivar_quality} -t !{params.ivar_frequencing_threshold} -m !{params.ivar_minimum_read_depth} -p consensus/!{sample}.consensus -n N 2>> $err_file >> $log_file
 
     num_N=$(grep -v ">" consensus/!{sample}.consensus.fa | grep -o 'N' | wc -l )
@@ -443,7 +445,7 @@ process bcftools_variants {
     date | tee -a $log_file $err_file > /dev/null
     bcftools --version >> $log_file
 
-    bcftools mpileup -A -d 600000 -B -Q 0 -f !{params.reference_genome} !{bam} 2>> $err_file | \
+    bcftools mpileup -A -d !{params.mpileup_depth} -B -Q 0 -f !{params.reference_genome} !{bam} 2>> $err_file | \
       bcftools call -mv -Ov -o bcftools_variants/!{sample}.vcf 2>> $err_file >> $log_file
 
     variants_num=$(grep -v "#" bcftools_variants/!{sample}.vcf | wc -l)
