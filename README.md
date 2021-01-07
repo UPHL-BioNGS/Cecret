@@ -62,7 +62,7 @@ nextflow run Cecret.nf -c config/singularity.config -resume --trimmer samtools
 ```
 
 ### Using fastp to clean reads instead of seqyclean
-Setting trimmer parameter to `fastp`
+Setting cleaner parameter to `fastp`
 ```
 nextflow run Cecret.nf -c config/singularity.config -resume --cleaner fastp
 ```
