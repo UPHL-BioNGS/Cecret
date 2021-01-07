@@ -50,7 +50,7 @@ nextflow run Cecret.nf -c config/singularity.config
 ## Optional usage:
 
 ### Determining relatedness
-Resuming a create a multiple sequence alignment, phylogenetic tree, and count SNPs by setting the relatedness paramter to `true`
+Resuming the workflow to create a multiple sequence alignment, phylogenetic tree, and count SNPs by setting the relatedness paramter to `true`
 ```
 nextflow run Cecret.nf -c config/singularity.config -resume --relatedness true
 ```
@@ -68,7 +68,6 @@ nextflow run Cecret.nf -c config/singularity.config -resume --cleaner fastp
 ```
 
 ### Classify reads with kraken2
-
 Example download of kraken2 database for human and viral reads (including SARS-CoV-2)
 ```
 mkdir -p kraken2_db
@@ -114,7 +113,7 @@ Lab_Accession	Submission_ID	Collection_Date	SRR
 23456	UT-UPHL-23456	2020-08-22	SRR3
 78901	UT-UPHL-78901	2020-08-18	SRR4
 ```
-Where the files named `12345-UT-M03999-200822_S9_L001_R1_001.fastq.gz`, `12345-UT-M03999-200822_S9_L001_R2_001.fastq.gz` will be renamed `UUT-UPHL-12345.R1.fastq.gz` and `UT-UPHL-12345.R2.fastq.gz`. A consensus file will be duplicated and named `UT-UPHL-12345.consensus.fa`. GISAID and GenBank friendly multifasta files ready for submission are also generated. The GenBank multifasta uses the input file to create fasta headers like
+Where the files named `12345-UT-M03999-200822_S9_L001_R1_001.fastq.gz`, `12345-UT-M03999-200822_S9_L001_R2_001.fastq.gz` will be renamed `UT-UPHL-12345.R1.fastq.gz` and `UT-UPHL-12345.R2.fastq.gz`. A consensus file will be duplicated and named `UT-UPHL-12345.consensus.fa`. GISAID and GenBank friendly multifasta files ready for submission are also generated. The GenBank multifasta uses the input file to create fasta headers like
 ```
 >12345 [Collection_Date=2020-08-22][organism=Severe acute respiratory syndrome coronavirus 2][host=human][country=USA][isolate=SARS-CoV-2/human/USA/12345/2020][SRR=SRR1]
 NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
