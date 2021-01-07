@@ -123,7 +123,7 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 ## The main components of Cecret are:
 
 - [seqyclean](https://github.com/ibest/seqyclean) - for cleaning reads
-- [fastp](https://github.com/OpenGene/fastp) - for cleaning reads ; optional faster alternative to seqyclean
+- [fastp](https://github.com/OpenGene/fastp) - for cleaning reads ; optional, faster alternative to seqyclean
 - [bwa](http://bio-bwa.sourceforge.net/) - for aligning reads to the reference
 - [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - calling variants and creating a consensus fasta; optional primer trimmer
 - [samtools](http://www.htslib.org/) - for QC metrics and sorting; optional primer trimmer
@@ -208,7 +208,7 @@ Sequencing_reads
 work                                  # nextflows work directory. Likely fairly large.
 ```
 
-# Adjustable Paramters with their defaul values
+# Adjustable Paramters with their default values
 Parameters can be adjusted in a config file or on the command line. Command line adjustments look like --trimmer 'samtools'
 
 ### input and output directories
