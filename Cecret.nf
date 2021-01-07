@@ -21,7 +21,7 @@ params.gff_file = workflow.projectDir + "/config/MN908947.3.gff"
 params.primer_bed = workflow.projectDir + "/config/artic_V3_nCoV-2019.bed"
 
 params.trimmer = 'ivar'
-params.cleaner == 'seqyclean'
+params.cleaner = 'seqyclean'
 
 // for ivar
 params.ivar_quality = 20
