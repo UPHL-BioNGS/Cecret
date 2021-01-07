@@ -1,6 +1,6 @@
 # Cecret
 
-Named after the beautiful [Cecret lake](https://en.wikipedia.org/wiki/Cecret_Lake) 
+Named after the beautiful [Cecret lake](https://en.wikipedia.org/wiki/Cecret_Lake)
 
 Location: 40.570°N 111.622°W , 9,875 feet (3,010 m) elevation
 
@@ -30,12 +30,12 @@ so that you can use `git pull` for updates.
    - Nextflow version 20+ is required (`nextflow -v` to check your installation)
 - [Singularity](https://singularity.lbl.gov/install-linux)
 
-or 
-- [Docker](https://docs.docker.com/get-docker/) (*with the caveat that the creator and maintariner uses singularity and may not be able to troublshoot all docker issues*)
+or
+- [Docker](https://docs.docker.com/get-docker/) (*with the caveat that the creator and maintainer uses singularity and may not be able to troubleshoot all docker issues*)
 
 # Usage
 
-### Arrange the fastq.gz reads as follows
+### Arrange the fastq.gz reads as follows or designate directory with `--reads`
 ```
 directory
 |-Sequencing_reads
@@ -58,7 +58,13 @@ nextflow run Cecret.nf -c config/singularity.config -resume --relatedness true
 ### Using samtools to trim amplicons instead of ivar
 Setting trimmer parameter to `samtools`
 ```
-nextflow run Cecret.nf -c config/singularity.config -resume --trimmer 'samtools'
+nextflow run Cecret.nf -c config/singularity.config -resume --trimmer samtools
+```
+
+### Using fastp to clean reads instead of seqyclean
+Setting trimmer parameter to `fastp`
+```
+nextflow run Cecret.nf -c config/singularity.config -resume --cleaner fastp
 ```
 
 ### Classify reads with kraken2
@@ -117,12 +123,12 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 ## The main components of Cecret are:
 
 - [seqyclean](https://github.com/ibest/seqyclean) - for cleaning reads
+- [fastp](https://github.com/OpenGene/fastp) - for cleaning reads ; optional faster alternative to seqyclean
 - [bwa](http://bio-bwa.sourceforge.net/) - for aligning reads to the reference
 - [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - calling variants and creating a consensus fasta; optional primer trimmer
 - [samtools](http://www.htslib.org/) - for QC metrics and sorting; optional primer trimmer
 - [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics
 - [bedtools](https://bedtools.readthedocs.io/en/latest/) - for depth estimation over amplicons
-- [bcftools](http://samtools.github.io/bcftools/bcftools.html) - calling variants into vcf file format
 - [kraken2](https://ccb.jhu.edu/software/kraken2/) - for read classification
 - [pangolin](https://github.com/cov-lineages/pangolin) - for lineage classification
 - [mafft](https://mafft.cbrc.jp/alignment/software/) - for multiple sequence alignment (optional, relatedness must be set to "true")
@@ -132,17 +138,18 @@ NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 
 ## Final file structure
 ```
-run_results.txt                        # information about the sequencing run that's compatible with legacy workflows
-covid_samples.txt                      # only if supplied initially
+run_results.txt                       # information about the sequencing run that's compatible with legacy workflows
+covid_samples.txt                     # only if supplied initially
 cecret
 |-aligned
 | |-pretrimmed.sorted.bam
-|-bcftools_variants
-| |-sample.variants.vcf
 |-bedtools
-| |-sample.multicov.txt                # depth per amplicon
+| |-sample.multicov.txt               # depth per amplicon
 |-consensus
-| |-consensus.fa                       # the likely reason you are running this workflow
+| |-consensus.fa                      # the likely reason you are running this workflow
+|-fastp
+| |-sample_clean_PE1.fastq            # clean file: only if params.cleaner=fastp
+| |-sample_clean_PE2.fastq            # clean file: only if params.cleaner=fastp
 |-fastqc
 | |-sample.fastqc.html
 | |-sample.fastqc.zip
@@ -201,7 +208,7 @@ Sequencing_reads
 work                                  # nextflows work directory. Likely fairly large.
 ```
 
-# Adjustable Paramters with their defaul values 
+# Adjustable Paramters with their defaul values
 Parameters can be adjusted in a config file or on the command line. Command line adjustments look like --trimmer 'samtools'
 
 ### input and output directories
@@ -214,11 +221,16 @@ Parameters can be adjusted in a config file or on the command line. Command line
 * params.gff_file = workflow.projectDir + "/config/MN908947.3.gff"
 * params.primer_bed = workflow.projectDir + "/config/artic_V3_nCoV-2019.bed"
 
-### for ivar trimming and variant/consensus calling
+### toggles for trimmers and cleaner
 * params.trimmer = 'ivar'
+* params.cleaner = 'seqyclean'
+
+### for ivar trimming and variant/consensus calling
+
 * params.ivar_quality = 20
 * params.ivar_frequencing_threshold = 0.6
-* params.ivar_minimum_read_depth = 0
+* params.ivar_minimum_read_depth = 10
+* params.mpileup_depth = 8000
 
 ### for optional kraken2 contamination detection
 * params.kraken2 = false
@@ -228,6 +240,7 @@ Parameters can be adjusted in a config file or on the command line. Command line
 * params.relatedness = false
 * params.max_ambiguous = '0.50'
 * params.outgroup = 'MN908947.3'
+* params.mode='GTR'
 
 ### CPUS to use
 * params.maxcpus = Runtime.runtime.availableProcessors()
