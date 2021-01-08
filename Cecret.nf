@@ -33,6 +33,9 @@ params.mpileup_depth = 8000
 params.kraken2 = false
 params.kraken2_db = ''
 
+// to turn off bedtools
+params.bedtools = true
+
 // for optional route of tree generation and counting snps between samples
 params.relatedness = false
 params.max_ambiguous = '0.50'
@@ -666,6 +669,9 @@ process bedtools {
 
   beforeScript 'mkdir -p bedtools logs/bedtools'
 
+  when:
+  params.bedtools
+
   input:
   set val(sample), file(bam), file(bai) from trimmed_bam_bai
   params.primer_bed
@@ -791,7 +797,7 @@ fastqc_results
   // tuple sample, env(percentage_human), env(percentage_cov) into kraken2_results
   .join(pangolin_results, by: 0)
   // tuple sample, env(pangolin_lineage), env(pangolin_probability), env(pangolin_status) into pangolin_results
-  .join(bedtools_results, by: 0)
+  .join(bedtools_results, remainder: true, by: 0)
   // tuple sample, env(num_failed_amplicons) into bedtools_results
   .join(samtools_ampliconstats_results, by: 0)
   // tuple sample, env(num_failed_amplicons) into samtools_ampliconstats_results
