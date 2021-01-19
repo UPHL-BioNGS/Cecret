@@ -35,13 +35,25 @@ or
 
 # Usage
 
-### Arrange the fastq.gz reads as follows or designate directory with `--reads`
+### Arrange paired-end fastq.gz reads as follows or designate directory with `--reads`
 ```
 directory
 |-Sequencing_reads
    |-Raw
      |-*fastq.gz
 ```
+
+### Arrange single-end fastq.gz reads as follows or designate directory with `--single_reads`
+```
+directory
+|-Sequencing_reads
+   |-Single
+     |-*fastq.gz
+```
+
+WARNING : single and paired-end reads **cannot** be in the same directory
+
+### Start the workflow
 
 ```
 nextflow run Cecret.nf -c config/singularity.config
@@ -118,18 +130,40 @@ Where the files named `12345-UT-M03999-200822_S9_L001_R1_001.fastq.gz`, `12345-U
 >12345 [Collection_Date=2020-08-22][organism=Severe acute respiratory syndrome coronavirus 2][host=human][country=USA][isolate=SARS-CoV-2/human/USA/12345/2020][SRR=SRR1]
 NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 ```
+### Turning off unneeded processes
+It came to my attention that some processes (like bcftools) do not work consistently. Also, they might take longer than wanted and might not even be needed for the end user. Here's the processes that can be turned off with their default values:
+```
+params.prepare_reference = true
+params.bcftools_variants = false      # the container gets a lot of traffic which can error when attempting to download
+params.fastqc = true
+params.ivar_variants = true
+params.samtools_stats = true
+params.samtools_coverage = true
+params.samtools_flagstat = true
+params.samtools_ampliconstats = true
+params.kraken2 = false                # needs a corresponding params.kraken2_db
+params.bedtools = true
+params.nextclade = true
+params.pangolin = true
+params.bamsnap = false                # doesn't actually work
+params.relatedness = false            # actually the toggle for mafft
+params.snpdists = true
+params.iqtree = true
+```
 
 ## The main components of Cecret are:
 
 - [seqyclean](https://github.com/ibest/seqyclean) - for cleaning reads
 - [fastp](https://github.com/OpenGene/fastp) - for cleaning reads ; optional, faster alternative to seqyclean
 - [bwa](http://bio-bwa.sourceforge.net/) - for aligning reads to the reference
+- [minimap2](https://github.com/lh3/minimap2) - an alternative to bwa
 - [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - calling variants and creating a consensus fasta; optional primer trimmer
 - [samtools](http://www.htslib.org/) - for QC metrics and sorting; optional primer trimmer
 - [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics
 - [bedtools](https://bedtools.readthedocs.io/en/latest/) - for depth estimation over amplicons
 - [kraken2](https://ccb.jhu.edu/software/kraken2/) - for read classification
 - [pangolin](https://github.com/cov-lineages/pangolin) - for lineage classification
+- [nextclade](https://clades.nextstrain.org/) - for clade classification
 - [mafft](https://mafft.cbrc.jp/alignment/software/) - for multiple sequence alignment (optional, relatedness must be set to "true")
 - [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
 - [iqtree](http://www.iqtree.org/) - for phylogenetic tree generation (optional, relatedness must be set to "true")
@@ -164,23 +198,25 @@ cecret
 | |-process_logs                      # for troubleshooting puroses
 |-mafft                               # optional: relatedness parameter must be set to true
 | |-mafft_aligned.fasta               # multiple sequence alignement generated via mafft
+|-nextclade                           # identfication of nextclade clades and variants identified
+| |-sample_nextclade_report.csv       # actually a ";" deliminated file
 |-pangolin
 | |-sample
 |   |-lineage_report.csv              # identification of pangolin lineages
 |-samtools_coverage
-| |-bwa
+| |-aligned
 | | |-sample.cov.hist                 # histogram of coverage for aligned reads
 | | |-sample.cov.txt                  # tabular information of coverage for aligned reads
 | |-trimmed
 |   |-sample.cov.trim.hist            # histogram of coverage for aligned reads after primer trimming
 |   |-sample.cov.trim.txt             # tabular information of coverage for aligned reads after primer trimming
 |-samtools_flagstat
-| |-bwa
+| |-aligned
 | | |-sample.flagstat.txt             # samtools stats for aligned reads
 | |-trimmed
 |   |-sample.flagstat.trim.txt        # samtools stats for trimmed reads
 |-samtools_stats
-| |-bwa
+| |-aligned
 | | |-sample.stats.txt                # samtools stats for aligned reads
 | |-trimmed
 |   |-sample.stats.trim.txt           # samtools stats for trimmed reads
@@ -190,8 +226,8 @@ cecret
 |-snp-dists                           # optional: relatedness parameter must be set to true
 | |-snp-dists                         # file containing a table of the number of snps that differ between any two samples
 |-submission_files                    # optional: is only created if covid_samples.txt exists
-| |-run_id.genbank_submission.fasta   # multifasta for direct genbank
-| |-run_id.gisaid_submission.fasta    # multifasta file bulk upload to gisaid
+| |-cecret.genbank_submission.fasta   # multifasta for direct genbank
+| |-cecret.gisaid_submission.fasta    # multifasta file bulk upload to gisaid
 | |-sample.consensus.fa               # renamed consensus fasta file
 | |-sample.genbank.fa                 # fasta file with formatting and header including metadata for genbank
 | |-sample.gisaid.fa                  # fasta file with header for gisaid
@@ -212,6 +248,7 @@ Parameters can be adjusted in a config file or on the command line. Command line
 
 ### input and output directories
 * params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
+* params.single_reads = workflow.launchDir + '/Sequencing_reads/Single'
 * params.outdir = workflow.launchDir + "/cecret"
 * params.sample_file = workflow.launchDir + '/covid_samples.txt' (optional)
 
@@ -223,9 +260,12 @@ Parameters can be adjusted in a config file or on the command line. Command line
 ### toggles for trimmers and cleaner
 * params.trimmer = 'ivar'
 * params.cleaner = 'seqyclean'
+* params.aligner = 'bwa'
+
+### for minimap2
+* params.minimap2_K = '20M'
 
 ### for ivar trimming and variant/consensus calling
-
 * params.ivar_quality = 20
 * params.ivar_frequencing_threshold = 0.6
 * params.ivar_minimum_read_depth = 10
@@ -250,6 +290,7 @@ Parameters can be adjusted in a config file or on the command line. Command line
 
 ### contaminant file for seqyclean (inside the seqyclean container)
 * params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
+* params.seqyclean_minlen = 25
 
 ### Other useful options
 To create a report, use `-with-report` with your nextflow command.
