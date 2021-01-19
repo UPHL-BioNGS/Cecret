@@ -1,15 +1,14 @@
 #!/usr/bin/env nextflow
 
-println("Currently using the Cecret workflow for use with paired-end amplicon-based Illumina hybrid library prep on MiSeq")
+println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.20210115")
+println("Version: v.20210120")
 println("")
 
 //# nextflow run Cecret/Cecret.nf -c Cecret/config/singularity.config
 //nextflow run /home/eriny/sandbox/Cecret/Cecret.nf -c /home/eriny/sandbox/Cecret/config/UPHL.config -resume -with-dag flowchart_$(date +"%H%M%S").png
 // TBA plot-ampliconstats
-// TBA nextclade
 // plot-ampliconstats results_SAMPLEID ampliconstats.txt
 
 params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
@@ -30,6 +29,9 @@ params.primer_bed = workflow.projectDir + "/config/artic_V3_nCoV-2019.bed"
 params.trimmer = 'ivar'
 params.cleaner = 'seqyclean'
 params.aligner  = 'bwa'
+
+// minimap2 paramaters
+params.minimap2_K = '20M' // stolen from monroe
 
 // param that coincides with the staphb/seqyclean:1.10.09 container run with singularity
 params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
@@ -53,6 +55,7 @@ params.samtools_ampliconstats = true
 params.bedtools = true
 params.nextclade = true
 params.pangolin = true
+params.bamsnap = false // currently doesn't work. Don't turn it on until it can do non-human refrences
 
 // for optional contamination determination
 params.kraken2 = false
@@ -191,7 +194,6 @@ process seqyclean {
     kept=''
     perc_kept=''
 
-
     if [ "!{paired_single}" == "single" ]
     then
       seqyclean -minlen !{params.seqyclean_minlen} -qual -c !{params.seqyclean_contaminant_file} -U !{reads} -o seqyclean/!{sample}_cln 2>> $err_file >> $log_file
@@ -313,7 +315,7 @@ process bwa {
 process minimap2 {
   publishDir "${params.outdir}", mode: 'copy', pattern: "logs/minimap2/*.{log,err}"
   tag "${sample}"
-  echo true
+  echo false
   cpus maxcpus
 
   beforeScript 'mkdir -p aligned logs/minimap2'
@@ -340,7 +342,7 @@ process minimap2 {
     minimap2 --version >> $log_file
     minimap2_version=$(echo "minimap2 : "$(minimap2 --version))
 
-    minimap2 -ax sr -t !{task.cpus} -o aligned/!{sample}.sam reference.fasta !{reads} 2>> $err_file >> $log_file
+    minimap2 -K !{params.minimap2_K} -ax sr -t !{task.cpus} -o aligned/!{sample}.sam reference.fasta !{reads} 2>> $err_file >> $log_file
   '''
 }
 //bams3.view()
@@ -528,7 +530,7 @@ process ivar_variants {
   set val(sample), file(bam) from trimmed_bams
 
   output:
-  file("ivar_variants/${sample}.variants.tsv")
+  tuple sample, bam, file("ivar_variants/${sample}.variants.tsv") into ivar_variant_file
   file("logs/ivar_variants/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(variants_num) into ivar_variants_results
 
@@ -597,6 +599,38 @@ process ivar_consensus {
     if [ -z "$num_degenerate" ] ; then num_degenerate="0" ; fi
 
     num_total=$(( $num_N + $num_degenerate + $num_ACTG ))
+  '''
+}
+
+process bamsnap {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "${sample}"
+  echo false
+  cpus 1
+
+  beforeScript "mkdir -p bamsnap/${sample} logs/bamsnap"
+
+  when:
+  params.bamsnap
+
+  input:
+  tuple val(sample), file(bam), file(variants) from ivar_variant_file
+
+  output:
+  tuple sample, file("bamsnap/*png")
+  file("logs/bamsnap/${sample}.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+    log_file=logs/bamsnap/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/bamsnap/!{sample}.!{workflow.sessionId}.err
+
+    date | tee -a $log_file $err_file > /dev/null
+    bamsnap --version >> $log_file
+
+    bamsnap_variants=($(grep -v REGION !{variants} | awk '{ print $1 ":" $2 }' ))
+
+    bamsnap -bam !{bam} -pos ${bamsnap_variants[@]} -out bamsnap/!{sample}/variant.png
   '''
 }
 
@@ -920,7 +954,7 @@ process pangolin {
 process nextclade {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus medcpus
 
   beforeScript 'mkdir -p nextclade logs/nextclade'
@@ -1178,11 +1212,11 @@ process rename_fastq {
   when:
   for(int i =0; i < samples.size(); i++) {
     if(sample.contains(samples[i])) { return true }
-  } && !params.single_end
+  }
 
   output:
   tuple val(sample), env(sample_id), env(submission_id) into submission_ids, submission_ids2
-  file("submission_files/*.{R1,R2}.fastq.gz") optional true
+  file("submission_files/*.fastq.gz")
   file("logs/rename_fastq/${sample}.${workflow.sessionId}.{err,log}")
 
   shell:
@@ -1204,12 +1238,16 @@ process rename_fastq {
       fi
     done < !{sample_file}
 
+    echo !{sample}
+    echo $submission_id
+
     if [ -z "$sample_id" ] ; then sample_id=!{sample} ; fi
     if [ -z "$submission_id" ] ; then submission_id=!{sample} ; fi
 
     if [ "!{paired_single}" == "single" ]
     then
-      cp !{reads} submission_files/$submission_id.fastq.gz
+      echo "single"
+      cp !{reads[0]} submission_files/$submission_id.fastq.gz
     else
       cp !{reads[0]} submission_files/$submission_id.R1.fastq.gz  2>> $err_file
       cp !{reads[1]} submission_files/$submission_id.R2.fastq.gz  2>> $err_file
@@ -1242,7 +1280,7 @@ process prepare_gisaid {
   when:
   for(int i =0; i < samples.size(); i++) {
     if(sample.contains(samples[i])) { return true }
-  } && !params.single_end
+  }
 
   output:
   file("submission_files/${submission_id}.gisaid.fa") into gisaid_fasta
@@ -1278,7 +1316,7 @@ process prepare_genbank {
   when:
   for(int i =0; i < samples.size(); i++) {
     if(sample.contains(samples[i])) { return true }
-  } && !params.single_end
+  }
 
   output:
   file("submission_files/${submission_id}.genbank.fa") into genbank_fasta
@@ -1307,7 +1345,7 @@ process combine_gisaid {
   file(fastas) from gisaid_fasta.collect()
 
   when:
-  if (file(params.sample_file).exists()) { return true } && !params.single_end
+  if (file(params.sample_file).exists()) { return true }
 
   output:
   file("submission_files/*.gisaid_submission.fasta") optional true
@@ -1339,7 +1377,7 @@ process combine_genbank {
   file(fastas) from genbank_fasta.collect()
 
   when:
-  if (file(params.sample_file).exists()) { return true } && !params.single_end
+  if (file(params.sample_file).exists()) { return true }
 
   output:
   file("submission_files/*.genbank_submission.fasta") optional true
