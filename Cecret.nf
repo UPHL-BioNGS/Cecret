@@ -3,16 +3,23 @@
 println("Currently using the Cecret workflow for use with paired-end amplicon-based Illumina hybrid library prep on MiSeq")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.20210107")
+println("Version: v.20210115")
+println("")
 
 //# nextflow run Cecret/Cecret.nf -c Cecret/config/singularity.config
 //nextflow run /home/eriny/sandbox/Cecret/Cecret.nf -c /home/eriny/sandbox/Cecret/config/UPHL.config -resume -with-dag flowchart_$(date +"%H%M%S").png
 // TBA plot-ampliconstats
-// TBA some sort of VCF generator : bcftools had issues downloading from docker
 // TBA nextclade
 // plot-ampliconstats results_SAMPLEID ampliconstats.txt
 
 params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
+params.single_reads = workflow.launchDir + '/Sequencing_reads/Single'
+if ( params.reads == params.single_reads ) {
+  println("params.reads and params.single_reads can not point to the same directory!")
+  println("params.reads is set to " + params.reads)
+  println("params.single_reads is set to " + params.single_reads)
+  exit 1
+}
 params.outdir = workflow.launchDir + '/cecret'
 
 // reference files for SARS-CoV-2 (part of the github repository)
@@ -22,6 +29,11 @@ params.primer_bed = workflow.projectDir + "/config/artic_V3_nCoV-2019.bed"
 
 params.trimmer = 'ivar'
 params.cleaner = 'seqyclean'
+params.aligner  = 'bwa'
+
+// param that coincides with the staphb/seqyclean:1.10.09 container run with singularity
+params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
+params.seqyclean_minlen = 25
 
 // for ivar
 params.ivar_quality = 20
@@ -29,21 +41,30 @@ params.ivar_frequencing_threshold = 0.6
 params.ivar_minimum_read_depth = 10
 params.mpileup_depth = 8000
 
-// for optional kraken2 contamination detection
+// to toggle off processes
+params.prepare_reference = true
+params.bcftools_variants = false
+params.fastqc = true
+params.ivar_variants = true
+params.samtools_stats = true
+params.samtools_coverage = true
+params.samtools_flagstat = true
+params.samtools_ampliconstats = true
+params.bedtools = true
+params.nextclade = true
+params.pangolin = true
+
+// for optional contamination determination
 params.kraken2 = false
 params.kraken2_db = ''
 
-// to turn off bedtools
-params.bedtools = true
-
 // for optional route of tree generation and counting snps between samples
 params.relatedness = false
+params.snpdists = true
+params.iqtree = true
 params.max_ambiguous = '0.50'
 params.outgroup = 'MN908947.3'
 params.mode='GTR'
-
-// TBA : allowing an already prepared reference genome - useful for large genomes
-params.prepare_reference = true
 
 params.maxcpus = Runtime.runtime.availableProcessors()
 maxcpus = params.maxcpus
@@ -80,20 +101,6 @@ if (file(params.primer_bed).exists()) {
 println("The files and directory for results is " + params.outdir)
 println("A table summarizing results will be created: ${params.outdir}/summary.txt and ${workflow.launchDir}/run_results.txt\n")
 
-// param that coincides with the staphb/seqyclean:1.10.09 container run with singularity
-params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
-
-Channel
-  .fromFilePairs(["${params.reads}/*_R{1,2}*.fastq.gz",
-                  "${params.reads}/*_{1,2}.fastq*"], size: 2 )
-  .map{ reads -> [reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1]] }
-  .ifEmpty{
-    println("No paired fastq or fastq.gz files were found at ${params.reads}")
-    exit 1
-  }
-  .into { fastq_reads; fastq_reads2 ; fastq_reads3 ; fastq_reads4 }
-//fastq_reads5.view()
-
 process prepare_reference {
   publishDir "${params.outdir}", mode: 'copy', pattern: "logs/prepare_reference/*{log,err}"
   tag "reference"
@@ -126,6 +133,28 @@ process prepare_reference {
 }
 //reference_genome.view()
 
+Channel
+  .fromFilePairs(["${params.reads}/*_R{1,2}*.fastq.gz",
+                  "${params.reads}/*_{1,2}.fastq*"], size: 2 )
+  .map{ reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], "paired" ) }
+  .set { paired_reads }
+//paired_reads.view()
+
+Channel
+  .fromFilePairs("${params.single_reads}/*.fastq*", size: 1 )
+  .map{ reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], "single" ) }
+  .set { single_reads }
+
+paired_reads
+  .concat(single_reads)
+  .ifEmpty{
+    println("No fastq or fastq.gz files were found. at ${params.single_reads}")
+    println("Set '--reads' to directory with paired-end reads")
+    println("Set '--single_reads' to directory with single-end reads")
+    exit 1
+  }
+  .into { fastq_reads ; fastq_reads2 ; fastq_reads3 ; fastq_reads4 }
+
 process seqyclean {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
@@ -138,15 +167,17 @@ process seqyclean {
   params.cleaner == 'seqyclean'
 
   input:
-  set val(sample), file(reads) from fastq_reads
+  set val(sample), file(reads), val(paired_single) from fastq_reads
 
   output:
-  tuple sample, file("seqyclean/${sample}_clean_PE{1,2}.fastq") into seqyclean_files
-  file("seqyclean/${sample}_clean_SE.fastq")
-  file("seqyclean/${sample}_clean_SummaryStatistics.{txt,tsv}")
+  tuple sample, file("seqyclean/${sample}_clean_PE{1,2}.fastq") optional true into seqyclean_paired_files
+  tuple sample, file("seqyclean/${sample}_cln_SE.fastq") optional true into seqyclean_single_file
+  tuple sample, file("seqyclean/${sample}_clean_PE{1,2}.fastq"), val(paired_single) optional true into seqyclean_paired_files_classification
+  tuple sample, file("seqyclean/${sample}_cln_SE.fastq"), val(paired_single) optional true into seqyclean_single_file_classification
+  file("seqyclean/${sample}_cl*n_SummaryStatistics.{txt,tsv}")
   file("logs/seqyclean/${sample}.${workflow.sessionId}.{log,err}")
-  tuple sample, env(perc_kept) into seqyclean_results_perc_kept
-  tuple sample, env(pairskept) into seqyclean_results_pairskept
+  tuple sample, env(kept) into seqyclean_perc_kept_results
+  tuple sample, env(pairskept) into seqyclean_pairskept_results
 
   shell:
   '''
@@ -157,11 +188,22 @@ process seqyclean {
     date | tee -a $log_file $err_file > /dev/null
     echo "seqyclean version: $(seqyclean -h | grep Version)" >> $log_file
 
-    seqyclean -minlen 25 -qual -c !{params.seqyclean_contaminant_file} -1 !{reads[0]} -2 !{reads[1]} -o seqyclean/!{sample}_clean 2>> $err_file >> $log_file
-    pairskept=$(cut -f 58 seqyclean/!{sample}_clean_SummaryStatistics.tsv | grep -v "PairsKept" | head -n 1)
-    perc_kept=$(cut -f 59 seqyclean/!{sample}_clean_SummaryStatistics.tsv | grep -v "Perc_Kept" | head -n 1)
+    kept=''
+    perc_kept=''
 
-    if [ -z "$pairskept" ] ; then pairskept="0" ; fi
+
+    if [ "!{paired_single}" == "single" ]
+    then
+      seqyclean -minlen !{params.seqyclean_minlen} -qual -c !{params.seqyclean_contaminant_file} -U !{reads} -o seqyclean/!{sample}_cln 2>> $err_file >> $log_file
+      kept=$(cut -f 36 seqyclean/!{sample}_cln_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
+      perc_kept=$(cut -f 37 seqyclean/!{sample}_cln_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
+    else
+      seqyclean -minlen !{params.seqyclean_minlen} -qual -c !{params.seqyclean_contaminant_file} -1 !{reads[0]} -2 !{reads[1]} -o seqyclean/!{sample}_clean 2>> $err_file >> $log_file
+      kept=$(cut -f 58 seqyclean/!{sample}_clean_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
+      perc_kept=$(cut -f 59 seqyclean/!{sample}_clean_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
+    fi
+
+    if [ -z "$kept" ] ; then kept="0" ; fi
     if [ -z "$perc_kept" ] ; then perc_kept="0" ; fi
   '''
 }
@@ -178,10 +220,13 @@ process fastp {
   params.cleaner == 'fastp'
 
   input:
-  set val(sample), file(reads) from fastq_reads4
+  set val(sample), file(reads), val(paired_single) from fastq_reads4
 
   output:
-  tuple sample, file("fastp/${sample}_clean_PE{1,2}.fastq.gz") into fastp_files
+  tuple sample, file("fastp/${sample}_clean_PE{1,2}.fastq.gz") optional true into fastp_paired_files
+  tuple sample, file("fastp/${sample}_cln.fastq.gz") optional true into fastp_single_file
+  tuple sample, file("fastp/${sample}_clean_PE{1,2}.fastq.gz"), val(paired_single) optional true into fastp_paired_files_classification
+  tuple sample, file("fastp/${sample}_cln.fastq.gz"), val(paired_single) optional true into fastp_single_file_classification
   file("fastp/${sample}_fastp.{html,json}")
   file("logs/fastp/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(passed_reads) into fastp_results
@@ -195,57 +240,39 @@ process fastp {
     date | tee -a $log_file $err_file > /dev/null
     fastp --version >> $log_file
 
-    fastp -i !{reads[0]} \
-      -I !{reads[1]} \
-      -o fastp/!{sample}_clean_PE1.fastq.gz \
-      -O fastp/!{sample}_clean_PE2.fastq.gz \
-      -h fastp/!{sample}_fastp.html \
-      -j fastp/!{sample}_fastp.json \
-      2>> $err_file >> $log_file
+    if [ "!{paired_single}" == "single" ]
+    then
+      fastp -i !{reads} \
+        -o fastp/!{sample}_cln.fastq.gz \
+        -h fastp/!{sample}_fastp.html \
+        -j fastp/!{sample}_fastp.json \
+        2>> $err_file >> $log_file
+    else
+      fastp -i !{reads[0]} \
+        -I !{reads[1]} \
+        -o fastp/!{sample}_clean_PE1.fastq.gz \
+        -O fastp/!{sample}_clean_PE2.fastq.gz \
+        -h fastp/!{sample}_fastp.html \
+        -j fastp/!{sample}_fastp.json \
+        2>> $err_file >> $log_file
+    fi
 
     passed_reads=$(grep "reads passed filter" $err_file | tail -n 1 | cut -f 2 -d ":" | sed 's/ //g' )
     if [ -z "$passed_reads" ] ; then passed_reads="0" ; fi
   '''
 }
 
-process fastqc {
-  publishDir "${params.outdir}", mode: 'copy'
-  tag "$sample"
-  echo false
-  cpus 1
-
-  beforeScript 'mkdir -p fastqc logs/fastqc'
-
-  input:
-  set val(sample), file(raw) from fastq_reads2
-
-  output:
-  file("fastqc/*.{html,zip}")
-  tuple sample, env(raw_1), env(raw_2) into fastqc_results
-  file("logs/fastqc/${sample}.${workflow.sessionId}.{log,err}")
-
-  shell:
-  '''
-    log_file=logs/fastqc/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/fastqc/!{sample}.!{workflow.sessionId}.err
-
-    # time stamp + capturing tool versions
-    date | tee -a $log_file $err_file > /dev/null
-    fastqc --version >> $log_file
-
-    fastqc --outdir fastqc --threads !{task.cpus} !{sample}*.fastq* 2>> $err_file >> $log_file
-
-    raw_1=$(unzip -p fastqc/!{raw[0].simpleName}*fastqc.zip */fastqc_data.txt | grep "Total Sequences" | awk '{ print $3 }' )
-    raw_2=$(unzip -p fastqc/!{raw[1].simpleName}*fastqc.zip */fastqc_data.txt | grep "Total Sequences" | awk '{ print $3 }' )
-
-    if [ -z "$raw_1" ] ; then raw_1="0" ; fi
-    if [ -z "$raw_2" ] ; then raw_2="0" ; fi
-  '''
-}
-
-seqyclean_files
-  .concat(fastp_files)
+seqyclean_paired_files
+  .concat(fastp_paired_files)
+  .concat(seqyclean_single_file)
+  .concat(fastp_single_file)
   .into { clean_reads ; clean_reads2 }
+
+seqyclean_paired_files_classification
+  .concat(fastp_paired_files_classification)
+  .concat(seqyclean_single_file_classification)
+  .concat(fastp_single_file_classification)
+  .set { clean_read_classification }
 
 process bwa {
   publishDir "${params.outdir}", mode: 'copy', pattern: "logs/bwa/*.{log,err}"
@@ -255,12 +282,15 @@ process bwa {
 
   beforeScript 'mkdir -p aligned logs/bwa'
 
+  when:
+  params.aligner == 'bwa'
+
   input:
   set val(sample), file(reads) from clean_reads
   file(reference_genome) from reference_genome
 
   output:
-  tuple sample, file("aligned/${sample}.sam") into sams
+  tuple sample, file("aligned/${sample}.sam") into bwa_sams
   file("logs/bwa/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(bwa_version) into bwa_version
 
@@ -272,13 +302,98 @@ process bwa {
     # time stamp + capturing tool versions
     date | tee -a $log_file $err_file > /dev/null
     echo "bwa $(bwa 2>&1 | grep Version )" >> $log_file
-    bwa_version=$(bwa 2>&1 | grep Version)
+    bwa_version="bwa : "$(bwa 2>&1 | grep Version)
 
     # bwa mem command
-    bwa mem -t !{maxcpus} reference.fasta !{reads[0]} !{reads[1]} 2>> $err_file > aligned/!{sample}.sam
+    bwa mem -t !{task.cpus} reference.fasta !{reads} 2>> $err_file > aligned/!{sample}.sam
   '''
 }
 //bams3.view()
+
+process minimap2 {
+  publishDir "${params.outdir}", mode: 'copy', pattern: "logs/minimap2/*.{log,err}"
+  tag "${sample}"
+  echo true
+  cpus maxcpus
+
+  beforeScript 'mkdir -p aligned logs/minimap2'
+
+  when:
+  params.aligner == 'minimap2'
+
+  input:
+  set val(sample), file(reads) from clean_reads2
+  file(reference_genome) from reference_genome
+
+  output:
+  tuple sample, file("aligned/${sample}.sam") into minimap2_sams
+  file("logs/minimap2/${sample}.${workflow.sessionId}.{log,err}")
+  tuple sample, env(minimap2_version) into minimap2_version
+
+  shell:
+  '''
+    log_file=logs/minimap2/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/minimap2/!{sample}.!{workflow.sessionId}.err
+
+    # time stamp + capturing tool versions
+    date | tee -a $log_file $err_file > /dev/null
+    minimap2 --version >> $log_file
+    minimap2_version=$(echo "minimap2 : "$(minimap2 --version))
+
+    minimap2 -ax sr -t !{task.cpus} -o aligned/!{sample}.sam reference.fasta !{reads} 2>> $err_file >> $log_file
+  '''
+}
+//bams3.view()
+
+bwa_version
+  .concat(minimap2_version)
+  .set { aligner_version }
+
+bwa_sams
+  .concat(minimap2_sams)
+  .set { sams }
+
+process fastqc {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "$sample"
+  echo false
+  cpus 1
+
+  beforeScript 'mkdir -p fastqc logs/fastqc'
+
+  when:
+  params.fastqc
+
+  input:
+  set val(sample), file(raw), val(type) from fastq_reads2
+
+  output:
+  file("fastqc/*.{html,zip}")
+  tuple sample, env(raw_1) into fastqc_1_results
+  tuple sample, env(raw_2) into fastqc_2_results
+  file("logs/fastqc/${sample}.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+    log_file=logs/fastqc/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/fastqc/!{sample}.!{workflow.sessionId}.err
+
+    # time stamp + capturing tool versions
+    date | tee -a $log_file $err_file > /dev/null
+    fastqc --version >> $log_file
+
+    fastqc --outdir fastqc --threads !{task.cpus} !{raw} 2>> $err_file >> $log_file
+
+    zipped_fastq=($(ls fastqc/*fastqc.zip) "")
+
+    raw_1=$(unzip -p ${zipped_fastq[0]} */fastqc_data.txt | grep "Total Sequences" | awk '{ print $3 }' )
+    raw_2=NA
+    if [ -f "${zipped_fastq[1]}" ] ; then raw_2=$(unzip -p fastqc/*fastqc.zip */fastqc_data.txt | grep "Total Sequences" | awk '{ print $3 }' ) ; fi
+
+    if [ -z "$raw_1" ] ; then raw_1="0" ; fi
+    if [ -z "$raw_2" ] ; then raw_2="0" ; fi
+  '''
+}
 
 process sort {
   publishDir "${params.outdir}", mode: 'copy'
@@ -390,7 +505,7 @@ process samtools_trim {
 
 ivar_bams
   .concat(samtools_bams)
-  .into { trimmed_bams ; trimmed_bams2 ; trimmed_bams4 ; trimmed_bams5 }
+  .into { trimmed_bams ; trimmed_bams2 ; trimmed_bams3 ; trimmed_bams4 ; trimmed_bams5 }
 //trimmed_bams3.view()
 
 ivar_bam_bai
@@ -405,6 +520,9 @@ process ivar_variants {
   cpus 1
 
   beforeScript 'mkdir -p ivar_variants logs/ivar_variants'
+
+  when:
+  params.ivar_variants
 
   input:
   set val(sample), file(bam) from trimmed_bams
@@ -447,7 +565,7 @@ process ivar_consensus {
   params.reference_genome
 
   output:
-  tuple sample, file("consensus/${sample}.consensus.fa") into consensus
+  tuple sample, file("consensus/${sample}.consensus.fa") into consensus, consensus2
   tuple sample, file("consensus/qc_consensus/15000/${sample}.consensus.fa") optional true into qc_consensus_15000, qc_consensus_15000_mafft
   tuple sample, file("consensus/qc_consensus/25000/${sample}.consensus.fa") optional true into qc_consensus_25000
   file("logs/ivar_consensus/${sample}.${workflow.sessionId}.{log,err}")
@@ -482,44 +600,47 @@ process ivar_consensus {
   '''
 }
 
-// the bcftools container has issues downloading, so this is shelved for now
-// process bcftools_variants {
-//   publishDir "${params.outdir}", mode: 'copy'
-//   tag "${sample}"
-//   echo false
-//   cpus 1
-//
-//   beforeScript 'mkdir -p bcftools_variants logs/bcftools_variants'
-//
-//   input:
-//   set val(sample), file(bam) from trimmed_bams3
-//
-//   output:
-//   file("bcftools_variants/${sample}.vcf")
-//   file("logs/bcftools_variants/${sample}.${workflow.sessionId}.{log,err}")
-//   tuple sample, env(variants_num) into bcftools_variants_results
-//
-//   shell:
-//   '''
-//     log_file=logs/bcftools_variants/!{sample}.!{workflow.sessionId}.log
-//     err_file=logs/bcftools_variants/!{sample}.!{workflow.sessionId}.err
-//
-//     # time stamp + capturing tool versions
-//     date | tee -a $log_file $err_file > /dev/null
-//     bcftools --version >> $log_file
-//
-//     bcftools mpileup -A -d !{params.mpileup_depth} -B -Q 0 -f !{params.reference_genome} !{bam} 2>> $err_file | \
-//       bcftools call -mv -Ov -o bcftools_variants/!{sample}.vcf 2>> $err_file >> $log_file
-//
-//     variants_num=$(grep -v "#" bcftools_variants/!{sample}.vcf | wc -l)
-//     if [ -z "$variants_num" ] ; then variants_num="0" ; fi
-//   '''
-// }
-// //bcftools_variants.view()
+process bcftools_variants {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "${sample}"
+  echo false
+  cpus 1
+
+  beforeScript 'mkdir -p bcftools_variants logs/bcftools_variants'
+
+  when:
+  params.bcftools_variants
+
+  input:
+  set val(sample), file(bam) from trimmed_bams3
+
+  output:
+  file("bcftools_variants/${sample}.vcf")
+  file("logs/bcftools_variants/${sample}.${workflow.sessionId}.{log,err}")
+  tuple sample, env(variants_num) into bcftools_variants_results
+
+  shell:
+  '''
+    log_file=logs/bcftools_variants/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/bcftools_variants/!{sample}.!{workflow.sessionId}.err
+
+    # time stamp + capturing tool versions
+    date | tee -a $log_file $err_file > /dev/null
+    bcftools --version >> $log_file
+
+    bcftools mpileup -A -d !{params.mpileup_depth} -B -Q 0 -f !{params.reference_genome} !{bam} 2>> $err_file | \
+      bcftools call -mv -Ov -o bcftools_variants/!{sample}.vcf 2>> $err_file >> $log_file
+
+    variants_num=$(grep -v "#" bcftools_variants/!{sample}.vcf | wc -l)
+    if [ -z "$variants_num" ] ; then variants_num="0" ; fi
+  '''
+}
+//bcftools_variants.view()
 
 pre_trim_bams3
    .combine(trimmed_bams4, by: 0)
    .into { pre_post_bams ; pre_post_bams2 ; pre_post_bams3 }
+//pre_post_bams2.view()
 
 process samtools_stats {
   publishDir "${params.outdir}", mode: 'copy'
@@ -527,13 +648,16 @@ process samtools_stats {
   echo false
   cpus 1
 
-  beforeScript 'mkdir -p samtools_stats/bwa samtools_stats/trimmed logs/samtools_stats'
+  beforeScript 'mkdir -p samtools_stats/aligned samtools_stats/trimmed logs/samtools_stats'
+
+  when:
+  params.samtools_stats
 
   input:
-  set val(sample), file(bam), file(sorted_bam) from pre_post_bams
+  set val(sample), file(aligned), file(trimmed) from pre_post_bams
 
   output:
-  file("samtools_stats/bwa/${sample}.stats.txt")
+  file("samtools_stats/aligned/${sample}.stats.txt")
   file("samtools_stats/trimmed/${sample}.stats.trim.txt")
   file("logs/samtools_stats/${sample}.${workflow.sessionId}.{log,err}")
 
@@ -545,8 +669,8 @@ process samtools_stats {
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
 
-    samtools stats !{bam} 2>> $err_file > samtools_stats/bwa/!{sample}.stats.txt
-    samtools stats !{sorted_bam} 2>> $err_file > samtools_stats/trimmed/!{sample}.stats.trim.txt
+    samtools stats !{aligned} 2>> $err_file > samtools_stats/aligned/!{sample}.stats.txt
+    samtools stats !{trimmed} 2>> $err_file > samtools_stats/trimmed/!{sample}.stats.trim.txt
   '''
 }
 
@@ -556,16 +680,20 @@ process samtools_coverage {
   echo false
   cpus 1
 
-  beforeScript 'mkdir -p samtools_coverage/bwa samtools_coverage/trimmed logs/samtools_coverage'
+  beforeScript 'mkdir -p samtools_coverage/aligned samtools_coverage/trimmed logs/samtools_coverage'
+
+  when:
+  params.samtools_coverage
 
   input:
-  set val(sample), file(bwa), file(sorted) from pre_post_bams2
+  set val(sample), file(aligned), file(trimmed) from pre_post_bams2
 
   output:
-  file("samtools_coverage/bwa/${sample}.cov.{txt,hist}")
+  file("samtools_coverage/aligned/${sample}.cov.{txt,hist}")
   file("samtools_coverage/trimmed/${sample}.cov.trim.{txt,hist}")
   file("logs/samtools_coverage/${sample}.${workflow.sessionId}.{log,err}")
-  tuple sample, env(coverage), env(depth) into samtools_coverage_results
+  tuple sample, env(coverage) into samtools_coverage_results
+  tuple sample, env(depth) into samtools_depth_results
 
   shell:
   '''
@@ -575,11 +703,10 @@ process samtools_coverage {
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
 
-
-    samtools coverage !{bwa} -m -o samtools_coverage/bwa/!{sample}.cov.hist 2>> $err_file >> $log_file
-    samtools coverage !{bwa} -o samtools_coverage/bwa/!{sample}.cov.txt 2>> $err_file >> $log_file
-    samtools coverage !{sorted} -m -o samtools_coverage/trimmed/!{sample}.cov.trim.hist 2>> $err_file >> $log_file
-    samtools coverage !{sorted} -o samtools_coverage/trimmed/!{sample}.cov.trim.txt 2>> $err_file >> $log_file
+    samtools coverage !{aligned} -m -o samtools_coverage/aligned/!{sample}.cov.hist 2>> $err_file >> $log_file
+    samtools coverage !{aligned} -o samtools_coverage/aligned/!{sample}.cov.txt 2>> $err_file >> $log_file
+    samtools coverage !{trimmed} -m -o samtools_coverage/trimmed/!{sample}.cov.trim.hist 2>> $err_file >> $log_file
+    samtools coverage !{trimmed} -o samtools_coverage/trimmed/!{sample}.cov.trim.txt 2>> $err_file >> $log_file
 
     coverage=$(cut -f 6 samtools_coverage/trimmed/!{sample}.cov.trim.txt | tail -n 1)
     depth=$(cut -f 7 samtools_coverage/trimmed/!{sample}.cov.trim.txt | tail -n 1)
@@ -594,13 +721,16 @@ process samtools_flagstat {
   echo false
   cpus 1
 
-  beforeScript 'mkdir -p samtools_flagstat/bwa samtools_flagstat/trimmed logs/samtools_flagstat'
+  beforeScript 'mkdir -p samtools_flagstat/aligned samtools_flagstat/trimmed logs/samtools_flagstat'
 
   input:
-  set val(sample), file(bwa), file(trimmed) from pre_post_bams3
+  set val(sample), file(aligned), file(trimmed) from pre_post_bams3
+
+  when:
+  params.samtools_flagstat
 
   output:
-  file("samtools_flagstat/{bwa,trimmed}/${sample}.flagstat.txt")
+  file("samtools_flagstat/{aligned,trimmed}/${sample}.flagstat.txt")
   file("logs/samtools_flagstat/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -611,7 +741,7 @@ process samtools_flagstat {
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
 
-    samtools flagstat !{bwa} 2>> $err_file > samtools_flagstat/bwa/!{sample}.flagstat.txt
+    samtools flagstat !{aligned} 2>> $err_file > samtools_flagstat/aligned/!{sample}.flagstat.txt
     samtools flagstat !{trimmed} 2>> $err_file > samtools_flagstat/trimmed/!{sample}.flagstat.txt
   '''
 }
@@ -628,13 +758,13 @@ process kraken2 {
   params.kraken2
 
   input:
-  set val(sample), file(clean) from clean_reads2
+  set val(sample), file(clean), val(paired_single) from clean_read_classification
 
   output:
   file("kraken2/${sample}_kraken2_report.txt")
   file("logs/kraken2/${sample}.${workflow.sessionId}.{log,err}")
-  tuple sample, env(percentage_cov) into kraken2_result_cov
-  tuple sample, env(percentage_human) into kraken2_result_human
+  tuple sample, env(percentage_cov) into kraken2_sars_results
+  tuple sample, env(percentage_human) into kraken2_human_results
 
   shell:
   '''
@@ -644,13 +774,24 @@ process kraken2 {
     date | tee -a $log_file $err_file > /dev/null
     kraken2 --version >> $log_file
 
-    kraken2 --paired \
-      --classified-out cseqs#.fq \
-      --threads !{task.cpus} \
-      --db !{params.kraken2_db} \
-      !{clean[0]} !{clean[1]} \
-      --report kraken2/!{sample}_kraken2_report.txt \
-      2>> $err_file >> $log_file
+    if [ "!{paired_single}" == "single" ]
+    then
+      kraken2 \
+        --classified-out cseqs#.fq \
+        --threads !{task.cpus} \
+        --db !{params.kraken2_db} \
+        !{clean} \
+        --report kraken2/!{sample}_kraken2_report.txt \
+        2>> $err_file >> $log_file
+    else
+      kraken2 --paired \
+        --classified-out cseqs#.fq \
+        --threads !{task.cpus} \
+        --db !{params.kraken2_db} \
+        !{clean} \
+        --report kraken2/!{sample}_kraken2_report.txt \
+        2>> $err_file >> $log_file
+    fi
 
     percentage_human=$(grep "Homo sapiens" kraken2/!{sample}_kraken2_report.txt | awk '{print $1}')
     percentage_cov=$(grep "Severe acute respiratory syndrome coronavirus 2" kraken2/!{sample}_kraken2_report.txt | awk '{print $1}')
@@ -710,6 +851,9 @@ process samtools_ampliconstats {
 
   beforeScript 'mkdir -p samtools_ampliconstats logs/samtools_ampliconstats'
 
+  when:
+  params.samtools_ampliconstats
+
   input:
   set val(sample), file(bam) from trimmed_bams5
   params.primer_bed
@@ -742,12 +886,16 @@ process pangolin {
 
   beforeScript 'mkdir -p pangolin logs/pangolin'
 
+  when:
+  params.pangolin
+
   input:
   set val(sample), file(fasta) from consensus
 
   output:
   file("pangolin/${sample}/lineage_report.csv")
-  tuple sample, env(pangolin_lineage), env(pangolin_probability), env(pangolin_status) into pangolin_results
+  tuple sample, env(pangolin_lineage) into pangolin_lineage_results
+  tuple sample, env(pangolin_status) into pangolin_status_results
   file("logs/pangolin/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -762,47 +910,66 @@ process pangolin {
     pangolin --threads !{task.cpus} --outdir pangolin/!{sample} !{fasta} 2>> $err_file >> $log_file
 
     pangolin_lineage=$(tail -n 1 pangolin/!{sample}/lineage_report.csv | cut -f 2 -d "," | grep -v "lineage" )
-    while [ -z "$pangolin_lineage" ]
-    do
-      pangolin --threads !{task.cpus} --outdir pangolin/!{sample} !{fasta} 2>> $err_file >> $log_file
-      pangolin_lineage=$(tail -n 1 pangolin/!{sample}/lineage_report.csv | cut -f 2 -d "," | grep -v "lineage" )
-    done
-
-    pangolin_probability=$(tail -n 1 pangolin/!{sample}/lineage_report.csv | cut -f 3 -d "," )
     pangolin_status=$(tail -n 1 pangolin/!{sample}/lineage_report.csv | cut -f 5 -d "," )
 
     if [ -z "$pangolin_lineage" ] ; then pangolin_lineage="NA" ; fi
-    if [ -z "$pangolin_probability" ] ; then pangolin_probability="NA" ; fi
     if [ -z "$pangolin_status" ] ; then pangolin_status="NA" ; fi
   '''
 }
 
-fastqc_results
-  // tuple sample, env(raw_1), env(raw_2) into fastqc_results
-  .join(seqyclean_results_pairskept, remainder: true, by: 0)
-  .join(seqyclean_results_perc_kept, remainder: true, by: 0)
-  // tuple sample, env(pairskept), env(perc_kept) into seqyclean_results
+process nextclade {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "${sample}"
+  echo true
+  cpus medcpus
+
+  beforeScript 'mkdir -p nextclade logs/nextclade'
+
+  when:
+  params.nextclade
+
+  input:
+  set val(sample), file(fasta) from consensus2
+
+  output:
+  file("nextclade/${sample}_nextclade_report.csv")
+  tuple sample, env(nextclade_clade) into nextclade_clade_results
+  file("logs/nextclade/${sample}.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+    log_file=logs/nextclade/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/nextclade/!{sample}.!{workflow.sessionId}.err
+
+    date | tee -a $log_file $err_file > /dev/null
+    nextclade --version >> $log_file
+
+    nextclade --jobs !{task.cpus} --input-fasta !{fasta} --output-csv nextclade/!{sample}_nextclade_report.csv 2>> $err_file >> $log_file
+    nextclade_clade=$(cat nextclade/!{sample}_nextclade_report.csv | grep !{sample} | cut -f 2 -d ";" | head -n 1 )
+    if [ -z "$nextclade_clade" ] ; then nextclade_clade="clade" ; fi
+  '''
+}
+
+consensus_results
+//tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
+  .join(fastqc_1_results, remainder: true, by: 0)
+  .join(fastqc_2_results, remainder: true, by: 0)
+  .join(seqyclean_pairskept_results, remainder: true, by: 0)
+  .join(seqyclean_perc_kept_results, remainder: true, by: 0)
   .join(fastp_results, remainder: true, by: 0)
-  // tuple sample, env(reads_passed) into fastp_results
-  .join(ivar_variants_results, by: 0)
-  // tuple sample, env(variants_num) into ivar_variants_results
-  //.combine(bcftools_variants_results, by:0) // removed because the bcftools container errors too often. To be added later.
-  // tuple sample, env(variants_num) into bcftools_variants_results
-  .join(consensus_results, by: 0)
-  // tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
-  .join(samtools_coverage_results, by: 0)
-  // tuple sample, env(coverage), env(depth) into samtools_coverage_results
-  .join(kraken2_result_human, remainder: true, by: 0)
-  .join(kraken2_result_cov, remainder: true, by: 0)
-  // tuple sample, env(percentage_human), env(percentage_cov) into kraken2_results
-  .join(pangolin_results, by: 0)
-  // tuple sample, env(pangolin_lineage), env(pangolin_probability), env(pangolin_status) into pangolin_results
+  .join(ivar_variants_results, remainder: true, by: 0)
+  .join(bcftools_variants_results, remainder: true, by:0)
+  .join(samtools_coverage_results, remainder: true, by: 0)
+  .join(samtools_depth_results, remainder: true, by: 0)
+  .join(kraken2_human_results, remainder: true, by: 0)
+  .join(kraken2_sars_results, remainder: true, by: 0)
+  .join(pangolin_lineage_results, remainder: true, by: 0)
+  .join(pangolin_status_results, remainder: true, by: 0)
+  .join(nextclade_clade_results, remainder: true, by: 0)
   .join(bedtools_results, remainder: true, by: 0)
-  // tuple sample, env(num_failed_amplicons) into bedtools_results
-  .join(samtools_ampliconstats_results, by: 0)
-  // tuple sample, env(num_failed_amplicons) into samtools_ampliconstats_results
-  .join(bwa_version)
-  .join(ivar_version)
+  .join(samtools_ampliconstats_results, remainder: true, by: 0)
+  .join(aligner_version, remainder: true, by:0)
+  .join(ivar_version, remainder: true, by: 0)
   .set { results }
 //results2.view()
 
@@ -815,16 +982,21 @@ process summary {
   beforeScript 'mkdir -p summary logs/summary'
 
   input:
-  set val(sample),
-    val(raw_1), val(raw_2),
-    val(pairskept), val(perc_kept),
+  set val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
+    val(raw_1),
+    val(raw_2),
+    val(pairskept),
+    val(perc_kept),
     val(reads_passed),
     val(ivar_variants),
-    //val(bcftools_variants), commented out because bcftools doesn't download all the time
-    val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
-    val(coverage), val(depth),
-    val(percentage_human), val(percentage_cov),
-    val(pangolin_lineage), val(pangolin_probability), val(pangolin_status),
+    val(bcftools_variants),
+    val(coverage),
+    val(depth),
+    val(percentage_human),
+    val(percentage_cov),
+    val(pangolin_lineage),
+    val(pangolin_status),
+    val(nextclade_clade),
     val(bedtools_num_failed_amplicons),
     val(samtools_num_failed_amplicons),
     val(bwa_version),
@@ -843,8 +1015,8 @@ process summary {
 
     sample_id=$(echo !{sample} | cut -f 1 -d "-" )
 
-    echo -e "sample_id\tsample\tbwa_version\tivar_version\tpangolin_lineage\tpangolin_probability\tpangolin_status\tfastqc_raw_reads_1\tfastqc_raw_reads_2\tseqyclean_pairs_kept_after_cleaning\tseqyclean_percent_kept_after_cleaning\tfastp_reads_passed\tdepth_after_trimming\tcoverage_after_trimming\t%_human_reads\t%_SARS-COV-2_reads\tivar_num_variants_identified\tbedtools_num_failed_amplicons\tsamtools_num_failed_amplicons\tnum_N\tnum_degenerage\tnum_ACTG\tnum_total" > summary/!{sample}.summary.txt
-    echo -e "${sample_id}\t!{sample}\t!{bwa_version}\t!{ivar_version}\t!{pangolin_lineage}\t!{pangolin_probability}\t!{pangolin_status}\t!{raw_1}\t!{raw_2}\t!{pairskept}\t!{perc_kept}\t!{reads_passed}\t!{depth}\t!{coverage}\t!{percentage_human}\t!{percentage_cov}\t!{ivar_variants}\t!{bedtools_num_failed_amplicons}\t!{samtools_num_failed_amplicons}\t!{num_N}\t!{num_degenerate}\t!{num_ACTG}\t!{num_total}" >> summary/!{sample}.summary.txt
+    echo -e "sample_id\tsample\taligner_version\tivar_version\tpangolin_lineage\tpangolin_status\tnextclade_clade\tfastqc_raw_reads_1\tfastqc_raw_reads_2\tseqyclean_pairs_kept_after_cleaning\tseqyclean_percent_kept_after_cleaning\tfastp_reads_passed\tdepth_after_trimming\tcoverage_after_trimming\t%_human_reads\t%_SARS-COV-2_reads\tivar_num_variants_identified\tbcftools_variants_identified\tbedtools_num_failed_amplicons\tsamtools_num_failed_amplicons\tnum_N\tnum_degenerage\tnum_ACTG\tnum_total" > summary/!{sample}.summary.txt
+    echo -e "${sample_id}\t!{sample}\t!{bwa_version}\t!{ivar_version}\t!{pangolin_lineage}\t!{pangolin_status}\t!{nextclade_clade}\t!{raw_1}\t!{raw_2}\t!{pairskept}\t!{perc_kept}\t!{reads_passed}\t!{depth}\t!{coverage}\t!{percentage_human}\t!{percentage_cov}\t!{ivar_variants}\t!{bcftools_variants}\t!{bedtools_num_failed_amplicons}\t!{samtools_num_failed_amplicons}\t!{num_N}\t!{num_degenerate}\t!{num_ACTG}\t!{num_total}" >> summary/!{sample}.summary.txt
   '''
 }
 
@@ -1000,17 +1172,17 @@ process rename_fastq {
   beforeScript 'mkdir -p submission_files logs/rename_fastq'
 
   input:
-  set val(sample), file(reads) from fastq_reads3
+  set val(sample), file(reads), val(paired_single) from fastq_reads3
   sample_file
 
   when:
   for(int i =0; i < samples.size(); i++) {
     if(sample.contains(samples[i])) { return true }
-  }
+  } && !params.single_end
 
   output:
   tuple val(sample), env(sample_id), env(submission_id) into submission_ids, submission_ids2
-  file("submission_files/*.{R1,R2}.fastq.gz")
+  file("submission_files/*.{R1,R2}.fastq.gz") optional true
   file("logs/rename_fastq/${sample}.${workflow.sessionId}.{err,log}")
 
   shell:
@@ -1035,8 +1207,13 @@ process rename_fastq {
     if [ -z "$sample_id" ] ; then sample_id=!{sample} ; fi
     if [ -z "$submission_id" ] ; then submission_id=!{sample} ; fi
 
-    cp !{reads[0]} submission_files/$submission_id.R1.fastq.gz  2>> $err_file
-    cp !{reads[1]} submission_files/$submission_id.R2.fastq.gz  2>> $err_file
+    if [ "!{paired_single}" == "single" ]
+    then
+      cp !{reads} submission_files/$submission_id.fastq.gz
+    else
+      cp !{reads[0]} submission_files/$submission_id.R1.fastq.gz  2>> $err_file
+      cp !{reads[1]} submission_files/$submission_id.R2.fastq.gz  2>> $err_file
+    fi
   '''
 }
 //submission_ids.view()
@@ -1065,7 +1242,7 @@ process prepare_gisaid {
   when:
   for(int i =0; i < samples.size(); i++) {
     if(sample.contains(samples[i])) { return true }
-  }
+  } && !params.single_end
 
   output:
   file("submission_files/${submission_id}.gisaid.fa") into gisaid_fasta
@@ -1101,7 +1278,7 @@ process prepare_genbank {
   when:
   for(int i =0; i < samples.size(); i++) {
     if(sample.contains(samples[i])) { return true }
-  }
+  } && !params.single_end
 
   output:
   file("submission_files/${submission_id}.genbank.fa") into genbank_fasta
@@ -1130,7 +1307,7 @@ process combine_gisaid {
   file(fastas) from gisaid_fasta.collect()
 
   when:
-  if (file(params.sample_file).exists()) { return true }
+  if (file(params.sample_file).exists()) { return true } && !params.single_end
 
   output:
   file("submission_files/*.gisaid_submission.fasta") optional true
@@ -1162,7 +1339,7 @@ process combine_genbank {
   file(fastas) from genbank_fasta.collect()
 
   when:
-  if (file(params.sample_file).exists()) { return true }
+  if (file(params.sample_file).exists()) { return true } && !params.single_end
 
   output:
   file("submission_files/*.genbank_submission.fasta") optional true
