@@ -179,8 +179,8 @@ process seqyclean {
   tuple sample, file("seqyclean/${sample}_cln_SE.fastq"), val(paired_single) optional true into seqyclean_single_file_classification
   file("seqyclean/${sample}_cl*n_SummaryStatistics.{txt,tsv}")
   file("logs/seqyclean/${sample}.${workflow.sessionId}.{log,err}")
-  tuple sample, env(kept) into seqyclean_perc_kept_results
-  tuple sample, env(pairskept) into seqyclean_pairskept_results
+  tuple sample, env(perc_kept) into seqyclean_perc_kept_results
+  tuple sample, env(kept) into seqyclean_pairskept_results
 
   shell:
   '''
