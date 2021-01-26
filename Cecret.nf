@@ -151,9 +151,9 @@ Channel
 paired_reads
   .concat(single_reads)
   .ifEmpty{
-    println("No fastq or fastq.gz files were found. at ${params.single_reads}")
-    println("Set '--reads' to directory with paired-end reads")
-    println("Set '--single_reads' to directory with single-end reads")
+    println("No fastq or fastq.gz files were found at ${params.reads} or ${params.single_reads}")
+    println("Set 'params.reads' to directory with paired-end reads")
+    println("Set 'params.single_reads' to directory with single-end reads")
     exit 1
   }
   .into { fastq_reads ; fastq_reads2 ; fastq_reads3 ; fastq_reads4 }
