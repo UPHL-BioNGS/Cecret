@@ -56,7 +56,7 @@ WARNING : single and paired-end reads **cannot** be in the same directory
 ### Start the workflow
 
 ```
-nextflow run Cecret.nf -c config/singularity.config
+nextflow run Cecret.nf -c configs/singularity.config
 ```
 
 ## Optional usage:
@@ -64,19 +64,19 @@ nextflow run Cecret.nf -c config/singularity.config
 ### Determining relatedness
 Resuming the workflow to create a multiple sequence alignment, phylogenetic tree, and count SNPs by setting the relatedness paramter to `true`
 ```
-nextflow run Cecret.nf -c config/singularity.config -resume --relatedness true
+nextflow run Cecret.nf -c configs/singularity.config -resume --relatedness true
 ```
 
 ### Using samtools to trim amplicons instead of ivar
 Setting trimmer parameter to `samtools`
 ```
-nextflow run Cecret.nf -c config/singularity.config -resume --trimmer samtools
+nextflow run Cecret.nf -c configs/singularity.config -resume --trimmer samtools
 ```
 
 ### Using fastp to clean reads instead of seqyclean
 Setting cleaner parameter to `fastp`
 ```
-nextflow run Cecret.nf -c config/singularity.config -resume --cleaner fastp
+nextflow run Cecret.nf -c configs/singularity.config -resume --cleaner fastp
 ```
 
 ### Classify reads with kraken2
@@ -90,7 +90,7 @@ rm -rf kraken2_h+v_20200319.tar.gz
 ```
 
 ```
-nextflow run Cecret.nf -c config/singularity.config --kraken2 true --kraken2_db=kraken2_db
+nextflow run Cecret.nf -c configs/singularity.config --kraken2 true --kraken2_db=kraken2_db
 ```
 
 ### Add Genbank parsable header to consensus fasta
@@ -117,19 +117,20 @@ The following headers are accepted
 - Biosample
 - Sra
 
-Example covid_samples.txt file contents:
+Example covid_samples.csv file contents:
 ```
-Lab_Accession	Submission_ID	Collection_Date	SRR
-12345	UT-UPHL-12345	2020-08-22	SRR1
-67890	UT-UPHL-67890	2020-08-22	SRR2
-23456	UT-UPHL-23456	2020-08-22	SRR3
-78901	UT-UPHL-78901	2020-08-18	SRR4
+Lab_Accession,Submission_ID,Collection_Date,SRR
+12345,UT-UPHL-12345,2020-08-22,SRR1
+67890,UT-UPHL-67890,2020-08-22,SRR2
+23456,UT-UPHL-23456,2020-08-22,SRR3
+78901,UT-UPHL-78901,2020-08-18,SRR4
 ```
 Where the files named `12345-UT-M03999-200822_S9_L001_R1_001.fastq.gz`, `12345-UT-M03999-200822_S9_L001_R2_001.fastq.gz` will be renamed `UT-UPHL-12345.R1.fastq.gz` and `UT-UPHL-12345.R2.fastq.gz`. A consensus file will be duplicated and named `UT-UPHL-12345.consensus.fa`. GISAID and GenBank friendly multifasta files ready for submission are also generated. The GenBank multifasta uses the input file to create fasta headers like
 ```
 >12345 [Collection_Date=2020-08-22][organism=Severe acute respiratory syndrome coronavirus 2][host=human][country=USA][isolate=SARS-CoV-2/human/USA/12345/2020][SRR=SRR1]
 NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 ```
+
 ### Turning off unneeded processes
 It came to my attention that some processes (like bcftools) do not work consistently. Also, they might take longer than wanted and might not even be needed for the end user. Here's the processes that can be turned off with their default values:
 ```
@@ -145,10 +146,11 @@ params.kraken2 = false                # needs a corresponding params.kraken2_db
 params.bedtools = true
 params.nextclade = true
 params.pangolin = true
-params.bamsnap = false                # doesn't actually work
 params.relatedness = false            # actually the toggle for mafft
 params.snpdists = true
 params.iqtree = true
+params.bamsnap = false                # can be really slow. Works best with bcftools variants
+params.rename = true                  # needs a corresponding sample file
 ```
 
 ## The main components of Cecret are:
@@ -167,6 +169,7 @@ params.iqtree = true
 - [mafft](https://mafft.cbrc.jp/alignment/software/) - for multiple sequence alignment (optional, relatedness must be set to "true")
 - [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
 - [iqtree](http://www.iqtree.org/) - for phylogenetic tree generation (optional, relatedness must be set to "true")
+- [bamsnap](https://github.com/parklab/bamsnap) - to create images of SNPs
 
 
 ## Final file structure
@@ -176,6 +179,12 @@ covid_samples.txt                     # only if supplied initially
 cecret
 |-aligned
 | |-pretrimmed.sorted.bam
+|-bamsnap
+| |-sample
+|   |-ivar
+|     |-variant.png                   # png of variants identified via ivar
+|   |-bcftools
+|     |-variant.png                   # png of variants identified via bcftools
 |-bedtools
 | |-sample.multicov.txt               # depth per amplicon
 |-consensus
@@ -203,6 +212,8 @@ cecret
 |-pangolin
 | |-sample
 |   |-lineage_report.csv              # identification of pangolin lineages
+|-samtools_ampliconstats
+| |-sample_ampliconstats.txt          # stats for the amplicons used
 |-samtools_coverage
 | |-aligned
 | | |-sample.cov.hist                 # histogram of coverage for aligned reads
@@ -250,12 +261,12 @@ Parameters can be adjusted in a config file or on the command line. Command line
 * params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
 * params.single_reads = workflow.launchDir + '/Sequencing_reads/Single'
 * params.outdir = workflow.launchDir + "/cecret"
-* params.sample_file = workflow.launchDir + '/covid_samples.txt' (optional)
+* params.sample_file = workflow.launchDir + '/covid_samples.csv' (optional)
 
 ### reference files for SARS-CoV-2 (part of the github repository)
-* params.reference_genome = workflow.projectDir + "/config/MN908947.3.fasta"
-* params.gff_file = workflow.projectDir + "/config/MN908947.3.gff"
-* params.primer_bed = workflow.projectDir + "/config/artic_V3_nCoV-2019.bed"
+* params.reference_genome = workflow.projectDir + "/configs/MN908947.3.fasta"
+* params.gff_file = workflow.projectDir + "/configs/MN908947.3.gff"
+* params.primer_bed = workflow.projectDir + "/configs/artic_V3_nCoV-2019.bed"
 
 ### toggles for trimmers and cleaner
 * params.trimmer = 'ivar'
@@ -283,10 +294,7 @@ Parameters can be adjusted in a config file or on the command line. Command line
 
 ### CPUS to use
 * params.maxcpus = Runtime.runtime.availableProcessors()
-
-### for file submission headers
-* params.year = Calendar.getInstance().get(Calendar.YEAR)
-* params.country = 'USA'
+* params.medcpus = 5
 
 ### contaminant file for seqyclean (inside the seqyclean container)
 * params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
@@ -294,6 +302,9 @@ Parameters can be adjusted in a config file or on the command line. Command line
 
 ### Other useful options
 To create a report, use `-with-report` with your nextflow command.
+
+# Sample bamsnap plot
+![alt text](images/sample_bamsnap.png)
 
 # Directed Acyclic Diagrams (DAG)
 ### Full workflow
