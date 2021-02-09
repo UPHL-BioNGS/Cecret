@@ -3,14 +3,11 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.20210208")
+println("Version: v.20210209")
 println("")
 
-//# nextflow run Cecret/Cecret.nf -c Cecret/configs/singularity.config
-//nextflow run /home/eriny/sandbox/Cecret/Cecret.nf -c /home/eriny/sandbox/Cecret/configs/UPHL.config -resume -with-dag flowchart_$(date +"%H%M%S").png
 // TBA plot-ampliconstats
 // plot-ampliconstats results_SAMPLEID ampliconstats.txt
-// TBA bamsnap
 
 params.reads = workflow.launchDir + '/Sequencing_reads/Raw'
 params.single_reads = workflow.launchDir + '/Sequencing_reads/Single'
@@ -55,7 +52,7 @@ params.samtools_ampliconstats = true
 params.bedtools = true
 params.nextclade = true
 params.pangolin = true
-params.bamsnap = false // currently doesn't work. Don't turn it on until it can do non-human refrences
+params.bamsnap = false // can be really slow
 params.rename = true
 
 // for optional contamination determination
