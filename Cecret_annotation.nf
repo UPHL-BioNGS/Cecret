@@ -8,9 +8,9 @@ println("")
 
 //# nextflow run Cecret/Cecret_annotation.nf -c Cecret/config/singularity.config
 
-params.fastas = workflow.launchDir + '/cecret/consensus'
+params.fastas = workflow.launchDir + '/fastas'
 params.outdir = workflow.launchDir + '/cecret'
-params.reference_genome = workflow.projectDir + "/config/MN908947.3.fasta"
+params.reference_genome = workflow.projectDir + "/configs/MN908947.3.fasta"
 
 params.nextclade = true
 params.pangolin = true
@@ -53,7 +53,7 @@ process pangolin {
   publishDir "${params.outdir}", mode: 'copy'
   tag "Lineage assignment with pangolin"
   echo false
-  cpus params.medcpus
+  cpus 1
 
   when:
   params.pangolin
@@ -74,12 +74,10 @@ process pangolin {
 
     date | tee -a $log_file $err_file > /dev/null
     pangolin --version >> $log_file
-    pangolin -lv >> $log_file
-    pangolin -pv >> $log_file
 
     cat !{fasta} > ultimate.fasta
 
-    pangolin --threads !{task.cpus} --outdir pangolin/ ultimate.fasta 2>> $err_file >> $log_file
+    pangolin --outdir pangolin/ ultimate.fasta 2>> $err_file >> $log_file
   '''
 }
 
