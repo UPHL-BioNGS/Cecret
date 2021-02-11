@@ -8,6 +8,8 @@ Location: 40.570°N 111.622°W , 9,875 feet (3,010 m) elevation
 
 Cecret is a workflow developed by @erinyoung at the [Utah Public Health Laborotory](https://uphl.utah.gov/) for SARS-COV-2 sequencing with the [artic](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)/Illumina hybrid library prep workflow for MiSeq data with protocols [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bffyjjpw) and [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bfefjjbn). Built to work on linux-based operating systems. Additional config files are needed for cloud batch usage.
 
+Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_toolkit).
+
 # Getting started
 
 ```
@@ -95,7 +97,7 @@ nextflow run Cecret.nf -c configs/singularity.config --kraken2 true --kraken2_db
 
 ### Add Genbank parsable header to consensus fasta
 
-This requires a covid_samples.txt file with a row for each sample and a tab-delimited column for each item to add to the header.
+This requires a comma-delimted file set with `params.sample_file`(default is `params.sample_file = workflow.launchDir + '/covid_samples.csv'`) file with a row for each sample and a comma-delimited column for each item to add to the GenBank submission header. Additionally, adjust `params.rename = true`.
 
 The following headers are accepted
 - Sample_id          (required, must match sample_id*.fa*)
@@ -131,6 +133,8 @@ Where the files named `12345-UT-M03999-200822_S9_L001_R1_001.fastq.gz`, `12345-U
 NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 ```
 
+Sometimes sequencing fails, so there are parameters for how many non-ambiguous bases a fasta needs in order to get incorporated into the final file. This can be set with `params.gisaid_threshold` (Default is '`params.gisaid_threshold = 25000`') and params.genbank_threshold (Default is '`params.genbank_threshold = 15000`').
+
 ### Turning off unneeded processes
 It came to my attention that some processes (like bcftools) do not work consistently. Also, they might take longer than wanted and might not even be needed for the end user. Here's the processes that can be turned off with their default values:
 ```
@@ -149,8 +153,8 @@ params.pangolin = true
 params.relatedness = false            # actually the toggle for mafft
 params.snpdists = true
 params.iqtree = true
-params.bamsnap = false                # can be really slow. Works best with bcftools variants
-params.rename = true                  # needs a corresponding sample file
+params.bamsnap = false                # can be really slow. Works best with bcftools variants. An example bamsnap image is below.
+params.rename = false                 # needs a corresponding sample file
 ```
 
 ## The main components of Cecret are:
@@ -300,14 +304,19 @@ Parameters can be adjusted in a config file or on the command line. Command line
 * params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
 * params.seqyclean_minlen = 25
 
+### for renaming files
+* params.sample_file = workflow.launchDir + '/covid_samples.csv'
+* params.gisaid_threshold = '25000'
+* params.genbank_threshold = '15000'
+
 ### Other useful options
 To create a report, use `-with-report` with your nextflow command.
-
-# Sample bamsnap plot
-![alt text](images/sample_bamsnap.png)
 
 # Directed Acyclic Diagrams (DAG)
 ### Full workflow
 ![alt text](images/Cecret_workflow.png)
+
+# Sample bamsnap plot
+![alt text](images/sample_bamsnap.png)
 
 ![alt text](https://uphl.utah.gov/wp-content/uploads/New-UPHL-Logo.png)
