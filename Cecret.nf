@@ -934,7 +934,7 @@ process pangolin {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
   echo false
-  cpus 1
+  cpus params.maxcpus
 
   when:
   params.pangolin
