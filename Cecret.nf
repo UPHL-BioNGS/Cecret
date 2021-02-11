@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.20210209")
+println("Version: v.20210211")
 println("")
 
 // TBA plot-ampliconstats
@@ -53,7 +53,7 @@ params.bedtools = true
 params.nextclade = true
 params.pangolin = true
 params.bamsnap = false // can be really slow
-params.rename = true
+params.rename = false
 
 // for optional contamination determination
 params.kraken2 = false
@@ -95,6 +95,7 @@ Channel
 
 Channel
   .fromPath(params.gff_file, type:'file')
+  .view { "GFF file for Reference Genome : $it"}
   .set { gff_file }
 
 Channel
@@ -117,10 +118,8 @@ Channel
   .map{ reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], "single" ) }
   .set { single_reads }
 
-Channel
-  .fromPath(params.sample_file, type:'file')
-  .view { "Sample File : $it"}
-  .set { sample_file }
+
+sample_file = params.rename ? Channel.fromPath(params.sample_file, type:'file').view { "Sample File : $it" } : Channel.empty()
 
 paired_reads
   .concat(single_reads)
@@ -794,7 +793,7 @@ process samtools_flagstat {
   '''
 }
 
-kraken2_db = params.kraken2 ? Channel.fromPath(params.kraken2_db, type:'dir') : Channel.empty()
+kraken2_db = params.kraken2 ? Channel.fromPath(params.kraken2_db, type:'dir').view { "Kraken2 database : $it" } : Channel.empty()
 
 clean_reads_classification
   .combine(kraken2_db)
