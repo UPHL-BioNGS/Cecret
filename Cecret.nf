@@ -1269,7 +1269,7 @@ process rename {
     if [ -n "$sample_line" ]
     then
       echo "The line from !{params.sample_file} corresponding to !{sample} is $sample_line" | tee -a $log_file
-      sample_line=$(echo $sample_line | sed 's/","/,/g')
+      sample_line=$(echo $sample_line )
       submission_id=$(echo $sample_line | cut -f $submission_id_column -d ',')
       if [ -z "$submission_id" ] ; then submission_id=$sample_id ; fi
       collection_date=$(echo $sample_line | cut -f $collection_date_column -d ',')
@@ -1342,7 +1342,7 @@ process rename {
       if [ "!{num_ACTG}" -gt "!{params.gisaid_threshold}" ]
       then
         echo $gisaid_fasta_header > submission_files/$submission_id.gisaid.fa
-        grep -v ">" !{consensus} | fold -w 75 >> submission_files/$submission_id.genbank.fa
+        grep -v ">" !{consensus} | fold -w 75 >> submission_files/$submission_id.gisaid.fa
       fi
 
       if [ "!{num_ACTG}" -gt "!{params.genbank_threshold}" ]
