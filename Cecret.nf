@@ -1258,7 +1258,7 @@ process rename {
     sample_id_check=1
     for potential_sample in ${all_samples[@]}
     do
-      sample_id_check=$(echo !{sample} | grep $potential_sample | head -n 1)
+      sample_id_check=$(echo !{sample} | grep -w $potential_sample | head -n 1)
       if [ -n "$sample_id_check" ]
       then
         sample_id=$potential_sample
