@@ -47,13 +47,40 @@ Channel
     println("No fasta files were found. Set with 'params.fastas'.")
     exit 1
   }
-  .into { fastas_mafft ; fastas_nextclade ; fastas_pangolin }
+  .set { fastas }
+
+process fasta_prep {
+  publishDir "${params.outdir}", mode: 'copy', overwrite: true
+  tag "${sample}"
+  echo false
+  cpus 1
+  container 'staphb/parallel-perl:latest'
+
+  input:
+  file(fasta) from fastas
+
+  output:
+  file("${task.process}/${fasta}") into fastas_mafft, fastas_pangolin, fastas_nextclade
+
+  shell:
+  '''
+    mkdir -p !{task.process} logs/!{task.process}
+    log_file=logs/!{task.process}/!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{workflow.sessionId}.err
+
+    name=$(echo !{fasta} | sed 's/.fa.*//g')
+
+    echo ">$name" > !{task.process}/!{fasta}
+    grep -v ">" !{fasta} | fold -w 75 >> !{task.process}/!{fasta}
+  '''
+}
 
 process pangolin {
   publishDir "${params.outdir}", mode: 'copy'
   tag "Lineage assignment with pangolin"
   echo false
   cpus 1
+  container 'staphb/pangolin:latest'
 
   when:
   params.pangolin
@@ -62,22 +89,22 @@ process pangolin {
   file(fasta) from fastas_pangolin.collect()
 
   output:
-  file("pangolin/lineage_report.csv")
-  file("logs/pangolin/${workflow.sessionId}.{log,err}")
+  file("${task.process}/lineage_report.csv")
+  file("${task.process}/ultimate.fasta")
+  file("logs/${task.process}/${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p pangolin logs/pangolin
-
-    log_file=logs/pangolin/!{workflow.sessionId}.log
-    err_file=logs/pangolin/!{workflow.sessionId}.err
+    mkdir -p !{task.process} logs/!{task.process}
+    log_file=logs/!{task.process}/!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     pangolin --version >> $log_file
 
-    cat !{fasta} > ultimate.fasta
+    cat !{fasta} > !{task.process}/ultimate.fasta
 
-    pangolin --outdir pangolin/ ultimate.fasta 2>> $err_file >> $log_file
+    pangolin --outdir !{task.process}/ !{task.process}/ultimate.fasta 2>> $err_file >> $log_file
   '''
 }
 
@@ -86,6 +113,7 @@ process nextclade {
   tag "Clade assignment with nextclade"
   echo false
   cpus params.medcpus
+  container 'neherlab/nextclade:latest'
 
   when:
   params.nextclade
@@ -94,21 +122,22 @@ process nextclade {
   file(fasta) from fastas_nextclade.collect()
 
   output:
-  file("nextclade/nextclade_report.tsv")
-  file("logs/nextclade/${workflow.sessionId}.{log,err}")
+  file("${task.process}/nextclade_report.tsv")
+  file("${task.process}/ultimate.fasta")
+  file("logs/${task.process}/${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p nextclade logs/nextclade
-    log_file=logs/nextclade/!{workflow.sessionId}.log
-    err_file=logs/nextclade/!{workflow.sessionId}.err
+    mkdir -p !{task.process} logs/!{task.process}
+    log_file=logs/!{task.process}/!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     nextclade --version >> $log_file
 
-    cat !{fasta} > ultimate.fasta
+    cat !{fasta} > !{task.process}/ultimate.fasta
 
-    nextclade --jobs !{task.cpus} --input-fasta ultimate.fasta --output-tsv nextclade/nextclade_report.tsv 2>> $err_file >> $log_file
+    nextclade --jobs !{task.cpus} --input-fasta !{task.process}/ultimate.fasta --output-tsv !{task.process}/nextclade_report.tsv 2>> $err_file >> $log_file
   '''
 }
 
@@ -117,41 +146,40 @@ process mafft {
   tag "Multiple Sequence Alignment with mafft"
   echo false
   cpus params.maxcpus
+  container 'staphb/mafft:latest'
 
   input:
   file(fasta) from fastas_mafft.collect()
   file(reference) from reference_genome
 
   output:
-  file("mafft/mafft_aligned.fasta") into msa_file
-  file("mafft/mafft_aligned.fasta") into msa_file2
-  file("logs/mafft/${workflow.sessionId}.{log,err}")
+  file("${task.process}/mafft_aligned.fasta") into msa_file
+  file("${task.process}/mafft_aligned.fasta") into msa_file2
+  file("logs/${task.process}/${workflow.sessionId}.{log,err}")
 
   when:
   params.relatedness
 
   shell:
   '''
-    mkdir -p mafft logs/mafft
-    log_file=logs/mafft/!{workflow.sessionId}.log
-    err_file=logs/mafft/!{workflow.sessionId}.err
+    mkdir -p !{task.process} logs/!{task.process}
+    log_file=logs/!{task.process}/!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     echo "mafft version:" >> $log_file
     mafft --version >> $log_file
 
-    cat !{reference}
-
     echo ">!{params.outgroup}" > reference.fasta
     grep -v ">" !{reference} >> reference.fasta
 
-    cat !{fasta} > ultimate.fasta
+    cat !{fasta} > !{task.process}/ultimate.fasta
     mafft --auto \
       --thread !{task.cpus} \
       --maxambiguous !{params.max_ambiguous} \
-      --addfragments ultimate.fasta \
+      --addfragments !{task.process}/ultimate.fasta \
       reference.fasta \
-      > mafft/mafft_aligned.fasta \
+      > !{task.process}/mafft_aligned.fasta \
       2>> $err_file
   '''
 }
@@ -161,19 +189,20 @@ process snpdists {
   tag "SNP matrix with snp-dists"
   echo false
   cpus params.medcpus
+  container 'staphb/snp-dists:latest'
 
   input:
   file(msa) from msa_file
 
   output:
   file("snp-dists/snp-dists.txt")
-  file("logs/snp-dists/${workflow.sessionId}.{log,err}")
+  file("logs/${task.process}/${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p snp-dists logs/snp-dists
-    log_file=logs/snp-dists/!{workflow.sessionId}.log
-    err_file=logs/snp-dists/!{workflow.sessionId}.err
+    mkdir -p snp-dists logs/!{task.process}
+    log_file=logs/!{task.process}/!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     snp-dists -v >> $log_file
@@ -187,19 +216,20 @@ process iqtree {
   tag "Creating phylogenetic tree with iqtree"
   echo false
   cpus params.maxcpus
+  container 'staphb/iqtree:latest'
 
   input:
   file(msa) from msa_file2
 
   output:
-  file("iqtree/iqtree.{iqtree,treefile,mldist,log}")
-  file("logs/iqtree/${workflow.sessionId}.{log,err}")
+  file("${task.process}/iqtree.{iqtree,treefile,mldist,log}")
+  file("logs/${task.process}/${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p iqtree logs/iqtree
-    log_file=logs/iqtree/!{workflow.sessionId}.log
-    err_file=logs/iqtree/!{workflow.sessionId}.err
+    mkdir -p !{task.process} logs/!{task.process}
+    log_file=logs/!{task.process}/!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     iqtree --version >> $log_file
@@ -214,7 +244,7 @@ process iqtree {
       -nt AUTO \
       -ntmax !{task.cpus} \
       -s !{msa} \
-      -pre iqtree/iqtree \
+      -pre !{task.process}/iqtree \
       -m !{params.mode} \
       -o !{params.outgroup} \
       >> $log_file 2>> $err_file
