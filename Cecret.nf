@@ -118,6 +118,7 @@ Channel
   .map{ reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], "single" ) }
   .set { single_reads }
 
+kraken2_db = params.kraken2 ? Channel.fromPath(params.kraken2_db, type:'dir').view { "Kraken2 database : $it" } : Channel.empty()
 
 sample_file = params.rename ? Channel.fromPath(params.sample_file, type:'file').view { "Sample File : $it" } : Channel.empty()
 
@@ -138,6 +139,7 @@ process seqyclean {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/seqyclean:latest'
 
   when:
   params.cleaner == 'seqyclean'
@@ -146,10 +148,10 @@ process seqyclean {
   set val(sample), file(reads), val(paired_single) from fastq_reads_seqyclean
 
   output:
-  tuple sample, file("seqyclean/${sample}_clean_PE{1,2}.fastq") optional true into seqyclean_paired_files
-  tuple sample, file("seqyclean/${sample}_cln_SE.fastq") optional true into seqyclean_single_file
-  tuple sample, file("seqyclean/${sample}_clean_PE{1,2}.fastq"), val(paired_single) optional true into seqyclean_paired_files_classification
-  tuple sample, file("seqyclean/${sample}_cln_SE.fastq"), val(paired_single) optional true into seqyclean_single_file_classification
+  tuple sample, file("seqyclean/${sample}_clean_PE{1,2}.fastq.gz") optional true into seqyclean_paired_files
+  tuple sample, file("seqyclean/${sample}_cln_SE.fastq.gz") optional true into seqyclean_single_file
+  tuple sample, file("seqyclean/${sample}_clean_PE{1,2}.fastq.gz"), val(paired_single) optional true into seqyclean_paired_files_classification
+  tuple sample, file("seqyclean/${sample}_cln_SE.fastq.gz"), val(paired_single) optional true into seqyclean_single_file_classification
   file("seqyclean/${sample}_cl*n_SummaryStatistics.{txt,tsv}")
   file("logs/seqyclean/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(perc_kept) into seqyclean_perc_kept_results
@@ -179,6 +181,8 @@ process seqyclean {
       perc_kept=$(cut -f 59 seqyclean/!{sample}_clean_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
     fi
 
+    gzip seqyclean/!{sample}_clean*.fastq
+
     if [ -z "$kept" ] ; then kept="0" ; fi
     if [ -z "$perc_kept" ] ; then perc_kept="0" ; fi
   '''
@@ -189,6 +193,7 @@ process fastp {
   tag "${sample}"
   echo false
   cpus 1
+  container 'bromberglab/fastp:latest'
 
   when:
   params.cleaner == 'fastp'
@@ -255,6 +260,7 @@ process bwa {
   tag "${sample}"
   echo false
   cpus params.maxcpus
+  container 'staphb/bwa:latest'
 
   when:
   params.aligner == 'bwa'
@@ -291,6 +297,7 @@ process minimap2 {
   tag "${sample}"
   echo false
   cpus params.maxcpus
+  container 'staphb/minimap2:latest'
 
   when:
   params.aligner == 'minimap2'
@@ -331,6 +338,7 @@ process fastqc {
   tag "$sample"
   echo false
   cpus 1
+  container 'staphb/fastqc:latest'
 
   when:
   params.fastqc
@@ -372,6 +380,40 @@ process sort {
   tag "${sample}"
   echo false
   cpus params.maxcpus
+  container 'staphb/samtools:latest'
+
+  input:
+  set val(sample), file(sam) from sams
+
+  output:
+  tuple sample, file("aligned/${sample}.sorted.bam") into pre_trim_bams, pre_trim_bams2
+  tuple sample, file("aligned/${sample}.sorted.bam"), file("aligned/${sample}.sorted.bam.bai") into pre_trim_bams_bamsnap
+  file("logs/sort/${sample}.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+    mkdir -p aligned logs/sort
+    log_file=logs/sort/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/sort/!{sample}.!{workflow.sessionId}.err
+
+    # time stamp + capturing tool versions
+    date | tee -a $log_file $err_file > /dev/null
+    samtools --version >> $log_file
+
+    samtools sort !{sam} 2>> $err_file | \
+      samtools view -F 4 -o aligned/!{sample}.sorted.bam 2>> $err_file >> $log_file
+
+    # indexing the bams
+    samtools index aligned/!{sample}.sorted.bam 2>> $err_file >> $log_file
+  '''
+}
+
+process aligned_fastq {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "${sample}"
+  echo false
+  cpus 1
+  container 'staphb/samtools:latest'
 
   input:
   set val(sample), file(sam) from sams
@@ -408,6 +450,7 @@ process ivar_trim {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/ivar:latest'
 
   when:
   params.trimmer == 'ivar'
@@ -444,6 +487,7 @@ process samtools_trim {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/samtools:latest'
 
   when:
   params.trimmer == 'samtools'
@@ -502,6 +546,10 @@ process ivar_variants {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/ivar:latest'
+  memory {2.GB * task.attempt}
+  errorStrategy {'retry'}
+  maxRetries 2
 
   when:
   params.ivar_variants
@@ -540,6 +588,10 @@ process ivar_consensus {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/ivar:latest'
+  memory {2.GB * task.attempt}
+  errorStrategy {'retry'}
+  maxRetries 2
 
   input:
   set val(sample), file(bam), file(reference_genome) from trimmed_bams_ivar_consensus
@@ -585,6 +637,7 @@ process bcftools_variants {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/bcftools:latest'
 
   when:
   params.bcftools_variants
@@ -627,6 +680,7 @@ process bamsnap {
   echo false
   cpus params.medcpus
   errorStrategy 'ignore'
+  container 'danielmsk/bamsnap:latest'
 
   when:
   params.bamsnap
@@ -697,6 +751,7 @@ process samtools_stats {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/samtools:latest'
 
   when:
   params.samtools_stats
@@ -728,6 +783,7 @@ process samtools_coverage {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/samtools:latest'
 
   when:
   params.samtools_coverage
@@ -768,6 +824,7 @@ process samtools_flagstat {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/samtools:latest'
 
   input:
   set val(sample), file(aligned), file(trimmed) from pre_post_bams3
@@ -793,7 +850,7 @@ process samtools_flagstat {
   '''
 }
 
-kraken2_db = params.kraken2 ? Channel.fromPath(params.kraken2_db, type:'dir').view { "Kraken2 database : $it" } : Channel.empty()
+
 
 clean_reads_classification
   .combine(kraken2_db)
@@ -804,6 +861,7 @@ process kraken2 {
   tag "${sample}"
   echo false
   cpus params.maxcpus
+  container 'staphb/kraken2:latest'
 
   when:
   params.kraken2
@@ -863,6 +921,7 @@ process bedtools {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/bedtools:latest'
 
   when:
   params.bedtools
@@ -902,6 +961,7 @@ process samtools_ampliconstats {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/samtools:latest'
 
   when:
   params.samtools_ampliconstats
@@ -935,6 +995,7 @@ process pangolin {
   tag "${sample}"
   echo false
   cpus params.maxcpus
+  container 'staphb/pangolin:latest'
 
   when:
   params.pangolin
@@ -972,6 +1033,7 @@ process nextclade {
   tag "${sample}"
   echo false
   cpus params.medcpus
+  container 'neherlab/nextclade:latest'
 
   when:
   params.nextclade
@@ -1026,6 +1088,7 @@ process summary {
   tag "${sample}"
   echo false
   cpus 1
+  container 'staphb/parallel-perl:latest'
 
   input:
   set val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
@@ -1074,6 +1137,7 @@ process combined_summary {
   tag "summary"
   echo false
   cpus 1
+  container 'staphb/parallel-perl:latest'
 
   input:
   file(summary) from summary.collect()
@@ -1103,6 +1167,7 @@ process mafft {
   tag "Multiple Sequence Alignment"
   echo false
   cpus params.maxcpus
+  container 'staphb/mafft:latest'
 
   input:
   file(consensus) from qc_consensus_15000_mafft.collect()
@@ -1145,6 +1210,7 @@ process snpdists {
   tag "createing snp matrix with snp-dists"
   echo false
   cpus params.medcpus
+  container 'staphb/snp-dists:latest'
 
   when:
   params.snpdists
@@ -1174,6 +1240,7 @@ process iqtree {
   tag "Creating phylogenetic tree with iqtree"
   echo false
   cpus params.maxcpus
+  container 'staphb/iqtree:latest'
 
   when:
   params.iqtree
@@ -1221,6 +1288,7 @@ process rename {
   tag "Renaming files for ${sample}"
   echo false
   cpus 1
+  container 'staphb/parallel-perl:latest'
 
   input:
   set val(sample), file(reads), val(paired_single), file(consensus), val(num_ACTG), file(sample_file) from rename
@@ -1371,6 +1439,7 @@ process combine_fastas {
   tag "Combining fastas into one multifasta"
   echo false
   cpus 1
+  container 'staphb/parallel-perl:latest'
 
   input:
   file(fastas) from submission_fastas.collect()
