@@ -31,33 +31,46 @@ USAGE="
 "
 ############################################################
 
-if [ -z "$workdir" ] ; then workdir=$(pwd) ; fi
+sample_file=covid_samples.csv
+consensus_directory=cecret/consensus
+fastq_directory=Sequencing_reads/Raw
+gisaid_threshold=25000
+genbank_threshold=15000
+out=submission_files
 
-while getopts 'f:m:o:y:hv' OPTION
+while getopts 'f:c:d:s:g:m:o:hv' OPTION
 do
   case "$OPTION" in
     f)
-    echo "The fasta is $OPTARG"
-    fasta_file=$OPTARG
+    echo "The file with sample metadata is $OPTARG"
+    sample_file=$OPTARG
     ;;
-    m)
-    echo "The file with metadata for samples is $OPTARG"
-    metadata_file=$OPTARG
+    c)
+    echo "The directory with the consensus fasta files are $OPTARG"
+    consensus_directory=$OPTARG
+    ;;
+    d)
+    echo "The directory with the fastq files are $OPTARG"
+    fastq_directory=$OPTARG
+    ;;
+    s)
+    echo "The number of non-ambiguous bases for GISAID submission is $OPTARG"
+    gisaid_threshold=$OPTARG
+    ;;
+    g)
+    echo "The number of non-ambiguous bases for GENBANK submission is $OPTARG"
+    genbank_threshold=$OPTARG
     ;;
     o)
-    echo "The final fasta is $OPTARG"
-    genbank_fasta=$OPTARG
-    ;;
-    y)
-    echo "The year is $OPTARG"
-    year=$OPTARG
+    echo "The output directory where all the prepared files go $OPTARG"
+    out=$OPTARG
     ;;
     h)
     echo -e $USAGE
     exit 0
     ;;
     v)
-    echo "Version 0.20201005"
+    echo "Version 0.2020416"
     exit 0
     ;;
     :)
@@ -73,186 +86,168 @@ do
 done
 shift "$(($OPTIND -1))"
 
-if [ ! -f "$metadata_file" ]
+if [ ! -f "$sample_file" ]
 then
   echo "File with metadata for genbank header not found at $metadata_file"
   echo -e $USAGE
   exit 1
 fi
 
-if [ ! -f "$fasta_file" ]
+if [ ! -d "$consensus_directory" ]
 then
-  echo "Fasta file not found at $fasta_file"
-  echo -e $USAGE
-  exit 1
-fi
-fasta=$(basename $fasta_file)
-
-if [ -z "$genbank_fasta" ] && [ ! -d "$(pwd)/covid/submission_files" ]
-then
-  echo "-o specifies the name of the final file for genbank submission"
+  echo "The directory with fasta files not found at $consensus_directory"
   echo -e $USAGE
   exit 1
 fi
 
-if [ -z "$year" ] ; then year=$(date +"%Y") ; fi
+if [ ! -d "$fastq_directory" ]
+then
+  echo "The directory with fastq files not found at $consensus_directory"
+  echo -e $USAGE
+  exit 1
+fi
 
-date
+mkdir -p $out
+if [ ! -d "$out" ]
+then
+  echo "Could not create directory for final files at $out"
+  echo -e $USAGE
+  exit 1
+fi
 
-header_columns=($(head -n 1 $metadata_file ))
-sample_id_column=$(echo ${header_columns[@]}          | tr " " "\n" | tr "\t" "\n" | grep -in "sample_id"                    | cut -f 1 -d ":" | head -n 1 )
-if [ -z "$sample_id_column" ] ; then echo -e "No sample_id column. Could not determine ids for samples.\nFix $metadata_file so that one of the column headers is sample_id.\n$USAGE" ; exit 1 ; fi
-submission_id_column=$(echo ${header_columns[@]}      | tr " " "\n" | tr "\t" "\n" | grep -in "submission"                   | cut -f 1 -d ":" | head -n 1 )
-country_column=$(echo ${header_columns[@]}            | tr " " "\n" | tr "\t" "\n" | grep -in "country"                      | cut -f 1 -d ":" | head -n 1 )
-host_column=$(echo ${header_columns[@]}               | tr " " "\n" | tr "\t" "\n" | grep -in "host"                         | cut -f 1 -d ":" | head -n 1 )
-isolate_column=$(echo ${header_columns[@]}            | tr " " "\n" | tr "\t" "\n" | grep -in "isolate"                      | cut -f 1 -d ":" | head -n 1 )
-collection_date_column=$(echo ${header_columns[@]}    | tr " " "\n" | tr "\t" "\n" | grep -in "collection" | grep -i "date"  | cut -f 1 -d ":" | head -n 1 )
-isolation_source_column=$(echo ${header_columns[@]}   | tr " " "\n" | tr "\t" "\n" | grep -in "isolation" | grep -i "source" | cut -f 1 -d ":" | head -n 1 )
-clone_column=$(echo ${header_columns[@]}              | tr " " "\n" | tr "\t" "\n" | grep -in "clone"                        | cut -f 1 -d ":" | head -n 1 )
-collected_by_column=$(echo ${header_columns[@]}       | tr " " "\n" | tr "\t" "\n" | grep -in "collected" | grep -i "by"     | cut -f 1 -d ":" | head -n 1 )
-fwd_primer_name_column=$(echo ${header_columns[@]}    | tr " " "\n" | tr "\t" "\n" | grep -in "Fwd-Primer-Name"              | cut -f 1 -d ":" | head -n 1 )
-fwd_primer_seq_column=$(echo ${header_columns[@]}     | tr " " "\n" | tr "\t" "\n" | grep -in "Fwd-Primer-Seq"               | cut -f 1 -d ":" | head -n 1 )
-latitude_longitude_column=$(echo ${header_columns[@]} | tr " " "\n" | tr "\t" "\n" | grep -in "Latitude-Longitude"           | cut -f 1 -d ":" | head -n 1 )
-rev_primer_name_column=$(echo ${header_columns[@]}    | tr " " "\n" | tr "\t" "\n" | grep -in "Rev-Primer-Name"              | cut -f 1 -d ":" | head -n 1 )
-rev_primer_seq_column=$(echo ${header_columns[@]}     | tr " " "\n" | tr "\t" "\n" | grep -in "Rev-Primer-Seq"               | cut -f 1 -d ":" | head -n 1 )
-note_column=$(echo ${header_columns[@]}               | tr " " "\n" | tr "\t" "\n" | grep -in "Note"                         | cut -f 1 -d ":" | head -n 1 )
-bioproject_column=$(echo ${header_columns[@]}         | tr " " "\n" | tr "\t" "\n" | grep -in "Bioproject"                   | cut -f 1 -d ":" | head -n 1 )
-biosample_column=$(echo ${header_columns[@]}          | tr " " "\n" | tr "\t" "\n" | grep -in "Biosample"                    | cut -f 1 -d ":" | head -n 1 )
-sra_column=$(echo ${header_columns[@]}                | tr " " "\n" | tr "\t" "\n" | grep -in "Sra"                          | cut -f 1 -d ":" | head -n 1 )
+fastas=($(ls $consensus_directory/*.fa*))
+echo "Fastas for processing:"
+ls $consensus_directory/*.fa*
+
+sample_id_column=$(head -n 1 $sample_file | tr ',' '\\n' | grep -inw "Sample_ID" | cut -f 1 -d ':' )
+submission_id_column=$(head -n 1 $sample_file | tr ',' '\\n' | grep -inw "Submission_id" | cut -f 1 -d ':' )
+collection_date_column=$(head -n 1 $sample_file | tr ',' '\\n' | grep -inw "Collection_Date" | cut -f 1 -d ':'  )
+
+if [ -z $sample_id_column ] || [ -z "$submission_id_column" ] || [ -z "$collection_date_column" ]
+then
+  echo "$sample_file is not the correct format"
+  echo "Sorry to be overly picky, but this file needs to be a plain text file with values separated by commas (and no commas in the values)"
+  echo "Required headers are 'Sample_ID','Submission_ID','Collection_Date'"
+  echo "Please read documentation at https://github.com/UPHL-BioNGS/Cecret"
+  exit 1
+fi
+sample_file_header_reduced=$(head -n 1 $sample_file | tr "," '\\n' | grep -iv "Sample_ID" | grep -iv "Collection_Date" | grep -vi "Submission_ID" | tr '\\n' ' ' )
 
 while read line
 do
-  line=$(echo $line | sed 's/ /\t/g')
-  sample_id=$(echo $line | cut -f $sample_id_column -d " " | head -n 1)
-  if [[ "$fasta" == "$sample_id"*.fa* ]]
+  sample_id=$(echo $line | cut -f $sample_id_column -d ",")
+  submission_id=$(echo $line | cut -f $submission_id_column -d ",")
+  collection_date=$(echo $line | cut -f $collection_date_column -d ",")
+  if [ -z "$sample_id" ]
   then
-    if [ -n "$submission_id_column" ] ; then submission_id=$(echo $line | cut -f $submission_id_column -d " "  ) ; fi
-    if [ -z "$submission_id" ] ; then submission_id=$sample_id ; fi
-    fasta_header=">$submission_id "
-
-    if [ -n "$country_column" ]
-    then
-      country=$(echo $line | cut -f $country_column -d " "  )
-    else
-      country="USA"
-    fi
-    fasta_header="$fasta_header[Country=$country]"
-
-    if [ -n "$host_column" ]
-    then
-      host=$(echo $line | cut -f $host_column -d " "  )
-    else
-      host="Human"
-    fi
-    fasta_header="$fasta_header[Host=$host]"
-
-    if [ -n "$isolate_column" ]
-    then
-      isolate=$(echo $line | cut -f $isolate_column -d " "  )
-      fasta_header="$fasta_header[Isolate=$isolate]"
-    else
-      fasta_header="$fasta_header[Isolate=SARS-CoV-2/$host/$country/$submission_id/$year]"
-    fi
-
-    if [ -n "$collection_date_column" ]
-    then
-      collection_date=$(echo $line | cut -f $collection_date_column -d " "  )
-      fasta_header="$fasta_header[Collection-Date=$collection_date]"
-    fi
-
-    if [ -n "$isolation_source_column" ]
-    then
-      isolation_source=$(echo $line | cut -f $isolation_source_column -d " "  )
-      fasta_header="$fasta_header[Isolation-Source=$isolation_source]"
-    fi
-
-    if [ -n "$clone_column" ]
-    then
-      clone=$(echo $line | cut -f $clone_column -d " "  )
-      fasta_header="$fasta_header[Clone=$clone]"
-    fi
-
-    if [ -n "$collected_by_column" ]
-    then
-      collected_by=$(echo $line | cut -f $collected_by_column -d " "  )
-      fasta_header="$fasta_header[Collected-By=$collected_by]"
-    fi
-
-    if [ -n "$fwd_primer_name_column" ]
-    then
-      fwd_name=$(echo $line | cut -f $fwd_primer_name_column -d " "  )
-      fasta_header="$fasta_header[Fwd-Primer-Name=$fwd_name]"
-    fi
-
-    if [ -n "$fwd_primer_seq_column" ]
-    then
-      fwd_seq=$(echo $line | cut -f $fwd_primer_seq_column -d " "  )
-      fasta_header="$fasta_header[Fwd-Primer-Seq=$fwd_seq]"
-    fi
-
-    if [ -n "$latitude_longitude_column" ]
-    then
-      lat_lon=$(echo $line | cut -f $latitude_longitude_column -d " "  )
-      fasta_header="$fasta_header[Latitude-Longitude=$lat_lon]"
-    fi
-
-    if [ -n "$rev_primer_name_column" ]
-    then
-      rev_name=$(echo $line | cut -f $rev_primer_name_column -d " "  )
-      fasta_header="$fasta_header[Rev-Primer-Name=$rev_name]"
-    fi
-
-    if [ -n "$rev_primer_seq_column" ]
-    then
-      rev_seq=$(echo $line | cut -f $rev_primer_seq_column -d " "  )
-      fasta_header="$fasta_header[Rev-Primer-Seq=$rev_seq]"
-    fi
-
-    if [ -n "$note_column" ]
-    then
-      note=$(echo $line | cut -f $note_column -d " "  )
-      fasta_header="$fasta_header[Note=$note]"
-    fi
-
-    if [ -n "$bioproject_column" ]
-    then
-      bioproject=$(echo $line | cut -f $bioproject_column -d " "  )
-      fasta_header="$fasta_header[Bioproject=$bioproject]"
-    fi
-
-    if [ -n "$biosample_column" ]
-    then
-      biosample=$(echo $line | cut -f $biosample_column -d " "  )
-      fasta_header="$fasta_header[Biosample=$biosample]"
-    fi
-
-    if [ -n "$sra_column" ]
-    then
-      sra=$(echo $line | cut -f $sra_column -d " "  )
-      fasta_header="$fasta_header[Sra=$sra]"
-    fi
-
-    if [ -z "$genbank_fasta" ]
-    then
-      mkdir -p $(pwd)/covid/submission_files
-      final_fasta="$(pwd)/covid/submission_files/$submission_id.genbank.fa"
-    else
-      final_fasta=$genbank_fasta
-    fi
-
-    echo $fasta_header > $final_fasta
-    grep -v ">" $fasta_file | sed 's/^N*N//g' | fold -w 75 >> $final_fasta
+    echo "FATAL : Could not find sample ids for all samples."
+    echo "Please read documentation at https://github.com/UPHL-BioNGS/Cecret"
+    exit 1
   fi
-done < $metadata_file
+  if [ -z "$submission_id" ] ; then submission_id=$sample_id ; fi
+  if [ -z "$collection_date" ] ; then collection_date="missing" ; fi
+  sample_file_header_reduced=$(head -n 1 $sample_file | tr "," '\\n' | grep -iv "Sample_ID" | grep -iv "Collection_Date" | grep -vi "Submission_ID" | tr '\\n' ' ' )
+  genbank_fasta_header=">$submission_id "
+  for column in ${sample_file_header_reduced[@]}
+  do
+    column_number=$(head -n 1 $sample_file | tr "," "\\n" | grep -n "$column" | cut -f 1 -d ':')
+    column_value=$(echo $sample_line | cut -f $column_number -d ',')
+    if [ -z "$column_value" ] ; then column_value="missing" ; fi
+    genbank_fasta_header=$genbank_fasta_header"["$column"="$column_value"]"
+  done
 
-if [ -f "$final_fasta" ]
-then
-  echo "$fasta_file has been converted to genbank submission file"
-  echo "The file for easy genbank submission is located at"
-  echo $final_fasta
-else
-  echo "File could not be made for $fasta_file"
-  echo "Ensure sample is found in $metadata_file"
-fi
+  if [ "$collection_date" == "missing" ]
+  then
+    year=$(date "+%Y")
+    echo "The collection date is $collection_date for $sample_id" | tee -a $log_file
+  else
+    collection_date=$(date -d "$collection_date" "+%Y-%m-%d") || echo "Invalid date format. Try something like yyyy-mm-dd and '-resume' the workflow."
+    year=$(date -d "$collection_date" "+%Y")
+    echo "The collection date is $collection_date for $sample_id" | tee -a $log_file
+    genbank_fasta_header=$genbank_fasta_header"[Collection_Date="$collection_date"]"
+  fi
 
-exit 0
+  country_check=$(echo $sample_file_header_reduced | grep -wi "country" | head -n 1 )
+  if [ -z "$country_check" ]
+  then
+    genbank_fasta_header=$genbank_fasta_header"[Country=USA]"
+    country="USA"
+  else
+    column_number=$(head -n 1 $sample_file | tr "," "\\n" | grep -in "country" | cut -f 1 -d ':')
+    country=$(echo $sample_line | cut -f $column_number -d ',')
+    if [ -z "$country" ] ; then country="missing" ; fi
+  fi
+
+  host_check=$(echo $sample_file_header_reduced | grep -wi "host"  | head -n 1 )
+  if [ -z "$host_check" ]
+  then
+    genbank_fasta_header=$genbank_fasta_header"[Host=Human]"
+    host="Human"
+  else
+    column_number=$(head -n 1 $sample_file | tr "," "\\n" | grep -in "host" | cut -f 1 -d ':')
+    host=$(echo $sample_line | cut -f $column_number -d ',')
+    if [ -z "$host" ] ; then host="missing" ; fi
+  fi
+
+  isolate_check=$(echo $sample_file_header_reduced | grep -wi "isolate"  | head -n 1 )
+  if [ -z "$isolate_check" ]
+  then
+    organism_check=$(head -n 1 $sample_file | tr ',' '\\n' | grep -i "organism" | head -n 1 )
+    if [ -z "$organism_check" ]
+    then
+      genbank_organism='SARS-CoV-2'
+      gisaid_organism='hCoV-19'
+    else
+      column_number=$(head -n 1 $sample_file | tr "," "\\n" | grep -in "organism" | cut -f 1 -d ':')
+      genbank_organism=$(echo $sample_line | cut -f $column_number -d ',')
+      gisaid_organism=$(echo $sample_line  | cut -f $column_number -d ',')
+      if [ -z "$genbank_organism" ] ; then genbank_organism="missing" ; fi
+      if [ -z "$gisaid_organism" ] ; then gisaid_organism="missing" ; fi
+    fi
+    genbank_fasta_header=$genbank_fasta_header"[Isolate="$genbank_organism"/"$host"/"$country"/"$submission_id"/"$year"]"
+    gisaid_fasta_header=">$gisaid_organism/$country/$submission_id/$year"
+  fi
+
+  consensus=$(ls *.fa* | grep -w $sample_id)
+  num_ACTG=$(grep -v ">" $consensus | grep -o -E "C|A|T|G" | wc -l )
+  if [ "$num_ACTG" -gt "$gisaid_threshold" ]
+  then
+    echo $gisaid_fasta_header > $out/$submission_id.gisaid.fa
+    grep -v ">" $consensus | fold -w 75 >> $out/$submission_id.genbank.fa
+  fi
+
+  if [ "$num_ACTG" -gt "$genbank_threshold" ]
+  then
+    echo $genbank_fasta_header > $out/$submission_id.genbank.fa
+    grep -v ">" $consensus | sed 's/^N*N//g' | fold -w 75 >> $out/$submission_id.genbank.fa
+  fi
+
+  fastq_files=($(ls $fastq_directory/*.fastq.gz | grep -v "filter" | grep -w $sample_id))
+  filtered_fastq_files=($(ls $fastq_directory/*.fastq.gz | grep "filter" | grep -w $sample_id))
+  echo "Found ${#fastq_files[@]} fastq files and ${#filtered_fastq_files[@]} filtered fastq files"
+  if [ "${#filtered_fastq_files[@]}" == 2 ]
+  then
+    cp ${filtered_fastq_files[0]} $out/${submission_id}_R1.fastq.gz
+    cp ${filtered_fastq_files[1]} $out/${submission_id}_R2.fastq.gz
+  elif [ "${#filtered_fastq_files[@]}" == 1 ]
+  then
+    cp ${filtered_fastq_files[0]} $out/${submission_id}.fastq.gz
+  elif [ "${#fastq_files[@]}" == 2 ]
+  then
+    cp ${fastq_files[0]} $out/${submission_id}_R1.fastq.gz
+    cp ${fastq_files[1]} $out/${submission_id}_R2.fastq.gz
+  elif [ "${#fastq_files[@]}" == 1 ]
+  then
+    cp ${fastq_files[0]} $out/${submission_id}.fastq.gz
+  elif [ "${#fastq_files[@]}" == 0 ]
+  then
+    echo "WARN : No fastq files found for $sample_id"
+  else
+    echo "FATAL : Could not determine which fastqs were for $sample_id"
+    ls *.fastq.gz | grep -v "unpaired" | grep -w $sample_id
+    exit 1
+  fi
+done < <(grep -v Collection_Date $sample_file)
+
+cat $out/*genbank.fa > $out/genbank_submission.fasta
+cat $out/*gisaid.fa > $out/gisaid_submission.fasta
