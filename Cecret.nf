@@ -503,6 +503,10 @@ process ivar_variants {
   echo false
   cpus 1
 
+  memory {2.GB * task.attempt}
+  errorStrategy {'retry'}
+  maxRetries 2
+
   when:
   params.ivar_variants
 
