@@ -129,7 +129,7 @@ paired_reads
 
 println("") // just for aesthetics
 
-// param that coincides with the staphb/seqyclean:1.10.09 container run with singularity
+// TBA : param that coincides with the staphb/seqyclean:1.10.09 container run with singularity
 params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
 params.seqyclean_minlen = 25
 process seqyclean {
@@ -138,7 +138,6 @@ process seqyclean {
   echo false
   cpus 1
   container 'staphb/seqyclean:latest'
-//  stageInMode = "copy"
 
   when:
   params.cleaner == 'seqyclean'
@@ -1330,6 +1329,8 @@ if (params.relatedness) {
     echo false
     cpus params.maxcpus
     container 'staphb/mafft:latest'
+    errorStrategy 'retry'
+    maxRetries 2
 
     input:
     file(consensus) from qc_consensus_15000_mafft.collect()
@@ -1476,7 +1477,7 @@ if (params.rename) {
     params.sample_file.exists() && params.rename
 
     output:
-    file("submission_files/*{genbank,gisaid}.fa") optional true into submission_fastas
+    file("submission_files/*{genbank,gisaid}.fa") optional true
     file("submission_files/*.fastq.gz")
     file("logs/${task.process}/${sample}.${workflow.sessionId}.{err,log}")
 
