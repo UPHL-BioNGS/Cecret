@@ -132,7 +132,7 @@ params.samtools_coverage = true       # stats about the bam files
 params.samtools_flagstat = true       # stats about the bam files
 params.samtools_ampliconstats = true  # stats about the amplicons
 params.kraken2 = false                # used to classify reads and needs a corresponding params.kraken2_db and organism if not SARS-CoV-2
-params.bedtools = true                # bedtools multicov for coverage approximation of amplicons
+params.bedtools_multicov = true       # bedtools multicov for coverage approximation of amplicons
 params.nextclade = true               # SARS-CoV-2 clade determination
 params.pangolin = true                # SARS-CoV-2 clade determination
 params.vadr = false                   # NCBI fasta QC
@@ -256,7 +256,7 @@ This file contains all of the configurable parameters with their default values.
 * params.single_reads = workflow.launchDir + '/single_reads'
 * params.outdir = workflow.launchDir + "/cecret"
 
-### reference files for SARS-CoV-2 (part of the github repository)
+### reference files for SARS-CoV-2 with artic V3 primers (part of the github repository)
 * params.reference_genome = workflow.projectDir + "/configs/MN908947.3.fasta"
 * params.gff_file = workflow.projectDir + "/configs/MN908947.3.gff"
 * params.primer_bed = workflow.projectDir + "/configs/artic_V3_nCoV-2019.bed"
@@ -298,9 +298,28 @@ Yes. Set `params.bamsnap = true`. This is false by default because of how long i
 
 Warning : will not work on all variants. This is due to how bamsnap runs. It is even less likely to work on indels. 
 
+### What is the difference between `params.amplicon_bed` and `params.primer_bed`?
+
+The primer bedfile is the file with the start and stop of each **primer** sequence.
+
+```
+$ head -n 3 artic_V3_nCoV-2019.bed 
+MN908947.3	30	54	nCoV-2019_1_LEFT	nCoV-2019_1	+
+MN908947.3	385	410	nCoV-2019_1_RIGHT	nCoV-2019_1	-
+MN908947.3	320	342	nCoV-2019_2_LEFT	nCoV-2019_2	+
+```
+The amplicon bedfile is the file with the start and stop of each intended **amplicon**.
+```
+$ head -n 3 nCoV-2019.insert.bed 
+MN908947.3	54	385	1	1	+
+MN908947.3	342	704	2	2	+
+MN908947.3	664	1004	3	1	+
+```
+Due to the many varieties of primer bedfiles, I determined it was best if the user supplied this file for custom primer sequences.
+
 ### What if I am using an amplicon based library that is not SARS-CoV-2?
 
-In your config file, set your `params.reference_genome`, `params.primer_bed`, and `params.gff_file` appropriately.
+In your config file, set your `params.reference_genome`, `params.primer_bed`, `params.amplicon_bed`, and `params.gff_file` appropriately.
 
 You'll also want to set `params.pangolin = false`, `params.nextclade = false`, and configure your vadr container appropriately. 
 
@@ -314,7 +333,7 @@ params.ivar_variants = false
 params.samtools_stats = false
 params.samtools_coverage = false
 params.samtools_flagstat = false
-params.bedtools = false
+params.bedtools_multicov = false
 params.samtools_ampliconstats = false
 params.pangolin = false
 params.nextclade = false
