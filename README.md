@@ -62,25 +62,29 @@ nextflow run Cecret.nf -c configs/singularity.config
 ```
 ## Optional toggles:
 
-### Using samtools to trim amplicons instead of ivar
-```
-nextflow run Cecret.nf -c configs/singularity.config --trimmer samtools
-```
-Or set `params.trimmer = samtools` in a config file
-
 ### Using fastp to clean reads instead of seqyclean
 ```
 nextflow run Cecret.nf -c configs/singularity.config --cleaner fastp
 ```
-Or set `params.cleaner = fastp` in a config file
+Or set `params.cleaner = 'fastp'` in a config file
 
+### Using samtools to trim amplicons instead of ivar
+```
+nextflow run Cecret.nf -c configs/singularity.config --trimmer samtools
+```
+Or set `params.trimmer = 'samtools'` in a config file
+
+### Using minimap2 to align reads instead of bwa
+```
+nextflow run Cecret.nf -c configs/singularity.config --aligner minimap2
+```
+Or set `params.aligner = 'minimap2'` in a config file
 
 ### Determining relatedness
 To create a multiple sequence alignment and corresponding phylogenetic tree and SNP matrix, set `params.relatedness = true` or 
 ```
 nextflow run Cecret.nf -c configs/singularity.config --relatedness true
 ```
-
 ### Classify reads with kraken2
 To classify reads with kraken2 to identify reads from human or the organism of your choice
 #### Step 1. Get a kraken2 database
@@ -95,12 +99,9 @@ rm -rf kraken2_h+v_20200319.tar.gz
 ```
 params.kraken2 = true
 params.kraken2_db = < path to kraken2 database >
-params.kraken2_organism = "Severe acute respiratory syndrome coronavirus 2" // default value
+params.kraken2_organism = "Severe acute respiratory syndrome coronavirus 2"
 ```
-Or
-```
-nextflow run Cecret.nf -c configs/singularity.config --kraken2 true --kraken2_db=kraken2_db
-```
+
 ## The main components of Cecret are:
 
 - [seqyclean](https://github.com/ibest/seqyclean) - for cleaning reads
@@ -152,7 +153,6 @@ The following headers are required
 - Submission_id      (if file needs renaming)
 - Collection_Date
 
-
 Example covid_samples.csv file contents:
 ```
 Sample_id,Submission_ID,Collection_Date,SRR
@@ -167,7 +167,7 @@ Where the files named `12345-UT-M03999-200822_S9_L001_R1_001.fastq.gz`, `12345-U
 NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 ```
 
-Sometimes sequencing fails, so there are parameters for how many non-ambiguous bases a fasta needs in order to get incorporated into the final file. This can be set with `params.gisaid_threshold` (Default is '`params.gisaid_threshold = 25000`') and params.genbank_threshold (Default is '`params.genbank_threshold = 15000`').
+Sometimes sequencing fails, so there are parameters for how many non-ambiguous bases a fasta needs in order to get incorporated into the final file. This can be set with `params.gisaid_threshold` (Default is '`params.gisaid_threshold = '25000'`') and params.genbank_threshold (Default is '`params.genbank_threshold = '15000'`').
 
 ## Final file structure
 ```
@@ -207,7 +207,7 @@ cecret
 |-nextclade                           # identfication of nextclade clades and variants identified
 | |-sample_nextclade_report.csv       # actually a ";" deliminated file
 |-pangolin
-| |-lineage_report.csv              # identification of pangolin lineages
+| |-lineage_report.csv                # identification of pangolin lineages
 |-samtools_ampliconstats
 | |-sample_ampliconstats.txt          # stats for the amplicons used
 |-samtools_coverage
@@ -233,8 +233,6 @@ cecret
 |-snp-dists                           # optional: relatedness parameter must be set to true
 | |-snp-dists                         # file containing a table of the number of snps that differ between any two samples
 |-submission_files                    # optional: is only created if covid_samples.txt exists
-| |-genbank_submission.fasta   # multifasta for direct genbank
-| |-gisaid_submission.fasta    # multifasta file bulk upload to gisaid
 | |-sample.genbank.fa                 # fasta file with formatting and header including metadata for genbank
 | |-sample.gisaid.fa                  # fasta file with header for gisaid
 | |-sample.R1.fastq.gz                # renamed raw fastq.gz file
@@ -246,23 +244,17 @@ reads
 | |-sample_S1_L001_R1_001.fastq.gz    # initial file
 | |-sample_S1_L001_R2_001.fastq.gz    # inital file
 work                                  # nextflows work directory. Likely fairly large.
-vader
-  |-sample
-    |-vadr
+vadr
+  |-vadr*                             # vadr output
 ```
 
-# Adjustable Paramters with their default values
-### **A FILE THAT THE END USER/YOU CAN COPY AND EDIT IS FOUND AT [configs/example.config](configs/example.config)**
+# **A FILE THAT THE END USER/YOU CAN COPY AND EDIT IS FOUND AT [configs/example.config](configs/example.config)**
+This file contains all of the configurable parameters with their default values. If you are using some sort of cloud or HPC setup, I highly recommend you copy this and edit it appropriately. A limited list of parameters is listed below:
 
 ### input and output directories
 * params.reads = workflow.launchDir + '/reads'
 * params.single_reads = workflow.launchDir + '/single_reads'
 * params.outdir = workflow.launchDir + "/cecret"
-* params.sample_file = workflow.launchDir + '/covid_samples.csv' (optional)
-
-### CPUS to use
-* params.maxcpus = Runtime.runtime.availableProcessors()
-* params.medcpus = 5
 
 ### reference files for SARS-CoV-2 (part of the github repository)
 * params.reference_genome = workflow.projectDir + "/configs/MN908947.3.fasta"
@@ -270,43 +262,33 @@ vader
 * params.primer_bed = workflow.projectDir + "/configs/artic_V3_nCoV-2019.bed"
 * params.amplicon_bed = workflow.projectDir + "/configs/nCoV-2019.insert.bed"
 
-### for minimap2
-* params.minimap2_K = '20M'
-
-### for ivar trimming and variant/consensus calling
-* params.ivar_quality = 20
-* params.ivar_frequencing_threshold = 0.6
-* params.ivar_minimum_read_depth = 10
-* params.mpileup_depth = 8000
-
-### for optional kraken2 contamination detection
-* params.kraken2_organism = "Severe acute respiratory syndrome coronavirus 2"
-* params.kraken2_db = ''
-
-### for optional route of tree generation and counting snps between samples
-* params.max_ambiguous = '0.50'
-* params.outgroup = 'MN908947.3'
-* params.mode='GTR'
-
-### contaminant file for seqyclean (inside the seqyclean container)
-* params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
-* params.seqyclean_minlen = 25
-
-### for renaming files
-* params.sample_file = workflow.launchDir + '/covid_samples.csv'
-* params.gisaid_threshold = '25000'
-* params.genbank_threshold = '15000'
-
 ### Other useful options
-To "resume" a workflow that use `-resume` with your nextflow command
-To create a report, use `-with-report` with your nextflow command
-To use nextflow tower, use `-with-tower` with your nextflow command
+* To "resume" a workflow that use `-resume` with your nextflow command
+* To create a report, use `-with-report` with your nextflow command
+* To use nextflow tower, use `-with-tower` with your nextflow command
 
+# Frequently Asked Questions (aka FAQ)
+### What do I do if I encounter an error?
 
-# Questions Worth Asking
+**TELL ME ABOUT IT!!!**
+* [Github issue](https://github.com/UPHL-BioNGS/Cecret/issues)
+* Email me
+* Send me a message on slack
+
+Be sure to include the command that you used, what config file you used, and what the **nextflow** error was. 
+
+### What if I just want to annotated some SARS-CoV-2 fastas with pangolin, nextclade and vadr?
+```
+nextflow run Cecret_annotation.nf -c configs/singularity.config
+```
+You can run mafft, snpdists, and iqtree on a collection of fastas as well with
+```
+nextflow run Cecret_annotation.nf -c configs/singularity.config --relatedness true
+```
+[Cecret_annotation.nf](./Cecret_annotation.nf) Uses the same basic structure as the main workflow, so the same config file can probably be used for both.
 ### Why is bcftools set to 'false' by default?
 
-There's nothing wrong with the bcftools process, and the vcf created by bcftools is rather handy for additional analyses. The `'staphb/bcftools:latest'` container is really popular, and has issues downloading during high traffic times. I don't want to have to handle issues of users not understanding why the container did not download. /Sorry
+There's nothing wrong with the bcftools process, and the vcf created by bcftools is rather handy for additional analyses. The `'staphb/bcftools:latest'` container is really popular, and has issues downloading during high traffic times. I don't have the time to handle issues of users not understanding why the container did not download. /Sorry
 
 If you want to get the output from bcftools, set `params.bcftools = true` 
 
@@ -314,13 +296,13 @@ If you want to get the output from bcftools, set `params.bcftools = true`
 
 Yes. Set `params.bamsnap = true`. This is false by default because of how long it takes. It will work with variants called by `ivar` and `bcftools`, although it is **MUCH** faster with the vcf created by bcftools. 
 
-Warning : will not work on all variants. This is due to how bamsnap runs.
+Warning : will not work on all variants. This is due to how bamsnap runs. It is even less likely to work on indels. 
 
 ### What if I am using an amplicon based library that is not SARS-CoV-2?
 
 In your config file, set your `params.reference_genome`, `params.primer_bed`, and `params.gff_file` appropriately.
 
-You'll also want to set `params.pangolin = false` and `params.nextclade = false`
+You'll also want to set `params.pangolin = false`, `params.nextclade = false`, and configure your vadr container appropriately. 
 
 ### This workflow has too many bells and whistles. I really only care about generating a consensus fasta. How do I get rid of all the extras?
 
@@ -338,32 +320,7 @@ params.pangolin = false
 params.nextclade = false
 params.vadr = false
 ```
-
 And, yes, this means I added some bells and whistles so you could turn off the bells and whistles. /irony
-
-### How do I get `cecret` to get my files ready for [GenBank](https://submit.ncbi.nlm.nih.gov/subs/genbank/) or [GISAID](https://www.gisaid.org/) submission?
-
-Create a comma-delimited file with at least the following headers: `Sample_ID`, `Submission_id`, and `Collection_Date` and set `params.sample_file` to that file. Then set `params.rename = true`. Additional headers can be accepted and used for preparing the GenBank submission fastas such as `BioProject`,`SRA`, and `Isolate`. 
-
-Defaults for fasta header values are 
-```
-country="USA" 
-host="Human"
-GenBank isolate = SARS-CoV-2/$host/$country/$submission_id/$year
-GISAID isolate = hCoV-19/$country/$submission_id/$year
-```
-
-Example `sample_file.csv` to go with fastq files `134568-UT-M04492-191220_S44_L001_R{1,2}_001.fastq.gz`, `456578_{1,2}.fastq.gz`, `248074-UT-M05067-200511_S9_L001_001.fastq.gz`
-```
-Sample_ID,Submission_ID,Collection_Date,Bioproject
-134568,UT-UPHL-1902281085,01/12/2021,PRJNA614995
-456578,UT-UPHL-1902853304,2020-10-01,PRJNA614995
-248074,UT-UPHL-1902032935,missing,PRJNA614995
-```
-
-Sometimes sequencing fails, so there are parameters for how many non-ambiguous bases a fasta needs in order to get incorporated into the final file. This can be set with `params.gisaid_threshold` (Default is '`params.gisaid_threshold = 25000`') and `params.genbank_threshold` (Default is '`params.genbank_threshold = 15000`').
-
-### Where do I find the rest of the documentation?
 
 # Directed Acyclic Diagrams (DAG)
 ### Full workflow
