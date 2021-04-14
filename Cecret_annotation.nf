@@ -175,6 +175,7 @@ process vadr {
   '''
 }
 
+params.relatedness = false
 if (params.relatedness){
   Channel
     .fromPath(params.reference_genome, type:'file')
