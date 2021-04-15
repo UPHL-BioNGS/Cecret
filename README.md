@@ -192,6 +192,10 @@ cecret
 |-fastqc
 | |-sample.fastqc.html
 | |-sample.fastqc.zip
+|-filter                              # optional: turns aligned bams into fastq files
+| |-sample_filtered_R1.fastq
+| |-sample_filtered_R2.fastq
+| |-sample_filtered_unpaired.fastq
 |-iqtree                              # optional: relatedness parameter must be set to true
 | |-iqtree.treefile
 |-ivar_trim
@@ -319,9 +323,22 @@ Due to the many varieties of primer bedfiles, I determined it was best if the us
 
 ### What if I am using an amplicon based library that is not SARS-CoV-2?
 
-In your config file, set your `params.reference_genome`, `params.primer_bed`, `params.amplicon_bed`, and `params.gff_file` appropriately.
+In your config file, change the following relevant parameters:
+```
+params.reference_genome
+params.primer_bed
+params.amplicon_bed or set params.bedtools_multicov = false
+params.gff_file or set params.ivar_variants = false
+```
+And set
+```
+params.pangolin = false 
+params.nextclade = false
+params.vader = false or configure your vadr container appropriately and params.vadr_reference
+```
+### What if I need to filter out human reads or I only want reads that map to my reference?
 
-You'll also want to set `params.pangolin = false`, `params.nextclade = false`, and configure your vadr container appropriately. 
+Although not perfect, if `params.filter = true`, then only the reads that were mapped to the reference are returned. This should eliminate all human contamination (as long as human is not part of your reference). 
 
 ### This workflow has too many bells and whistles. I really only care about generating a consensus fasta. How do I get rid of all the extras?
 
