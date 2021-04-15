@@ -132,15 +132,25 @@ process nextclade {
 }
 
 params.vadr = true
-params.vadr_options = '-r'
-params.vadr_reference = 'NC_045512'
+params.maxmem = Math.round(Runtime.runtime.totalMemory() / 10241024)
+if ( params.maxmem / 2 > params.medcpus ) {
+  vadrmemory = params.medcpus + params.medcpus
+  vadrcpus = params.medcpus
+} else {
+  vadrmemory = 2
+  vadrcpus = 1
+}
+params.vadr_options = '--split --glsearch -s  -r --nomisc --lowsim5term 2 --lowsim3term 2 --alt_fail lowscore,fstukcnf,insertnn,deletinn'
+params.vadr_reference = 'sarscov2'
+params.vadr_mdir = '/opt/vadr/vadr-models'
 process vadr {
   publishDir "${params.outdir}", mode: 'copy'
-  tag "vadr"
+  tag "Fasta QC with vadr"
   echo false
-  cpus params.medcpus
+  cpus vadrcpus
+  memory vadrmemory.GB
   container 'staphb/vadr:latest'
-  memory 56000
+  stageInMode = 'symlink'
 
   when:
   params.vadr
@@ -164,14 +174,14 @@ process vadr {
 
     cat !{fasta} > ultimate.fasta
 
-    # for safekeeping. Adding this makes vadr really really really slow
-    #memory=$(echo !{task.memory} | awk '{if ( $0 ~GB ) print $1 * 1024 ; else if ( $0 ~MB ) print $1 ; else print $1 }') #--mxsize $memory \
-
     v-annotate.pl !{params.vadr_options} \
       --noseqnamemax \
       --mkey !{params.vadr_reference} \
+      --mdir !{params.vadr_mdir} \
+      --cpu !{task.cpus} \
       ultimate.fasta \
-      !{task.process}
+      !{task.process} \
+      2>> $err_file >> $log_file
   '''
 }
 

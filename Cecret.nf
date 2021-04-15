@@ -6,9 +6,6 @@ println("email: eriny@utah.gov")
 println("Version: v.20210416")
 println("")
 
-// TBA plot-ampliconstats
-// plot-ampliconstats results_SAMPLEID ampliconstats.txt
-
 params.reads = workflow.launchDir + '/reads'
 params.single_reads = workflow.launchDir + '/single_reads'
 if ( params.reads == params.single_reads ) {
@@ -37,6 +34,7 @@ params.samtools_stats = true
 params.samtools_coverage = true
 params.samtools_flagstat = true
 params.samtools_ampliconstats = true
+params.samtools_plot_ampliconstats = false
 params.bedtools_multicov = true
 params.nextclade = true
 params.pangolin = true
@@ -138,6 +136,7 @@ process seqyclean {
   echo false
   cpus 1
   container 'staphb/seqyclean:latest'
+  stageInMode = 'symlink'
 
   when:
   params.cleaner == 'seqyclean'
@@ -192,6 +191,7 @@ process fastp {
   echo false
   cpus 1
   container 'bromberglab/fastp:latest'
+  stageInMode = 'symlink'
 
   when:
   params.cleaner == 'fastp'
@@ -259,6 +259,7 @@ process bwa {
   echo false
   cpus params.maxcpus
   container 'staphb/bwa:latest'
+  stageInMode = 'symlink'
 
   when:
   params.aligner == 'bwa'
@@ -299,6 +300,7 @@ process minimap2 {
   echo false
   cpus params.maxcpus
   container 'staphb/minimap2:latest'
+  stageInMode = 'symlink'
 
   when:
   params.aligner == 'minimap2'
@@ -345,7 +347,7 @@ process fastqc {
   echo false
   cpus 1
   container 'staphb/fastqc:latest'
-  stageInMode = "copy"
+  stageInMode = 'symlink'
 
   when:
   params.fastqc
@@ -392,6 +394,7 @@ process sort {
   echo false
   cpus params.maxcpus
   container 'staphb/samtools:latest'
+  stageInMode = 'symlink'
 
   input:
   set val(sample), file(sam) from sams
@@ -426,6 +429,7 @@ process filter {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
+  stageInMode = 'symlink'
 
   when:
   params.filter
@@ -434,8 +438,8 @@ process filter {
   set val(sample), file(sam) from sams_filter
 
   output:
-  tuple sample, file("${task.process}/${sample}_filtered_{R1,R2}.fastq.gz") into filtered_reads
-  file("${task.process}/${sample}_filtered_unpaired.fastq.gz")
+  tuple sample, file("${task.process}/${sample}_filtered_{R1,R2}.fastq.gz") optional true into filtered_reads
+  file("${task.process}/${sample}_filtered_unpaired.fastq.gz") optional true
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -472,6 +476,7 @@ process ivar_trim {
   echo false
   cpus 1
   container 'staphb/ivar:latest'
+  stageInMode = 'symlink'
 
   when:
   params.trimmer == 'ivar'
@@ -510,6 +515,7 @@ process samtools_ampliconclip {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
+  stageInMode = 'symlink'
 
   when:
   params.trimmer == 'samtools'
@@ -563,8 +569,7 @@ ivar_bam_bai
   .set { trimmed_bam_bai }
 
 process ivar_variants {
-  publishDir "${params.outdir}", mode: 'copy',  pattern: "logs/ivar_variants/*.{log,err}"
-  publishDir "${params.outdir}", mode: 'copy',  pattern: "ivar_variants/*.tsv"
+  publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
   echo false
   cpus 1
@@ -572,6 +577,7 @@ process ivar_variants {
   memory {2.GB * task.attempt}
   errorStrategy {'retry'}
   maxRetries 2
+  stageInMode = 'symlink'
 
   when:
   params.ivar_variants
@@ -580,7 +586,8 @@ process ivar_variants {
   set val(sample), file(bam), file(reference_genome), file(gff_file) from trimmed_bams_ivar_variants
 
   output:
-  tuple sample, file("${task.process}/${sample}.variants.tsv") into ivar_variant_file
+  tuple sample, file("${task.process}/${sample}.variants.tsv")
+  tuple sample, file("${task.process}/${sample}.ivar_variants.vcf") into ivar_variant_file
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(variants_num) into ivar_variants_results
 
@@ -601,6 +608,24 @@ process ivar_variants {
     variants_num=$(grep "TRUE" !{task.process}/!{sample}.variants.tsv | wc -l)
 
     if [ -z "$variants_num" ] ; then variants_num="0" ; fi
+
+    echo '##fileformat=VCFv4.2' > !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##source=iVar' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##INFO=<ID=DP,Number=1,Type=Integer,Description="Total Depth">' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##FILTER=<ID=PASS,Description="Result of p-value <= 0.05">' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##FILTER=<ID=FAIL,Description="Result of p-value > 0.05">' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##FORMAT=<ID=REF_DP,Number=1,Type=Integer,Description="Depth of reference base">' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##FORMAT=<ID=REF_RV,Number=1,Type=Integer,Description="Depth of reference base on reverse reads">' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##FORMAT=<ID=REF_QUAL,Number=1,Type=Integer,Description="Mean quality of reference base">' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##FORMAT=<ID=ALT_DP,Number=1,Type=Integer,Description="Depth of alternate base">' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##FORMAT=<ID=ALT_RV,Number=1,Type=Integer,Description="Deapth of alternate base on reverse reads">' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##FORMAT=<ID=ALT_QUAL,Number=1,Type=String,Description="Mean quality of alternate base">' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo '##FORMAT=<ID=ALT_FREQ,Number=1,Type=String,Description="Frequency of alternate base">' >> !{task.process}/!{sample}.ivar_variants.vcf
+    echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t!{sample}' >> !{task.process}/!{sample}.ivar_variants.vcf
+    tail -n+2 !{task.process}/!{sample}.variants.tsv | \
+      awk '{print $1 "\t" $2 "\t.\t" $3 "\t" $4 "\t.\t.\tREF_DP=" $5 ";REF_RV=" $6 ";REF_QUAL=" $7 ";ALT_DP=" $8 ";ALT_RV=" $9 ";ALT_QUAL=" $10 "\tGT:PL\t1/1:" $12 "," $12-$8 "," $8 }' \
+      >> !{task.process}/!{sample}.ivar_variants.vcf
   '''
 }
 
@@ -614,6 +639,7 @@ process ivar_consensus {
   memory {2.GB * task.attempt}
   errorStrategy {'retry'}
   maxRetries 2
+  stageInMode = 'symlink'
 
   input:
   set val(sample), file(bam), file(reference_genome) from trimmed_bams_ivar_consensus
@@ -660,6 +686,7 @@ process bcftools_variants {
   echo false
   cpus 1
   container 'staphb/bcftools:latest'
+  stageInMode = 'symlink'
 
   when:
   params.bcftools_variants
@@ -704,12 +731,14 @@ process bamsnap {
   cpus params.medcpus
   errorStrategy 'ignore'
   container 'danielmsk/bamsnap:latest'
+  stageInMode = 'symlink'
+  time '1h'
 
   when:
   params.bamsnap
 
   input:
-  tuple val(sample), file(bam), file(bai), file(variant_file), file(vcf), file(reference_genome) from bamsnap_files
+  tuple val(sample), file(bam), file(bai), file(ivar), file(bcftools), file(reference_genome) from bamsnap_files
 
   output:
   file("${task.process}/${sample}/{ivar,bcftools}/*.{png,log}") optional true
@@ -725,38 +754,7 @@ process bamsnap {
     date | tee -a $log_file $err_file > /dev/null
     bamsnap --version >> $log_file
 
-    if [[ "!{variant_file}" != *"input"* ]]
-    then
-      reference_length=$(grep -v ">" !{reference_genome} | wc -m)
-      if [ $reference_length -lt 1050 ]
-      then
-        echo "The reference isn't long enough for bamsnap. Set 'bamsnap.params = false' " | tee -a $err_file
-        exit 1
-      fi
-
-      max_position=$(( $reference_length - 1050 ))
-      echo "Reminder: the min variant position is 501 and the maximum position is $max_position" | tee -a $log_file
-
-      mkdir -p !{task.process}/!{sample}
-      bamsnap_variants=($(grep TRUE !{variant_file} | awk '{ if ( $2 < 501 ) $2=501 ; print $1 " " $2 }' | awk -v max=$max_position '{ if ( $2 > max ) $2=max ; print $1 ":" $2 }' | sort | uniq ))
-
-      for refvariant in ${bamsnap_variants[@]}
-      do
-        variant=$(echo $refvariant | cut -f 2 -d ":" )
-        bamsnap  \
-          -draw coordinates bamplot coverage base \
-          !{params.bamsnap_options} \
-          -process !{task.cpus} \
-          -ref !{reference_genome} \
-          -bam !{bam} \
-          -out !{task.process}/!{sample}/ivar/$variant.png \
-          -pos $refvariant \
-          -imagetype png \
-          -save_image_only 2>> $err_file | tee -a $log_file
-      done
-    fi
-
-    if [[ "!{vcf}" != *"input"* ]]
+    if [[ "!{ivar}" != *"input"* ]]
     then
       mkdir -p bamsnap/!{sample}
       bamsnap \
@@ -765,7 +763,22 @@ process bamsnap {
         -process !{task.cpus} \
         -ref !{reference_genome} \
         -bam !{bam} \
-        -vcf !{vcf} \
+        -vcf !{ivar} \
+        -out !{task.process}/!{sample}/ivar \
+        -imagetype png \
+        -save_image_only 2>> $err_file >> $log_file
+    fi
+
+    if [[ "!{bcftools}" != *"input"* ]]
+    then
+      mkdir -p bamsnap/!{sample}
+      bamsnap \
+        -draw coordinates bamplot coverage base \
+        !{params.bamsnap_options} \
+        -process !{task.cpus} \
+        -ref !{reference_genome} \
+        -bam !{bam} \
+        -vcf !{bcftools} \
         -out !{task.process}/!{sample}/bcftools \
         -imagetype png \
         -save_image_only 2>> $err_file >> $log_file
@@ -784,6 +797,7 @@ process samtools_stats {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
+  stageInMode = 'symlink'
 
   when:
   params.samtools_stats
@@ -822,6 +836,7 @@ process samtools_coverage {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
+  stageInMode = 'symlink'
 
   when:
   params.samtools_coverage
@@ -863,6 +878,7 @@ process samtools_flagstat {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
+  stageInMode = 'symlink'
 
   input:
   set val(sample), file(aligned), file(trimmed) from pre_post_bams3
@@ -904,6 +920,7 @@ process kraken2 {
   echo false
   cpus params.maxcpus
   container 'staphb/kraken2:latest'
+  stageInMode = 'symlink'
 
   when:
   params.kraken2
@@ -963,9 +980,10 @@ params.bedtools_multicov_options = '-f .1'
 process bedtools_multicov {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
   container 'staphb/bedtools:latest'
+  stageInMode = 'symlink'
 
   when:
   params.bedtools_multicov
@@ -1005,6 +1023,7 @@ process samtools_ampliconstats {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
+  stageInMode = 'symlink'
 
   when:
   params.samtools_ampliconstats
@@ -1013,7 +1032,7 @@ process samtools_ampliconstats {
   set val(sample), file(bam), file(primer_bed) from trimmed_bams_ampliconstats
 
   output:
-  file("${task.process}/${sample}_ampliconstats.txt")
+  tuple sample, file("${task.process}/${sample}_ampliconstats.txt") into samtools_ampliconstats_files
   tuple sample, env(num_failed_amplicons) into samtools_ampliconstats_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
@@ -1036,6 +1055,40 @@ process samtools_ampliconstats {
   '''
 }
 
+params.samtools_plot_ampliconstats_options = '-size 1200,900 -size2 1200,900 -size3 1200,900'
+process samtools_plot_ampliconstats {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "${sample}"
+  echo false
+  cpus 1
+  container 'staphb/samtools:latest'
+  stageInMode = 'symlink'
+
+  when:
+  params.samtools_plot_ampliconstats
+
+  input:
+  set val(sample), file(ampliconstats) from samtools_ampliconstats_files
+
+  output:
+  file("${task.process}/${sample}*")
+  file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+    mkdir -p !{task.process}/!{sample} logs/!{task.process}
+    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+
+    date | tee -a $log_file $err_file > /dev/null
+    samtools --version >> $log_file
+
+    plot-ampliconstats !{params.samtools_plot_ampliconstats_options} \
+      !{task.process}/!{sample} \
+      !{ampliconstats}
+  '''
+}
+
 params.pangolin_options = ''
 if (params.pangolin) {
   process pangolin {
@@ -1044,6 +1097,7 @@ if (params.pangolin) {
     echo false
     cpus params.maxcpus
     container 'staphb/pangolin:latest'
+    stageInMode = 'symlink'
 
     when:
     params.pangolin
@@ -1084,6 +1138,7 @@ process nextclade {
   echo false
   cpus params.medcpus
   container 'neherlab/nextclade:latest'
+  stageInMode = 'symlink'
 
   when:
   params.nextclade
@@ -1117,15 +1172,26 @@ process nextclade {
 }
 
 if (params.vadr) {
-  params.vadr_options = '-r'
-  params.vadr_reference = 'NC_045512'
+  params.maxmem = Math.round(Runtime.runtime.totalMemory() / 10241024)
+  if ( params.maxmem / 2 > params.medcpus ) {
+    vadrmemory = params.medcpus + params.medcpus
+    vadrcpus = params.medcpus
+  } else {
+    vadrmemory = 2
+    vadrcpus = 1
+  }
+
+  params.vadr_options = '--split --glsearch -s  -r --nomisc --lowsim5term 2 --lowsim3term 2 --alt_fail lowscore,fstukcnf,insertnn,deletinn'
+  params.vadr_reference = 'sarscov2'
+  params.vadr_mdir = '/opt/vadr/vadr-models'
   process vadr {
     publishDir "${params.outdir}", mode: 'copy'
     tag "vadr"
     echo false
-    cpus params.medcpus
+    cpus vadrcpus
+    memory vadrmemory.GB
     container 'staphb/vadr:latest'
-    memory 56000
+    stageInMode = 'symlink'
 
     when:
     params.vadr
@@ -1150,14 +1216,14 @@ if (params.vadr) {
 
       cat !{fasta} > ultimate.fasta
 
-      # for safekeeping. Adding this makes vadr really really really slow
-      #memory=$(echo !{task.memory} | awk '{if ( $0 ~GB ) print $1 * 1024 ; else if ( $0 ~MB ) print $1 ; else print $1 }') #--mxsize $memory \
-
       v-annotate.pl !{params.vadr_options} \
         --noseqnamemax \
         --mkey !{params.vadr_reference} \
+        --mdir !{params.vadr_mdir} \
+        --cpu !{task.cpus} \
         ultimate.fasta \
-        !{task.process}
+        !{task.process} \
+        2>> $err_file >> $log_file
     '''
   }
 } else {
@@ -1194,6 +1260,7 @@ process summary {
   echo false
   cpus 1
   container 'staphb/parallel-perl:latest'
+  stageInMode = 'symlink'
 
   input:
   set val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
@@ -1276,7 +1343,7 @@ process summary {
     header="$header,bedtools_num_failed_amplicons,samtools_num_failed_amplicons"
     result="$result,!{bedtools_num_failed_amplicons},!{samtools_num_failed_amplicons}"
 
-    pass_fail=$(grep "Consensus_${sample}.consensus_threshold" !{vadr_file} | awk '{print $4}')
+    pass_fail=$(grep "Consensus_!{sample}.consensus_threshold" !{vadr_file} | awk '{print $4}')
     if [ -z "$pass_fail" ] ; then pass_fail="NA" ; fi
     header="$header,vadr_conclusion"
     result="$result,$pass_fail"
@@ -1297,6 +1364,7 @@ process combined_summary {
   echo false
   cpus 1
   container 'staphb/parallel-perl:latest'
+  stageInMode = 'symlink'
 
   input:
   file(summary) from summary.collect()
@@ -1331,6 +1399,7 @@ if (params.relatedness) {
     container 'staphb/mafft:latest'
     errorStrategy 'retry'
     maxRetries 2
+    stageInMode = 'symlink'
 
     input:
     file(consensus) from qc_consensus_15000_mafft.collect()
@@ -1376,6 +1445,7 @@ if (params.relatedness) {
     echo false
     cpus 1
     container 'staphb/snp-dists:latest'
+    stageInMode = 'symlink'
 
     when:
     params.snpdists
@@ -1407,6 +1477,7 @@ if (params.relatedness) {
     echo false
     cpus params.maxcpus
     container 'staphb/iqtree:latest'
+    stageInMode = 'symlink'
 
     when:
     params.iqtree
