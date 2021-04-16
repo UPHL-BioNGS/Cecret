@@ -125,7 +125,7 @@ then
 fi
 sample_file_header_reduced=$(head -n 1 $sample_file | tr "," '\n' | grep -iv "Sample_ID" | grep -iv "Collection_Date" | grep -vi "Submission_ID" | tr '\n' ' ' )
 
-gzip -q $fastq_directory/*.fastq*
+gzip $fastq_directory/*.fastq*
 
 while read line
 do
@@ -224,23 +224,25 @@ do
 
   fastq_files=($(ls $fastq_directory/*.fastq.gz | grep -v "filter" | grep -v "unpaired" | grep "/$sample_id" ))
   filtered_fastq_files=($(ls $fastq_directory/*.fastq.gz | grep "filter" | grep -v "unpaired" | grep "/$sample_id" ))
+  fastq_unpaired_files=($(ls $fastq_directory/*.fastq.gz | grep -v "filter" | grep "unpaired" | grep "/$sample_id" ))
+  filtered_unpaired_fastq_files=($(ls $fastq_directory/*.fastq.gz | grep "filter" | grep "unpaired" | grep "/$sample_id" ))
   echo "Found ${#fastq_files[@]} fastq files and ${#filtered_fastq_files[@]} filtered fastq files"
   if [ "${#filtered_fastq_files[@]}" == 2 ]
   then
     echo "Found filtered fastq"
     cp ${filtered_fastq_files[0]} $out/${submission_id}_filtered_R1.fastq.gz
     cp ${filtered_fastq_files[1]} $out/${submission_id}_filtered_R2.fastq.gz
-  elif [ "${#filtered_fastq_files[@]}" == 1 ]
+  elif [ "${#filtered_unpaired_fastq_files[@]}" == 1 ]
   then
-    cp ${filtered_fastq_files[0]} $out/${submission_id}_filtered.fastq.gz
+    cp ${filtered_unpaired_fastq_files[0]} $out/${submission_id}_filtered.fastq.gz
   elif [ "${#fastq_files[@]}" == 2 ]
   then
     cp ${fastq_files[0]} $out/${submission_id}_R1.fastq.gz
     cp ${fastq_files[1]} $out/${submission_id}_R2.fastq.gz
-  elif [ "${#fastq_files[@]}" == 1 ]
+  elif [ "${#fastq_unpaired_files[@]}" == 1 ]
   then
-    cp ${fastq_files[0]} $out/${submission_id}.fastq.gz
-  elif [ "${#fastq_files[@]}" == 0 ]
+    cp ${fastq_unpaired_files[0]} $out/${submission_id}.fastq.gz
+  elif [ "${#fastq_files[@]}" == 0 ] && [ "${#fastq_unpaired_files[@]}" == 0 ]
   then
     echo "WARN : No fastq files found for $sample_id"
   else
