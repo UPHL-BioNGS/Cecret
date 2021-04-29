@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version="0.20210416"
+version="0.20210430"
 USAGE="
 \ngenbank_submission.sh is meant to combine consensus fastas
 \nwith enough metadata to make submitting to GenBank easy. It
@@ -144,7 +144,7 @@ do
   for column in ${sample_file_header_reduced[@]}
   do
     column_number=$(head -n 1 $sample_file | tr "," "\n" | grep -n "$column" | cut -f 1 -d ':')
-    column_value=$(echo $sample_line | cut -f $column_number -d ',')
+    column_value=$(echo $line | cut -f $column_number -d ',')
     if [ -z "$column_value" ] ; then column_value="missing" ; fi
     genbank_fasta_header=$genbank_fasta_header"["$column"="$column_value"]"
   done
@@ -167,7 +167,7 @@ do
     country="USA"
   else
     column_number=$(head -n 1 $sample_file | tr "," "\n" | grep -in "country" | cut -f 1 -d ':')
-    country=$(echo $sample_line | cut -f $column_number -d ',')
+    country=$(echo $line | cut -f $column_number -d ',')
     if [ -z "$country" ] ; then country="missing" ; fi
   fi
 
@@ -178,7 +178,7 @@ do
     host="Human"
   else
     column_number=$(head -n 1 $sample_file | tr "," "\n" | grep -in "host" | cut -f 1 -d ':')
-    host=$(echo $sample_line | cut -f $column_number -d ',')
+    host=$(echo $line | cut -f $column_number -d ',')
     if [ -z "$host" ] ; then host="missing" ; fi
   fi
 
@@ -192,8 +192,8 @@ do
       gisaid_organism='hCoV-19'
     else
       column_number=$(head -n 1 $sample_file | tr "," "\n" | grep -in "organism" | cut -f 1 -d ':')
-      genbank_organism=$(echo $sample_line | cut -f $column_number -d ',')
-      gisaid_organism=$(echo $sample_line  | cut -f $column_number -d ',')
+      genbank_organism=$(echo $line | cut -f $column_number -d ',')
+      gisaid_organism=$(echo $line  | cut -f $column_number -d ',')
       if [ -z "$genbank_organism" ] ; then genbank_organism="missing" ; fi
       if [ -z "$gisaid_organism" ] ; then gisaid_organism="missing" ; fi
     fi
