@@ -414,7 +414,7 @@ process sort {
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
 
-    samtools sort !{sam} 2>> $err_file | \
+    samtools sort -@ !{task.cpus} !{sam} 2>> $err_file | \
       samtools view -F 4 -o aligned/!{sample}.sorted.bam 2>> $err_file >> $log_file
 
     # indexing the bams
