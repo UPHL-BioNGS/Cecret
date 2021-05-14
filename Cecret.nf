@@ -136,7 +136,6 @@ process seqyclean {
   echo false
   cpus 1
   container 'staphb/seqyclean:latest'
-  stageInMode = 'symlink'
 
   when:
   params.cleaner == 'seqyclean'
@@ -191,7 +190,6 @@ process fastp {
   echo false
   cpus 1
   container 'bromberglab/fastp:latest'
-  stageInMode = 'symlink'
 
   when:
   params.cleaner == 'fastp'
@@ -259,7 +257,6 @@ process bwa {
   echo false
   cpus params.maxcpus
   container 'staphb/bwa:latest'
-  stageInMode = 'symlink'
 
   when:
   params.aligner == 'bwa'
@@ -300,7 +297,6 @@ process minimap2 {
   echo false
   cpus params.maxcpus
   container 'staphb/minimap2:latest'
-  stageInMode = 'symlink'
 
   when:
   params.aligner == 'minimap2'
@@ -347,7 +343,6 @@ process fastqc {
   echo false
   cpus 1
   container 'staphb/fastqc:latest'
-  stageInMode = 'symlink'
 
   when:
   params.fastqc
@@ -394,7 +389,6 @@ process sort {
   echo false
   cpus params.maxcpus
   container 'staphb/samtools:latest'
-  stageInMode = 'symlink'
 
   input:
   set val(sample), file(sam) from sams
@@ -429,7 +423,6 @@ process filter {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
-  stageInMode = 'symlink'
 
   when:
   params.filter
@@ -476,7 +469,6 @@ process ivar_trim {
   echo false
   cpus 1
   container 'staphb/ivar:latest'
-  stageInMode = 'symlink'
 
   when:
   params.trimmer == 'ivar'
@@ -515,7 +507,6 @@ process samtools_ampliconclip {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
-  stageInMode = 'symlink'
 
   when:
   params.trimmer == 'samtools'
@@ -577,7 +568,6 @@ process ivar_variants {
   memory {2.GB * task.attempt}
   errorStrategy {'retry'}
   maxRetries 2
-  stageInMode = 'symlink'
 
   when:
   params.ivar_variants
@@ -639,7 +629,6 @@ process ivar_consensus {
   memory {2.GB * task.attempt}
   errorStrategy {'retry'}
   maxRetries 2
-  stageInMode = 'symlink'
 
   input:
   set val(sample), file(bam), file(reference_genome) from trimmed_bams_ivar_consensus
@@ -686,7 +675,6 @@ process bcftools_variants {
   echo false
   cpus 1
   container 'staphb/bcftools:latest'
-  stageInMode = 'symlink'
 
   when:
   params.bcftools_variants
@@ -731,7 +719,6 @@ process bamsnap {
   cpus params.medcpus
   errorStrategy 'ignore'
   container 'danielmsk/bamsnap:latest'
-  stageInMode = 'symlink'
   time '1h'
 
   when:
@@ -797,7 +784,6 @@ process samtools_stats {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
-  stageInMode = 'symlink'
 
   when:
   params.samtools_stats
@@ -836,7 +822,6 @@ process samtools_coverage {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
-  stageInMode = 'symlink'
 
   when:
   params.samtools_coverage
@@ -878,7 +863,6 @@ process samtools_flagstat {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
-  stageInMode = 'symlink'
 
   input:
   set val(sample), file(aligned), file(trimmed) from pre_post_bams3
@@ -920,7 +904,6 @@ process kraken2 {
   echo false
   cpus params.maxcpus
   container 'staphb/kraken2:latest'
-  stageInMode = 'symlink'
 
   when:
   params.kraken2
@@ -983,7 +966,6 @@ process bedtools_multicov {
   echo false
   cpus 1
   container 'staphb/bedtools:latest'
-  stageInMode = 'symlink'
 
   when:
   params.bedtools_multicov
@@ -1023,7 +1005,6 @@ process samtools_ampliconstats {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
-  stageInMode = 'symlink'
 
   when:
   params.samtools_ampliconstats
@@ -1062,7 +1043,6 @@ process samtools_plot_ampliconstats {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
-  stageInMode = 'symlink'
 
   when:
   params.samtools_plot_ampliconstats
@@ -1097,7 +1077,6 @@ if (params.pangolin) {
     echo false
     cpus params.maxcpus
     container 'staphb/pangolin:latest'
-    stageInMode = 'symlink'
 
     when:
     params.pangolin
@@ -1138,7 +1117,6 @@ process nextclade {
   echo false
   cpus params.medcpus
   container 'neherlab/nextclade:latest'
-  stageInMode = 'symlink'
 
   when:
   params.nextclade
@@ -1191,7 +1169,6 @@ if (params.vadr) {
     cpus vadrcpus
     memory vadrmemory.GB
     container 'staphb/vadr:latest'
-    stageInMode = 'symlink'
 
     when:
     params.vadr
@@ -1260,7 +1237,6 @@ process summary {
   echo false
   cpus 1
   container 'staphb/parallel-perl:latest'
-  stageInMode = 'symlink'
 
   input:
   set val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
@@ -1364,7 +1340,6 @@ process combined_summary {
   echo false
   cpus 1
   container 'staphb/parallel-perl:latest'
-  stageInMode = 'symlink'
 
   input:
   file(summary) from summary.collect()
@@ -1399,7 +1374,6 @@ if (params.relatedness) {
     container 'staphb/mafft:latest'
     errorStrategy 'retry'
     maxRetries 2
-    stageInMode = 'symlink'
 
     input:
     file(consensus) from qc_consensus_15000_mafft.collect()
@@ -1445,7 +1419,6 @@ if (params.relatedness) {
     echo false
     cpus 1
     container 'staphb/snp-dists:latest'
-    stageInMode = 'symlink'
 
     when:
     params.snpdists
@@ -1477,7 +1450,6 @@ if (params.relatedness) {
     echo false
     cpus params.maxcpus
     container 'staphb/iqtree:latest'
-    stageInMode = 'symlink'
 
     when:
     params.iqtree
