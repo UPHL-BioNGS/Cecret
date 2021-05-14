@@ -634,8 +634,8 @@ process ivar_consensus {
   set val(sample), file(bam), file(reference_genome) from trimmed_bams_ivar_consensus
 
   output:
-  tuple sample, file("consensus/${sample}.consensus.fa") into consensus_nextclade, consensus_rename
-  file("consensus/${sample}.consensus.fa") into consensus_pangolin, consensus_vadr
+  tuple sample, file("consensus/${sample}.consensus.fa") into consensus_nextclade, consensus_rename, consensus_pangolin
+  file("consensus/${sample}.consensus.fa") into consensus_vadr
   tuple sample, file("consensus/qc_consensus/15000/${sample}.consensus.fa") optional true into qc_consensus_15000_mafft
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
@@ -1070,44 +1070,49 @@ process samtools_plot_ampliconstats {
 }
 
 params.pangolin_options = ''
-if (params.pangolin) {
-  process pangolin {
-    publishDir "${params.outdir}", mode: 'copy'
-    tag "pangolin"
-    echo false
-    cpus params.maxcpus
-    container 'staphb/pangolin:latest'
+process pangolin {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "${sample}"
+  echo false
+  cpus params.medcpus
+  container 'staphb/pangolin:latest'
 
-    when:
-    params.pangolin
+  when:
+  params.pangolin
 
-    input:
-    file(fasta) from consensus_pangolin.collect()
+  input:
+  set val(sample), file(fasta) from consensus_pangolin
 
-    output:
-    file("${task.process}/lineage_report.csv") into pangolin_file
-    file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
+  output:
+  file("${task.process}/${sample}/lineage_report.csv")
+  tuple sample, env(pangolin_lineage) into pangolin_lineage
+  tuple sample, env(pangolin_status) into pangolin_status
+  file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
 
-    shell:
-    '''
-      mkdir -p !{task.process} logs/!{task.process}
-      log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
-      err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
+  shell:
+  '''
+    mkdir -p !{task.process} logs/!{task.process}
+    log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
 
-      date | tee -a $log_file $err_file > /dev/null
-      pangolin --version >> $log_file
-      pangolin --pangoLEARN-version >> $log_file
+    date | tee -a $log_file $err_file > /dev/null
+    pangolin --version >> $log_file
+    pangolin --pangoLEARN-version >> $log_file
 
-      cat !{fasta} > ultimate_consensus.fasta
+    pangolin !{params.pangolin_options} \
+      --outdir !{task.process}/!{sample}   \
+      !{fasta} \
+      2>> $err_file >> $log_file
 
-      pangolin !{params.pangolin_options} \
-        --outdir !{task.process} \
-        ultimate_consensus.fasta \
-        2>> $err_file >> $log_file
-    '''
-  }
-} else {
-  pangolin_file = Channel.fromPath(workflow.projectDir + "/Cecret.nf", type:'file')
+    lineage_column=$(head -n 1 !{task.process}/!{sample}/lineage_report.csv | tr ',' '\\n' | grep -n "lineage" | cut -f 1 -d ":" )
+    status_column=$(head -n 1 !{task.process}/!{sample}/lineage_report.csv | tr ',' '\\n' | grep -n "status" | cut -f 1 -d ":" )
+
+    pangolin_lineage=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $lineage_column -d ",")
+    pangolin_status=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $status_column -d ",")
+
+    if [ -z "$pangolin_lineage" ] ; then pangolin_lineage=NA ; fi
+    if [ -z "$pangolin_status" ] ; then pangolin_status=NA ; fi
+  '''
 }
 
 params.nextclade_options = ''
@@ -1203,8 +1208,6 @@ if (params.vadr) {
         2>> $err_file >> $log_file
     '''
   }
-} else {
-  vadr_file = Channel.fromPath(workflow.projectDir + "/Cecret.nf", type:'file')
 }
 
 consensus_results
@@ -1227,7 +1230,8 @@ consensus_results
   .join(samtools_ampliconstats_results, remainder: true, by: 0)
   .join(aligner_version, remainder: true, by:0)
   .join(ivar_version, remainder: true, by: 0)
-  .combine(pangolin_file)
+  .join(pangolin_lineage, remainder: true, by: 0)
+  .join(pangolin_status, remainder: true, by: 0)
   .combine(vadr_file)
   .set { results }
 
@@ -1258,7 +1262,8 @@ process summary {
     val(samtools_num_failed_amplicons),
     val(bwa_version),
     val(ivar_version),
-    file(pangolin_file),
+    val(pangolin_lineage),
+    val(pangolin_status),
     file(vadr_file) from results
 
   output:
@@ -1278,18 +1283,8 @@ process summary {
     header="sample_id,sample,aligner_version,ivar_version"
     result="${sample_id},!{sample},!{bwa_version},!{ivar_version}"
 
-    if [ -f !{pangolin_file} ]
-    then
-      pangolin_lineage=$(grep "Consensus_!{sample}.consensus_threshold" !{pangolin_file} | cut -f 2 -d ",")
-      pangolin_status=$(grep "Consensus_!{sample}.consensus_threshold" !{pangolin_file} | cut -f 5 -d ",")
-    else
-      pangolin_lineage="NA"
-      pangolin_status="NA"
-    fi
-    if [ -z "$pangolin_lineage" ] ; then pangolin_lineage=NA ; fi
-    if [ -z "$pangolin_status" ] ; then pangolin_status=NA ; fi
     header="$header,pangolin_lineage,pangolin_status"
-    result="$result,$pangolin_lineage,$pangolin_status"
+    result="$result,!{pangolin_lineage},!{pangolin_status}"
 
     header="$header,nextclade_clade"
     result="$result,!{nextclade_clade}"
