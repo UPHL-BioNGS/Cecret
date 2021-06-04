@@ -6,7 +6,7 @@ Location: 40.570°N 111.622°W , 9,875 feet (3,010 m) elevation
 
 ![alt text](https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Cecret_Lake_Panorama_Albion_Basin_Alta_Utah_July_2009.jpg/2560px-Cecret_Lake_Panorama_Albion_Basin_Alta_Utah_July_2009.jpg)
 
-Cecret is a workflow developed by @erinyoung at the [Utah Public Health Laborotory](https://uphl.utah.gov/) for SARS-COV-2 sequencing with the [artic](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)/Illumina hybrid library prep workflow for MiSeq data with protocols [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bffyjjpw) and [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bfefjjbn). Built to work on linux-based operating systems. Additional config files are needed for cloud batch usage.
+Cecret is a workflow developed by [@erinyoung]("https://github.com/erinyoung") at the [Utah Public Health Laborotory](https://uphl.utah.gov/) for SARS-COV-2 sequencing with the [artic](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)/Illumina hybrid library prep workflow for MiSeq data with protocols [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bffyjjpw) and [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bfefjjbn). Built to work on linux-based operating systems. Additional config options are needed for cloud batch usage.
 
 
 
@@ -87,7 +87,7 @@ nextflow run Cecret.nf -c configs/singularity.config --relatedness true
 ```
 ### Classify reads with kraken2
 To classify reads with kraken2 to identify reads from human or the organism of your choice
-#### Step 1. Get a kraken2 database
+#### Step 1. Get a kraken2 database (note : this link is no longer active. I'm actively working on creating my own)
 ```
 mkdir -p kraken2_db
 cd kraken2_db
@@ -124,24 +124,26 @@ params.kraken2_organism = "Severe acute respiratory syndrome coronavirus 2"
 ### Turning off unneeded processes
 It came to my attention that some processes (like bcftools) do not work consistently. Also, they might take longer than wanted and might not even be needed for the end user. Here's the processes that can be turned off with their default values:
 ```
-params.bcftools_variants = false      # the container gets a lot of traffic which can error when attempting to download
-params.fastqc = true                  # qc on the sequencing reads
-params.ivar_variants = true           # itemize the variants identified by ivar
-params.samtools_stats = true          # stats about the bam files
-params.samtools_coverage = true       # stats about the bam files
-params.samtools_flagstat = true       # stats about the bam files
-params.samtools_ampliconstats = true  # stats about the amplicons
-params.kraken2 = false                # used to classify reads and needs a corresponding params.kraken2_db and organism if not SARS-CoV-2
-params.bedtools_multicov = true       # bedtools multicov for coverage approximation of amplicons
-params.nextclade = true               # SARS-CoV-2 clade determination
-params.pangolin = true                # SARS-CoV-2 clade determination
-params.vadr = false                   # NCBI fasta QC
-params.relatedness = false            # actually the toggle for mafft to create a multiple sequence alignement
-params.snpdists = true                # creates snp matrix from mafft multiple sequence alignment
-params.iqtree = true                  # creates phylogenetic tree from mafft multiple sequence alignement
-params.bamsnap = false                # can be really slow. Works best with bcftools variants. An example bamsnap image is below.
-params.rename = false                 # needs a corresponding sample file and will rename files for GISAID and NCBI submission
-params.filter = false                 # takes the aligned reads and turns them back into fastq.gz files
+params.bcftools_variants = false          # the container gets a lot of traffic which can error when attempting to download
+params.fastqc = true                      # qc on the sequencing reads
+params.ivar_variants = true               # itemize the variants identified by ivar
+params.samtools_stats = true              # stats about the bam files
+params.samtools_coverage = true           # stats about the bam files
+params.samtools_depth = true              # stats about the bam files
+params.samtools_flagstat = true           # stats about the bam files
+params.samtools_ampliconstats = true      # stats about the amplicons
+params.samtools_plot_ampliconstats = true # images related to amplicon performance
+params.kraken2 = false                    # used to classify reads and needs a corresponding params.kraken2_db and organism if not SARS-CoV-2
+params.bedtools_multicov = true           # bedtools multicov for coverage approximation of amplicons
+params.nextclade = true                   # SARS-CoV-2 clade determination
+params.pangolin = true                    # SARS-CoV-2 clade determination
+params.vadr = false                       # NCBI fasta QC
+params.relatedness = false                # actually the toggle for mafft to create a multiple sequence alignement
+params.snpdists = true                    # creates snp matrix from mafft multiple sequence alignment
+params.iqtree = true                      # creates phylogenetic tree from mafft multiple sequence alignement
+params.bamsnap = false                    # can be really slow. Works best with bcftools variants. An example bamsnap image is below.
+params.rename = false                     # needs a corresponding sample file and will rename files for GISAID and NCBI submission
+params.filter = false                     # takes the aligned reads and turns them back into fastq.gz files
 ```
 
 ### Add Genbank parsable header to consensus fasta
@@ -182,7 +184,7 @@ cecret
 |     |-variant.png                   # png of variants identified via ivar
 |   |-bcftools
 |     |-variant.png                   # png of variants identified via bcftools
-|-bedtools
+|-bedtools_multicov
 | |-sample.multicov.txt               # depth per amplicon
 |-consensus
 | |-sample.consensus.fa               # the likely reason you are running this workflow
@@ -221,11 +223,18 @@ cecret
 | |-trimmed
 |   |-sample.cov.trim.hist            # histogram of coverage for aligned reads after primer trimming
 |   |-sample.cov.trim.txt             # tabular information of coverage for aligned reads after primer trimming
+|-samtools_depth
+| |-aligned
+| | |-sample.depth.txt                # read depth for each read position
+| |-trimmed
+|   |-sample.depth.txt                # read depth for each position
 |-samtools_flagstat
 | |-aligned
 | | |-sample.flagstat.txt             # samtools stats for aligned reads
 | |-trimmed
 |   |-sample.flagstat.trim.txt        # samtools stats for trimmed reads
+|-samtools_plot_ampliconstats
+| |-sample.*.png                      # images corresponding to amiplicon performance
 |-samtools_stats
 | |-aligned
 | | |-sample.stats.txt                # samtools stats for aligned reads
@@ -281,15 +290,19 @@ This file contains all of the configurable parameters with their default values.
 
 Be sure to include the command that you used, what config file you used, and what the **nextflow** error was. 
 
-### What if I just want to annotated some SARS-CoV-2 fastas with pangolin, nextclade and vadr?
+### What if I just want to annotate some SARS-CoV-2 fastas with pangolin, nextclade and vadr?
 ```
-nextflow run Cecret_annotation.nf -c configs/singularity.config
+nextflow run Cecret_annotation.nf -c configs/singularity.config --fastas <directory with fastas>
 ```
 You can run mafft, snpdists, and iqtree on a collection of fastas as well with
 ```
-nextflow run Cecret_annotation.nf -c configs/singularity.config --relatedness true
+nextflow run Cecret_annotation.nf -c configs/singularity.config --relatedness true --fastas <directory with fastas>
 ```
 [Cecret_annotation.nf](./Cecret_annotation.nf) Uses the same basic structure as the main workflow, so the same config file can probably be used for both.
+
+### Where is an example config file?
+You're more than welcome to look at what we use here at UPHL [here](./configs/UPHL.config).
+
 ### Why is bcftools set to 'false' by default?
 
 There's nothing wrong with the bcftools process, and the vcf created by bcftools is rather handy for additional analyses. The `'staphb/bcftools:latest'` container is really popular, and has issues downloading during high traffic times. I don't have the time to handle issues of users not understanding why the container did not download. /Sorry
@@ -334,7 +347,7 @@ And set
 ```
 params.pangolin = false 
 params.nextclade = false
-params.vader = false or configure your vadr container appropriately and params.vadr_reference
+params.vadr = false or configure your vadr container appropriately and params.vadr_reference
 ```
 ### What if I need to filter out human reads or I only want reads that map to my reference?
 
@@ -349,9 +362,12 @@ params.fastqc = false
 params.ivar_variants = false
 params.samtools_stats = false
 params.samtools_coverage = false
+params.samtools_depth = false
 params.samtools_flagstat = false
 params.bedtools_multicov = false
 params.samtools_ampliconstats = false
+params.samtools_plot_ampliconstats = false
+params.bedtools_multicov = false
 params.pangolin = false
 params.nextclade = false
 params.vadr = false
