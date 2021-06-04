@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version="0.20210416"
+version="0.20210430"
 USAGE="
 \ngenbank_submission.sh is meant to combine consensus fastas
 \nwith enough metadata to make submitting to GenBank easy. It
@@ -13,7 +13,7 @@ USAGE="
 \nMany other headers are accepted.
 \n
 ./genbank_submission.sh\n
-\t-f The file with metadata. Default is covid_samples.txt\n
+\t-f The file with metadata. Default is covid_samples.csv\n
 \t-c Directory with consensus fastas.\n
 \t-d Directory with fastq files (will be gzip to fastq.gz).\n
 \t-s The threshold of non-ambiguous basees for GISAID submission\n
@@ -144,7 +144,7 @@ do
   for column in ${sample_file_header_reduced[@]}
   do
     column_number=$(head -n 1 $sample_file | tr "," "\n" | grep -n "$column" | cut -f 1 -d ':')
-    column_value=$(echo $sample_line | cut -f $column_number -d ',')
+    column_value=$(echo $line | cut -f $column_number -d ',')
     if [ -z "$column_value" ] ; then column_value="missing" ; fi
     genbank_fasta_header=$genbank_fasta_header"["$column"="$column_value"]"
   done
@@ -167,7 +167,7 @@ do
     country="USA"
   else
     column_number=$(head -n 1 $sample_file | tr "," "\n" | grep -in "country" | cut -f 1 -d ':')
-    country=$(echo $sample_line | cut -f $column_number -d ',')
+    country=$(echo $line | cut -f $column_number -d ',')
     if [ -z "$country" ] ; then country="missing" ; fi
   fi
 
@@ -178,7 +178,7 @@ do
     host="Human"
   else
     column_number=$(head -n 1 $sample_file | tr "," "\n" | grep -in "host" | cut -f 1 -d ':')
-    host=$(echo $sample_line | cut -f $column_number -d ',')
+    host=$(echo $line | cut -f $column_number -d ',')
     if [ -z "$host" ] ; then host="missing" ; fi
   fi
 
@@ -192,8 +192,8 @@ do
       gisaid_organism='hCoV-19'
     else
       column_number=$(head -n 1 $sample_file | tr "," "\n" | grep -in "organism" | cut -f 1 -d ':')
-      genbank_organism=$(echo $sample_line | cut -f $column_number -d ',')
-      gisaid_organism=$(echo $sample_line  | cut -f $column_number -d ',')
+      genbank_organism=$(echo $line | cut -f $column_number -d ',')
+      gisaid_organism=$(echo $line  | cut -f $column_number -d ',')
       if [ -z "$genbank_organism" ] ; then genbank_organism="missing" ; fi
       if [ -z "$gisaid_organism" ] ; then gisaid_organism="missing" ; fi
     fi
@@ -224,24 +224,22 @@ do
 
   fastq_files=($(ls $fastq_directory/*.fastq.gz | grep -v "filter" | grep -v "unpaired" | grep "/$sample_id" ))
   filtered_fastq_files=($(ls $fastq_directory/*.fastq.gz | grep "filter" | grep -v "unpaired" | grep "/$sample_id" ))
-  fastq_unpaired_files=($(ls $fastq_directory/*.fastq.gz | grep -v "filter" | grep "unpaired" | grep "/$sample_id" ))
-  filtered_unpaired_fastq_files=($(ls $fastq_directory/*.fastq.gz | grep "filter" | grep "unpaired" | grep "/$sample_id" ))
   echo "Found ${#fastq_files[@]} fastq files and ${#filtered_fastq_files[@]} filtered fastq files"
   if [ "${#filtered_fastq_files[@]}" == 2 ]
   then
     echo "Found filtered fastq"
     cp ${filtered_fastq_files[0]} $out/${submission_id}_filtered_R1.fastq.gz
     cp ${filtered_fastq_files[1]} $out/${submission_id}_filtered_R2.fastq.gz
-  elif [ "${#filtered_unpaired_fastq_files[@]}" == 1 ]
+  elif [ "${#filtered_fastq_files[@]}" == 1 ]
   then
-    cp ${filtered_unpaired_fastq_files[0]} $out/${submission_id}_filtered.fastq.gz
+    cp ${filtered_fastq_files[0]} $out/${submission_id}_filtered.fastq.gz
   elif [ "${#fastq_files[@]}" == 2 ]
   then
     cp ${fastq_files[0]} $out/${submission_id}_R1.fastq.gz
     cp ${fastq_files[1]} $out/${submission_id}_R2.fastq.gz
-  elif [ "${#fastq_unpaired_files[@]}" == 1 ]
+  elif [ "${#fastq_files[@]}" == 1 ]
   then
-    cp ${fastq_unpaired_files[0]} $out/${submission_id}.fastq.gz
+    cp ${fastq_files[0]} $out/${submission_id}.fastq.gz
   elif [ "${#fastq_files[@]}" == 0 ] && [ "${#fastq_unpaired_files[@]}" == 0 ]
   then
     echo "WARN : No fastq files found for $sample_id"
