@@ -1388,7 +1388,7 @@ process summary {
     result="$result,!{pangolin_lineage},!{pangolin_status}"
 
     header="$header,nextclade_clade"
-    result="$result,\"!{nextclade_clade}\""
+    result="$result,\\\"!{nextclade_clade}\\\""
 
     header="$header,fastqc_raw_reads_1,fastqc_raw_reads_2"
     result="$result,!{raw_1},!{raw_2}"
