@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.20210604")
+println("Version: v.20210611")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -907,7 +907,7 @@ params.samtools_depth_options = ''
 process samtools_depth {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo true
+  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -1094,6 +1094,7 @@ process samtools_plot_ampliconstats {
   echo false
   cpus 1
   container 'staphb/samtools:latest'
+  errorStrategy 'ignore'
 
   when:
   params.samtools_plot_ampliconstats
@@ -1138,6 +1139,7 @@ process pangolin {
   file("${task.process}/${sample}/lineage_report.csv") into pangolin_files
   tuple sample, env(pangolin_lineage) into pangolin_lineage
   tuple sample, env(pangolin_status) into pangolin_status
+  tuple sample, env(pangolin_scorpio) into pangolin_scorpio
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -1155,14 +1157,34 @@ process pangolin {
       !{fasta} \
       2>> $err_file >> $log_file
 
-    lineage_column=$(head -n 1 !{task.process}/!{sample}/lineage_report.csv | tr ',' '\\n' | grep -n "lineage" | cut -f 1 -d ":" )
-    status_column=$(head -n 1 !{task.process}/!{sample}/lineage_report.csv | tr ',' '\\n' | grep -n "status" | cut -f 1 -d ":" )
+    lineage_column=$(head -n 1 !{task.process}/!{sample}/lineage_report.csv | tr ',' '\\n' | grep -n "lineage"      | cut -f 1 -d ":" )
+    status_column=$(head  -n 1 !{task.process}/!{sample}/lineage_report.csv | tr ',' '\\n' | grep -n "status"       | cut -f 1 -d ":" )
+    scorpio_column=$(head -n 1 !{task.process}/!{sample}/lineage_report.csv | tr ',' '\\n' | grep -n "scorpio_call" | cut -f 1 -d ":" )
 
-    pangolin_lineage=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $lineage_column -d ",")
-    pangolin_status=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $status_column -d ",")
+    if [ -n "$lineage_column" ]
+    then
+      pangolin_lineage=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $lineage_column -d ",")
+    else
+      pangolin_lineage="Not Found"
+    fi
 
-    if [ -z "$pangolin_lineage" ] ; then pangolin_lineage=NA ; fi
-    if [ -z "$pangolin_status" ] ; then pangolin_status=NA ; fi
+    if [ -n "$status_column" ]
+    then
+      pangolin_status=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $status_column -d ",")
+    else
+      pangolin_lineage="Not Found"
+    fi
+
+    if [ -n "$scorpio_column" ]
+    then
+      pangolin_scorpio=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $scorpio_column -d ",")
+    else
+      pangolin_lineage="Not Found"
+    fi
+
+    if [ -z "$pangolin_lineage" ] ; then pangolin_lineage="NA" ; fi
+    if [ -z "$pangolin_status" ]  ; then pangolin_status="NA"  ; fi
+    if [ -z "$pangolin_scorpio" ] ; then pangolin_scorpio="NA" ; fi
   '''
 }
 
@@ -1206,13 +1228,21 @@ process nextclade {
       --output-csv !{task.process}/!{sample}_nextclade_report.csv \
       2>> $err_file >> $log_file
 
-    nextclade_clade=$(cat !{task.process}/!{sample}_nextclade_report.csv | grep !{sample} | cut -f 2 -d ";" | head -n 1 )
+
+    nextclade_column=$(head -n 1 !{task.process}/!{sample}_nextclade_report.csv | tr ';' '\\n' | grep -wn "clade" | cut -f 1 -d ":" )
+    if [ -n "$nextclade_column" ]
+    then
+      nextclade_clade=$(cat !{task.process}/!{sample}_nextclade_report.csv | grep !{sample} | cut -f $nextclade_column -d ";" | sed 's/,/;/g' | head -n 1 )
+    else
+      nextclade_clade="Not Found"
+    fi
+
     if [ -z "$nextclade_clade" ] ; then nextclade_clade="clade" ; fi
   '''
 }
 
 nextclade_files
-  .collectFile(name: "combined_nextclade_report.csv",
+  .collectFile(name: "combined_nextclade_report.txt",
     keepHeader: true,
     sort: true,
     storeDir: "${params.outdir}/nextclade")
@@ -1274,7 +1304,6 @@ process vadr {
 
     pass_fail=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/!{sample}.vadr.sqc | awk '{print $4}')
     if [ -z "$pass_fail" ] ; then pass_fail="NA" ; fi
-
   '''
 }
 
@@ -1332,11 +1361,12 @@ consensus_results
   .join(ivar_version, remainder: true, by: 0)
   .join(pangolin_lineage, remainder: true, by: 0)
   .join(pangolin_status, remainder: true, by: 0)
+  .join(pangolin_scorpio, remainder: true, by: 0)
   .join(vadr_results, remainder: true, by: 0)
   .set { results }
 
 process summary {
-  publishDir "${params.outdir}", mode: 'copy', overwrite: true
+  //publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${sample}"
   echo false
   cpus 1
@@ -1365,10 +1395,12 @@ process summary {
     val(ivar_version),
     val(pangolin_lineage),
     val(pangolin_status),
+    val(pangolin_scorpio),
     val(vadr_results) from results
 
   output:
   file("${task.process}/${sample}.summary.csv") into summary
+  file("${task.process}/${sample}.summary.txt") into summary2
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -1384,8 +1416,8 @@ process summary {
     header="sample_id,sample,aligner_version,ivar_version"
     result="${sample_id},!{sample},!{bwa_version},!{ivar_version}"
 
-    header="$header,pangolin_lineage,pangolin_status"
-    result="$result,!{pangolin_lineage},!{pangolin_status}"
+    header="$header,pangolin_lineage,pangolin_status,pangolin_scorpio_call"
+    result="$result,!{pangolin_lineage},!{pangolin_status},!{pangolin_scorpio}"
 
     header="$header,nextclade_clade"
     result="$result,!{nextclade_clade}"
@@ -1426,40 +1458,24 @@ process summary {
 
     echo $header > !{task.process}/!{sample}.summary.csv
     echo $result >> !{task.process}/!{sample}.summary.csv
+
+    cat !{task.process}/!{sample}.summary.csv | tr ',' '\t' > !{task.process}/!{sample}.summary.txt
   '''
 }
 
-process combined_summary {
-  publishDir "${params.outdir}", mode: 'copy', overwrite: true, pattern: "summary.csv"
-  publishDir "${params.outdir}", mode: 'copy', overwrite: true, pattern: "logs/summary/*.{log,err}"
-  publishDir "${workflow.launchDir}", mode: 'copy', overwrite: true, pattern: "cecret_run_results.txt"
-  tag "summary"
-  echo false
-  cpus 1
-  container 'staphb/parallel-perl:latest'
+summary
+  .collectFile(name: "summary.csv",
+      keepHeader: true,
+      sort: true,
+      skip: 1,
+      storeDir: "${params.outdir}")
 
-  input:
-  file(summary) from summary.collect()
-
-  output:
-  file("summary.csv")
-  file("cecret_run_results.txt")
-  file("logs/${task.process}/summary.${workflow.sessionId}.{log,err}")
-
-  shell:
-  '''
-    mkdir -p submission_files logs/!{task.process}
-    log_file=logs/!{task.process}/summary.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/summary.!{workflow.sessionId}.err
-
-    date | tee -a $log_file $err_file > /dev/null
-
-    cat !{summary} | grep "sample_id" | head -n 1 > summary.csv
-    cat !{summary} | grep -v "sample_id" | sort | uniq >> summary.csv 2>> $err_file
-
-    cat summary.csv | tr ',' '\t' > cecret_run_results.txt
-  '''
-}
+summary2
+  .collectFile(name: "cecret_run_results.txt",
+    keepHeader: true,
+    sort: true,
+    skip: 1,
+    storeDir: "${workflow.launchDir}")
 
 if (params.relatedness) {
   params.mafft_options = ''
