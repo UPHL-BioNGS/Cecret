@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.20210604")
+println("Version: v.20210611")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -1224,7 +1224,15 @@ process nextclade {
       --output-csv !{task.process}/!{sample}_nextclade_report.csv \
       2>> $err_file >> $log_file
 
-    nextclade_clade=$(cat !{task.process}/!{sample}_nextclade_report.csv | grep !{sample} | cut -f 2 -d ";" | sed 's/,/;/g' | head -n 1 )
+
+    nextclade_column=$(head -n 1 !{task.process}/!{sample}_nextclade_report.csv | tr ';' '\\n' | grep -wn "clade" | cut -f 1 -d ":" )
+    if [ -n "$nextclade_column" ]
+    then
+      nextclade_clade=$(cat !{task.process}/!{sample}_nextclade_report.csv | grep !{sample} | cut -f $nextclade_column -d ";" | sed 's/,/;/g' | head -n 1 )
+    else
+      nextclade_clade="Not Found"
+    fi
+
     if [ -z "$nextclade_clade" ] ; then nextclade_clade="clade" ; fi
   '''
 }
@@ -1292,7 +1300,6 @@ process vadr {
 
     pass_fail=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/!{sample}.vadr.sqc | awk '{print $4}')
     if [ -z "$pass_fail" ] ; then pass_fail="NA" ; fi
-
   '''
 }
 
