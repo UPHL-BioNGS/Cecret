@@ -3,7 +3,7 @@
 println("For annotating SARS-CoV-2 fastas with pangolin, nextclade, and vadr\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.0.20210416")
+println("Version: v.0.20210611")
 println("")
 
 params.fastas = workflow.launchDir + '/fastas'
@@ -30,7 +30,7 @@ Channel
 
 process fasta_prep {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
-  tag "${sample}"
+  tag "${fasta}"
   echo false
   cpus 1
   container 'staphb/parallel-perl:latest'
