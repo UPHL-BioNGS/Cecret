@@ -416,7 +416,7 @@ process sort {
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
 
-    samtools sort -@ !{task.cpus} !{sam} 2>> $err_file | \
+    samtools sort !{sam} 2>> $err_file | \
       samtools view -F 4 -o aligned/!{sample}.sorted.bam 2>> $err_file >> $log_file
 
     # indexing the bams
@@ -573,10 +573,6 @@ process ivar_variants {
   echo false
   cpus 1
   container 'staphb/ivar:latest'
-  memory {2.GB * task.attempt}
-  errorStrategy {'retry'}
-  maxRetries 2
-
   memory {2.GB * task.attempt}
   errorStrategy {'retry'}
   maxRetries 2
@@ -1247,8 +1243,7 @@ nextclade_files
     sort: true,
     storeDir: "${params.outdir}/nextclade")
 
-params.maxmem = Math.round(Runtime.runtime.totalMemory() / 10241024)
-if ( params.maxmem / 2 > params.medcpus && params.vadr ) {
+if ( Math.round(Runtime.runtime.totalMemory() / 10241024) / 2 > params.medcpus && params.vadr ) {
   vadrmemory = params.medcpus + params.medcpus
   vadrcpus = params.medcpus
 } else {
