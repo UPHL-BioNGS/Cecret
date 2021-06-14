@@ -132,14 +132,14 @@ process nextclade {
 }
 
 params.vadr = true
-params.maxmem = Math.round(Runtime.runtime.totalMemory() / 10241024)
-if ( params.maxmem / 2 > params.medcpus ) {
+if ( Math.round(Runtime.runtime.totalMemory() / 10241024) / 2 > params.medcpus && params.vadr ) {
   vadrmemory = params.medcpus + params.medcpus
   vadrcpus = params.medcpus
 } else {
   vadrmemory = 2
   vadrcpus = 1
 }
+
 params.vadr_options = '--split --glsearch -s  -r --nomisc --lowsim5term 2 --lowsim3term 2 --alt_fail lowscore,fstukcnf,insertnn,deletinn'
 params.vadr_reference = 'sarscov2'
 params.vadr_mdir = '/opt/vadr/vadr-models'
