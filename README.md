@@ -261,7 +261,7 @@ vadr
   |-vadr*                             # vadr output
 ```
 
-# **A FILE THAT THE END USER/YOU CAN COPY AND EDIT IS FOUND AT [configs/example.config](configs/example.config)**
+# **A FILE THAT THE END USER/YOU CAN COPY AND EDIT IS FOUND AT [configs/cecret_config_template.config](configs/cecret_config_template.config)**
 This file contains all of the configurable parameters with their default values. If you are using some sort of cloud or HPC setup, I highly recommend you copy this and edit it appropriately. A limited list of parameters is listed below:
 
 ### input and output directories
