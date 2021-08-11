@@ -3,7 +3,7 @@
 println("For annotating SARS-CoV-2 fastas with pangolin, nextclade, and vadr\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.0.20210611")
+println("Version: v.0.20210815")
 println("")
 
 params.fastas = workflow.launchDir + '/fastas'
@@ -28,6 +28,19 @@ Channel
   }
   .set { fastas }
 
+params.vadr = true
+params.pangolin = true
+params.relatedness = false
+params.nextclade = true
+if (params.nextclade) {
+  Channel
+    .fromPath(params.reference_genome, type:'file')
+    .ifEmpty{
+      println("No reference genome was selected. Set with 'params.reference_genome'")
+    }
+    .set { reference_genome_nextclade }
+}
+
 process fasta_prep {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${fasta}"
@@ -39,7 +52,7 @@ process fasta_prep {
   file(fasta) from fastas
 
   output:
-  file("${task.process}/${fasta}") into fastas_mafft, fastas_pangolin, fastas_nextclade, fastas_vadr
+  file("${task.process}/${fasta}") into prepped_fastas, fastas_mafft, fastas_pangolin, fastas_nextclade, fastas_vadr
 
   shell:
   '''
@@ -54,7 +67,10 @@ process fasta_prep {
   '''
 }
 
-params.pangolin = true
+prepped_fastas
+  .collectFile(name: "Ultimate.fasta", storeDir: "${params.outdir}")
+  .into { multifasta_pangolin ; multifasta_vadr ; multifasta_nextclade ; multifasta_mafft }
+
 params.pangolin_options = ''
 process pangolin {
   publishDir "${params.outdir}", mode: 'copy'
@@ -67,11 +83,10 @@ process pangolin {
   params.pangolin
 
   input:
-  file(fasta) from fastas_pangolin.collect()
+  file(fasta) from multifasta_pangolin
 
   output:
   file("${task.process}/lineage_report.csv")
-  file("${task.process}/ultimate.fasta")
   file("logs/${task.process}/${workflow.sessionId}.{log,err}")
 
   shell:
@@ -83,33 +98,32 @@ process pangolin {
     date | tee -a $log_file $err_file > /dev/null
     pangolin --version >> $log_file
 
-    cat !{fasta} > !{task.process}/ultimate.fasta
-
     pangolin !{params.pangolin_options} \
       --outdir !{task.process} \
-      !{task.process}/ultimate.fasta \
+      !{fasta} \
       2>> $err_file >> $log_file
   '''
 }
 
-params.nextclade = true
 params.nextclade_options = ''
+params.nextclade_genes = 'E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S'
 process nextclade {
   publishDir "${params.outdir}", mode: 'copy'
   tag "Clade assignment with nextclade"
   echo false
   cpus params.medcpus
-  container 'neherlab/nextclade:latest'
+  //container 'docker://quay.io/biocontainers/nextclade:1.2.0--h9ee0642_0'
+  container 'nextstrain/nextclade:latest'
 
   when:
   params.nextclade
 
   input:
-  file(fasta) from fastas_nextclade.collect()
+  file(fasta) from multifasta_nextclade
+  file(reference) from reference_genome_nextclade
 
   output:
-  file("${task.process}/nextclade_report.tsv")
-  file("${task.process}/ultimate.fasta")
+  file("${task.process}/*")
   file("logs/${task.process}/${workflow.sessionId}.{log,err}")
 
   shell:
@@ -121,42 +135,45 @@ process nextclade {
     date | tee -a $log_file $err_file > /dev/null
     nextclade --version >> $log_file
 
-    cat !{fasta} > !{task.process}/ultimate.fasta
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/genemap.gff
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/tree.json
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/qc.json
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/primers.csv
 
     nextclade !{params.nextclade_options} \
-      --jobs !{task.cpus} \
-      --input-fasta !{task.process}/ultimate.fasta \
-      --output-tsv !{task.process}/nextclade_report.tsv \
+      --input-fasta=!{fasta} \
+      --input-root-seq=!{reference} \
+      --genes=!{params.nextclade_genes} \
+      --input-gene-map=genemap.gff \
+      --input-tree=tree.json \
+      --input-qc-config=qc.json \
+      --input-pcr-primers=primers.csv \
+      --output-json=!{task.process}/nextclade.json \
+      --output-csv=!{task.process}/nextclade.csv \
+      --output-tsv=!{task.process}/nextclade.tsv \
+      --output-tree=!{task.process}/nextclade.auspice.json \
+      --output-dir=!{task.process} \
+      --output-basename=!{task.process} \
       2>> $err_file >> $log_file
   '''
 }
 
-params.vadr = true
-if ( Math.round(Runtime.runtime.totalMemory() / 10241024) / 2 > params.medcpus && params.vadr ) {
-  vadrmemory = params.medcpus + params.medcpus
-  vadrcpus = params.medcpus
-} else {
-  vadrmemory = 2
-  vadrcpus = 1
-}
-
-params.vadr_options = '--split --glsearch -s  -r --nomisc --lowsim5term 2 --lowsim3term 2 --alt_fail lowscore,fstukcnf,insertnn,deletinn'
+params.vadr_options = '--split --glsearch -s -r --nomisc --mkey sarscov2 --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn'
 params.vadr_reference = 'sarscov2'
 params.vadr_mdir = '/opt/vadr/vadr-models'
 process vadr {
   publishDir "${params.outdir}", mode: 'copy'
   tag "Fasta QC with vadr"
   echo false
-  cpus vadrcpus
-  memory vadrmemory.GB
+  cpus params.medcpus
   container 'staphb/vadr:latest'
-  stageInMode = 'symlink'
+  //stageInMode = 'symlink'
 
   when:
   params.vadr
 
   input:
-  file(fasta) from fastas_vadr.collect()
+  file(fasta) from multifasta_vadr
 
   output:
   file("${task.process}/*")
@@ -172,20 +189,17 @@ process vadr {
     echo "no version" >> $log_file
     v-annotate.pl -h >> $log_file
 
-    cat !{fasta} > ultimate.fasta
-
     v-annotate.pl !{params.vadr_options} \
+      --cpu !{task.cpus} \
       --noseqnamemax \
       --mkey !{params.vadr_reference} \
       --mdir !{params.vadr_mdir} \
-      --cpu !{task.cpus} \
-      ultimate.fasta \
+      !{fasta} \
       !{task.process} \
       2>> $err_file >> $log_file
   '''
 }
 
-params.relatedness = false
 if (params.relatedness){
   Channel
     .fromPath(params.reference_genome, type:'file')
@@ -205,7 +219,7 @@ if (params.relatedness){
     maxRetries 3
 
     input:
-    file(fasta) from fastas_mafft.collect()
+    file(fasta) from multifasta_mafft
     file(reference) from reference_genome
 
     output:
@@ -229,12 +243,11 @@ if (params.relatedness){
       echo ">!{params.outgroup}" > reference.fasta
       grep -v ">" !{reference} >> reference.fasta
 
-      cat !{fasta} > !{task.process}/ultimate.fasta
       mafft !{params.mafft_options} \
         --auto \
         --thread !{task.cpus} \
         --maxambiguous !{params.max_ambiguous} \
-        --addfragments !{task.process}/ultimate.fasta \
+        --addfragments !{fasta} \
         reference.fasta \
         > !{task.process}/mafft_aligned.fasta \
         2>> $err_file
