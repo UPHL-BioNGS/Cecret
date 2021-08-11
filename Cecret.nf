@@ -642,7 +642,8 @@ process ivar_consensus {
   set val(sample), file(bam), file(reference_genome) from trimmed_bams_ivar_consensus
 
   output:
-  tuple sample, file("consensus/${sample}.consensus.fa") into consensus_nextclade, consensus_rename, consensus_pangolin, consensus_vadr
+  tuple sample, file("consensus/${sample}.consensus.fa") into consensus_rename, consensus_pangolin, consensus_vadr
+  tuple sample, file("consensus/${sample}.consensus.fa"), file(reference_genome) into consensus_nextclade
   file("consensus/${sample}.consensus.fa") into consensus_mafft
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
@@ -1191,44 +1192,59 @@ pangolin_files
     storeDir: "${params.outdir}/pangolin")
 
 params.nextclade_options = ''
+params.nextclade_genes = 'E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S'
 process nextclade {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
   echo false
   cpus params.medcpus
-  container 'neherlab/nextclade:latest'
+  container 'nextstrain/nextclade:latest'
 
   when:
   params.nextclade
 
   input:
-  set val(sample), file(fasta) from consensus_nextclade
+  tuple val(sample), file(fasta), file(reference) from consensus_nextclade
 
   output:
-  file("${task.process}/${sample}_nextclade_report.csv") into nextclade_files
+  file("${task.process}/${sample}/${sample}_nextclade.csv") into nextclade_files
   tuple sample, env(nextclade_clade) into nextclade_clade_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p !{task.process} logs/!{task.process}
+    mkdir -p !{task.process}/!{sample} logs/!{task.process}
     log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
     err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     nextclade --version >> $log_file
 
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/genemap.gff
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/tree.json
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/qc.json
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/primers.csv
+
     nextclade !{params.nextclade_options} \
-      --jobs !{task.cpus} \
-      --input-fasta !{fasta} \
-      --output-csv !{task.process}/!{sample}_nextclade_report.csv \
+      --input-fasta=!{fasta} \
+      --input-root-seq=!{reference} \
+      --genes=!{params.nextclade_genes} \
+      --input-gene-map=genemap.gff \
+      --input-tree=tree.json \
+      --input-qc-config=qc.json \
+      --input-pcr-primers=primers.csv \
+      --output-json=!{task.process}/!{sample}/!{sample}_nextclade.json \
+      --output-csv=!{task.process}/!{sample}/!{sample}_nextclade.csv \
+      --output-tsv=!{task.process}/!{sample}/!{sample}_nextclade.tsv \
+      --output-tree=!{task.process}/!{sample}/!{sample}_nextclade.auspice.json \
+      --output-dir=!{task.process}/!{sample} \
+      --output-basename=!{sample} \
       2>> $err_file >> $log_file
 
-
-    nextclade_column=$(head -n 1 !{task.process}/!{sample}_nextclade_report.csv | tr ';' '\\n' | grep -wn "clade" | cut -f 1 -d ":" )
+    nextclade_column=$(head -n 1 !{task.process}/!{sample}/!{sample}_nextclade.csv | tr ';' '\\n' | grep -wn "clade" | cut -f 1 -d ":" )
     if [ -n "$nextclade_column" ]
     then
-      nextclade_clade=$(cat !{task.process}/!{sample}_nextclade_report.csv | grep !{sample} | cut -f $nextclade_column -d ";" | sed 's/,/;/g' | head -n 1 )
+      nextclade_clade=$(cat !{task.process}/!{sample}/!{sample}_nextclade.csv | grep !{sample} | cut -f $nextclade_column -d ";" | sed 's/,/;/g' | sed 's/"//g' | head -n 1 )
     else
       nextclade_clade="Not Found"
     fi
@@ -1243,23 +1259,14 @@ nextclade_files
     sort: true,
     storeDir: "${params.outdir}/nextclade")
 
-if ( Math.round(Runtime.runtime.totalMemory() / 10241024) / 2 > params.medcpus && params.vadr ) {
-  vadrmemory = params.medcpus + params.medcpus
-  vadrcpus = params.medcpus
-} else {
-  vadrmemory = 2
-  vadrcpus = 1
-}
-
-params.vadr_options = '--split --glsearch -s  -r --nomisc --lowsim5term 2 --lowsim3term 2 --alt_fail lowscore,fstukcnf,insertnn,deletinn'
+params.vadr_options = '--split --glsearch -s -r --nomisc --mkey sarscov2 --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn'
 params.vadr_reference = 'sarscov2'
 params.vadr_mdir = '/opt/vadr/vadr-models'
 process vadr {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
   echo false
-  cpus vadrcpus
-  memory vadrmemory.GB
+  cpus params.medcpus
   container 'staphb/vadr:latest'
 
   when:
@@ -1289,10 +1296,10 @@ process vadr {
     v-annotate.pl -h >> $log_file
 
     v-annotate.pl !{params.vadr_options} \
+      --cpu !{task.cpus} \
       --noseqnamemax \
       --mkey !{params.vadr_reference} \
       --mdir !{params.vadr_mdir} \
-      --cpu !{task.cpus} \
       !{fasta} \
       !{task.process}/!{sample} \
       2>> $err_file >> $log_file
