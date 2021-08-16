@@ -1220,10 +1220,10 @@ process nextclade {
     date | tee -a $log_file $err_file > /dev/null
     nextclade --version >> $log_file
 
-    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/genemap.gff
-    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/tree.json
-    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/qc.json
-    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/primers.csv
+    wget https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/genemap.gff
+    wget https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/tree.json
+    wget https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/qc.json
+    wget https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/primers.csv
 
     nextclade !{params.nextclade_options} \
       --input-fasta=!{fasta} \
