@@ -3,7 +3,7 @@
 println("For annotating SARS-CoV-2 fastas with pangolin, nextclade, and vadr\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.0.20210930")
+println("Version: v.1.2.20210930")
 println("")
 
 params.fastas = workflow.launchDir + '/fastas'
@@ -44,7 +44,6 @@ if (params.nextclade) {
 process fasta_prep {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${fasta}"
-  echo false
   cpus 1
   container 'staphb/parallel-perl:latest'
 
@@ -75,7 +74,6 @@ params.pangolin_options = ''
 process pangolin {
   publishDir "${params.outdir}", mode: 'copy'
   tag "Lineage assignment with pangolin"
-  echo false
   cpus 1
   container 'staphb/pangolin:latest'
 
@@ -110,9 +108,7 @@ params.nextclade_genes = 'E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S'
 process nextclade {
   publishDir "${params.outdir}", mode: 'copy'
   tag "Clade assignment with nextclade"
-  echo false
   cpus params.medcpus
-  //container 'docker://quay.io/biocontainers/nextclade:1.2.0--h9ee0642_0'
   container 'nextstrain/nextclade:latest'
 
   when:
@@ -165,7 +161,6 @@ params.vadr_trim_options = '--minlen 50 --maxlen 30000'
 process vadr {
   publishDir "${params.outdir}", mode: 'copy'
   tag "Fasta QC with vadr"
-  echo false
   cpus params.medcpus
   container 'staphb/vadr:latest'
 
@@ -215,7 +210,6 @@ if (params.relatedness){
   process mafft {
     publishDir "${params.outdir}", mode: 'copy'
     tag "Multiple Sequence Alignment with mafft"
-    echo false
     cpus params.maxcpus
     container 'staphb/mafft:latest'
     errorStrategy 'retry'
@@ -262,7 +256,6 @@ if (params.relatedness){
   process snpdists {
     publishDir "${params.outdir}", mode: 'copy'
     tag "SNP matrix with snp-dists"
-    echo false
     cpus params.medcpus
     container 'staphb/snp-dists:latest'
 
@@ -297,7 +290,6 @@ if (params.relatedness){
   process iqtree2 {
     publishDir "${params.outdir}", mode: 'copy'
     tag "Creating phylogenetic tree with iqtree2"
-    echo false
     cpus params.maxcpus
     container 'staphb/iqtree2:latest'
 
