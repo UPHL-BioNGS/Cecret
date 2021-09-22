@@ -47,7 +47,7 @@ params.vadr = true
 // for optional contamination determination
 params.kraken2 = false
 params.kraken2_db = ''
-params.kraken2_organism = "Severe acute respiratory syndrome coronavirus 2"
+params.kraken2_organism = "Severe acute respiratory syndrome-related coronavirus"
 
 // for optional route of tree generation and counting snps between samples
 params.relatedness = false
@@ -105,7 +105,7 @@ Channel
 
 Channel
   .fromFilePairs("${params.single_reads}/*.fastq*", size: 1 )
-  .map{ reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], "single" ) }
+  .map{ reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,"").replaceAll(~/.fastq.*/,""), reads[1], "single" ) }
   .set { single_reads }
 
 amplicon_bed = params.bedtools_multicov
@@ -128,6 +128,7 @@ paired_reads
 
 println("") // just for aesthetics
 
+// TBA : param that coincides with the staphb/seqyclean:1.10.09 container run with singularity
 params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
 params.seqyclean_minlen = 25
 process seqyclean {
@@ -141,7 +142,7 @@ process seqyclean {
   params.cleaner == 'seqyclean'
 
   input:
-  set val(sample), file(reads), val(paired_single) from fastq_reads_seqyclean
+  tuple val(sample), file(reads), val(paired_single) from fastq_reads_seqyclean
 
   output:
   tuple sample, file("${task.process}/${sample}_clean_PE{1,2}.fastq.gz") optional true into seqyclean_paired_files
@@ -214,7 +215,7 @@ process fastp {
   params.cleaner == 'fastp'
 
   input:
-  set val(sample), file(reads), val(paired_single) from fastq_reads_fastp
+  tuple val(sample), file(reads), val(paired_single) from fastq_reads_fastp
 
   output:
   tuple sample, file("${task.process}/${sample}_clean_PE{1,2}.fastq.gz") optional true into fastp_paired_files
@@ -281,7 +282,7 @@ process bwa {
   params.aligner == 'bwa'
 
   input:
-  set val(sample), file(reads), file(reference_genome) from clean_reads_bwa
+  tuple val(sample), file(reads), file(reference_genome) from clean_reads_bwa
 
   output:
   tuple sample, file("aligned/${sample}.sam") into bwa_sams
@@ -303,11 +304,7 @@ process bwa {
     bwa index !{reference_genome}
 
     # bwa mem command
-    bwa mem \
-      -t !{task.cpus} \
-      !{reference_genome} \
-      !{reads} \
-      2>> $err_file > aligned/!{sample}.sam
+    bwa mem -t !{task.cpus} !{reference_genome} !{reads} 2>> $err_file > aligned/!{sample}.sam
   '''
 }
 
@@ -325,7 +322,7 @@ process minimap2 {
   params.aligner == 'minimap2'
 
   input:
-  set val(sample), file(reads), file(reference_genome) from clean_reads_minimap2
+  tuple val(sample), file(reads), file(reference_genome) from clean_reads_minimap2
 
   output:
   tuple sample, file("aligned/${sample}.sam") into minimap2_sams
@@ -371,7 +368,7 @@ process fastqc {
   params.fastqc
 
   input:
-  set val(sample), file(raw), val(type) from fastq_reads_fastqc
+  tuple val(sample), file(raw), val(type) from fastq_reads_fastqc
 
   output:
   file("${task.process}/*.{html,zip}")
@@ -414,7 +411,7 @@ process sort {
   container 'staphb/samtools:latest'
 
   input:
-  set val(sample), file(sam) from sams
+  tuple val(sample), file(sam) from sams
 
   output:
   tuple sample, file("aligned/${sample}.sorted.bam") into pre_trim_bams, pre_trim_bams2
@@ -451,7 +448,7 @@ process filter {
   params.filter
 
   input:
-  set val(sample), file(sam) from sams_filter
+  tuple val(sample), file(sam) from sams_filter
 
   output:
   tuple sample, file("${task.process}/${sample}_filtered_{R1,R2}.fastq.gz") optional true into filtered_reads
@@ -497,7 +494,7 @@ process ivar_trim {
   params.trimmer == 'ivar'
 
   input:
-  set val(sample), file(bam), file(primer_bed) from pre_trim_bams_ivar
+  tuple val(sample), file(bam), file(primer_bed) from pre_trim_bams_ivar
 
   output:
   tuple sample, file("${task.process}/${sample}.primertrim.sorted.bam") into ivar_bams
@@ -535,11 +532,11 @@ process samtools_ampliconclip {
   params.trimmer == 'samtools'
 
   input:
-  set val(sample), file(bam), file(primer_bed) from pre_trim_bams_samtools
+  tuple val(sample), file(bam), file(primer_bed) from pre_trim_bams_samtools
 
   output:
   tuple sample, file("${task.process}/${sample}.primertrim.sorted.bam") into samtools_bams
-  tuple sample, file("${task.process}/${sample}.primertrim.sorted.bam"), file("samtools_trim/${sample}.primertrim.sorted.bam.bai") into samtools_bam_bai
+  tuple sample, file("${task.process}/${sample}.primertrim.sorted.bam"), file("${task.process}/${sample}.primertrim.sorted.bam.bai") into samtools_bam_bai
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -596,7 +593,7 @@ process ivar_variants {
   params.ivar_variants
 
   input:
-  set val(sample), file(bam), file(reference_genome), file(gff_file) from trimmed_bams_ivar_variants
+  tuple val(sample), file(bam), file(reference_genome), file(gff_file) from trimmed_bams_ivar_variants
 
   output:
   tuple sample, file("${task.process}/${sample}.variants.tsv")
@@ -654,10 +651,11 @@ process ivar_consensus {
   maxRetries 2
 
   input:
-  set val(sample), file(bam), file(reference_genome) from trimmed_bams_ivar_consensus
+  tuple val(sample), file(bam), file(reference_genome) from trimmed_bams_ivar_consensus
 
   output:
-  tuple sample, file("consensus/${sample}.consensus.fa") into consensus_nextclade, consensus_rename, consensus_pangolin, consensus_vadr
+  tuple sample, file("consensus/${sample}.consensus.fa") into consensus_rename, consensus_pangolin, consensus_vadr
+  tuple sample, file("consensus/${sample}.consensus.fa"), file(reference_genome) into consensus_nextclade
   file("consensus/${sample}.consensus.fa") into consensus_mafft
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
@@ -701,7 +699,7 @@ process bcftools_variants {
   params.bcftools_variants
 
   input:
-  set val(sample), file(bam), file(reference_genome) from trimmed_bams_bcftools_variants
+  tuple val(sample), file(bam), file(reference_genome) from trimmed_bams_bcftools_variants
 
   output:
   tuple sample, file("${task.process}/${sample}.vcf") into bcftools_variants_file
@@ -810,7 +808,7 @@ process samtools_stats {
   params.samtools_stats
 
   input:
-  set val(sample), file(aligned), file(trimmed) from pre_post_bams
+  tuple val(sample), file(aligned), file(trimmed) from pre_post_bams
 
   output:
   file("${task.process}/aligned/${sample}.stats.txt")
@@ -848,7 +846,7 @@ process samtools_coverage {
   params.samtools_coverage
 
   input:
-  set val(sample), file(aligned), file(trimmed) from pre_post_bams2
+  tuple val(sample), file(aligned), file(trimmed) from pre_post_bams2
 
   output:
   file("${task.process}/{aligned,trimmed}/${sample}.cov.{txt,hist}")
@@ -886,7 +884,7 @@ process samtools_flagstat {
   container 'staphb/samtools:latest'
 
   input:
-  set val(sample), file(aligned), file(trimmed) from pre_post_bams3
+  tuple val(sample), file(aligned), file(trimmed) from pre_post_bams3
 
   when:
   params.samtools_flagstat
@@ -923,7 +921,7 @@ process samtools_depth {
   container 'staphb/samtools:latest'
 
   input:
-  set val(sample), file(aligned), file(trimmed) from pre_post_bams4
+  tuple val(sample), file(aligned), file(trimmed) from pre_post_bams4
 
   when:
   params.samtools_depth
@@ -971,7 +969,7 @@ process kraken2 {
   params.kraken2
 
   input:
-  set val(sample), file(clean), val(paired_single), path(kraken2_db) from clean_reads_kraken2
+  tuple val(sample), file(clean), val(paired_single), path(kraken2_db) from clean_reads_kraken2
 
   output:
   file("${task.process}/${sample}_kraken2_report.txt")
@@ -1033,7 +1031,7 @@ process bedtools_multicov {
   params.bedtools_multicov
 
   input:
-  set val(sample), file(bam), file(bai), file(amplicon_bed) from trimmed_bam_bai
+  tuple val(sample), file(bam), file(bai), file(amplicon_bed) from trimmed_bam_bai
 
   output:
   file("${task.process}/${sample}.multicov.txt")
@@ -1072,7 +1070,7 @@ process samtools_ampliconstats {
   params.samtools_ampliconstats
 
   input:
-  set val(sample), file(bam), file(primer_bed) from trimmed_bams_ampliconstats
+  tuple val(sample), file(bam), file(primer_bed) from trimmed_bams_ampliconstats
 
   output:
   tuple sample, file("${task.process}/${sample}_ampliconstats.txt") into samtools_ampliconstats_files
@@ -1111,7 +1109,7 @@ process samtools_plot_ampliconstats {
   params.samtools_plot_ampliconstats
 
   input:
-  set val(sample), file(ampliconstats) from samtools_ampliconstats_files
+  tuple val(sample), file(ampliconstats) from samtools_ampliconstats_files
 
   output:
   file("${task.process}/${sample}*")
@@ -1144,7 +1142,7 @@ process pangolin {
   params.pangolin
 
   input:
-  set val(sample), file(fasta) from consensus_pangolin
+  tuple val(sample), file(fasta) from consensus_pangolin
 
   output:
   file("${task.process}/${sample}/lineage_report.csv") into pangolin_files
@@ -1206,6 +1204,7 @@ pangolin_files
     storeDir: "${params.outdir}/pangolin")
 
 params.nextclade_options = ''
+params.nextclade_genes = 'E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S'
 process nextclade {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
@@ -1217,33 +1216,47 @@ process nextclade {
   params.nextclade
 
   input:
-  set val(sample), file(fasta) from consensus_nextclade
+  tuple val(sample), file(fasta), file(reference) from consensus_nextclade
 
   output:
-  file("${task.process}/${sample}_nextclade_report.csv") into nextclade_files
+  file("${task.process}/${sample}/${sample}_nextclade.csv") into nextclade_files
   tuple sample, env(nextclade_clade) into nextclade_clade_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p !{task.process} logs/!{task.process}
+    mkdir -p !{task.process}/!{sample} logs/!{task.process}
     log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
     err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     nextclade --version >> $log_file
 
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/genemap.gff
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/tree.json
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/qc.json
+    wget --no-check-certificate https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/primers.csv
+
     nextclade !{params.nextclade_options} \
-      --jobs !{task.cpus} \
-      --input-fasta !{fasta} \
-      --output-csv !{task.process}/!{sample}_nextclade_report.csv \
+      --input-fasta=!{fasta} \
+      --input-root-seq=!{reference} \
+      --genes=!{params.nextclade_genes} \
+      --input-gene-map=genemap.gff \
+      --input-tree=tree.json \
+      --input-qc-config=qc.json \
+      --input-pcr-primers=primers.csv \
+      --output-json=!{task.process}/!{sample}/!{sample}_nextclade.json \
+      --output-csv=!{task.process}/!{sample}/!{sample}_nextclade.csv \
+      --output-tsv=!{task.process}/!{sample}/!{sample}_nextclade.tsv \
+      --output-tree=!{task.process}/!{sample}/!{sample}_nextclade.auspice.json \
+      --output-dir=!{task.process}/!{sample} \
+      --output-basename=!{sample} \
       2>> $err_file >> $log_file
 
-
-    nextclade_column=$(head -n 1 !{task.process}/!{sample}_nextclade_report.csv | tr ';' '\\n' | grep -wn "clade" | cut -f 1 -d ":" )
+    nextclade_column=$(head -n 1 !{task.process}/!{sample}/!{sample}_nextclade.csv | tr ';' '\\n' | grep -wn "clade" | cut -f 1 -d ":" )
     if [ -n "$nextclade_column" ]
     then
-      nextclade_clade=$(cat !{task.process}/!{sample}_nextclade_report.csv | grep !{sample} | cut -f $nextclade_column -d ";" | sed 's/,/;/g' | head -n 1 )
+      nextclade_clade=$(cat !{task.process}/!{sample}/!{sample}_nextclade.csv | grep !{sample} | cut -f $nextclade_column -d ";" | sed 's/,/;/g' | sed 's/"//g' | head -n 1 )
     else
       nextclade_clade="Not Found"
     fi
@@ -1258,15 +1271,7 @@ nextclade_files
     sort: true,
     storeDir: "${params.outdir}/nextclade")
 
-if ( Math.round(Runtime.runtime.totalMemory() / 10241024) / 2 > params.medcpus && params.vadr ) {
-  vadrmemory = params.medcpus + params.medcpus
-  vadrcpus = params.medcpus
-} else {
-  vadrmemory = 2
-  vadrcpus = 1
-}
-
-params.vadr_options = '--split --glsearch -s -r --nomisc --mkey sarscov2 --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn'
+params.vadr_options = '--split --glsearch -s -r --nomisc --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn'
 params.vadr_reference = 'sarscov2'
 params.vadr_mdir = '/opt/vadr/vadr-models'
 params.vadr_trim_options = '--minlen 50 --maxlen 30000'
@@ -1274,23 +1279,22 @@ process vadr {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
   echo false
-  cpus vadrcpus
-  memory vadrmemory.GB
+  cpus params.medcpus
   container 'staphb/vadr:latest'
 
   when:
   params.vadr
 
   input:
-  set val(sample), file(fasta) from consensus_vadr
+  tuple val(sample), file(fasta) from consensus_vadr
 
   output:
-  file("${task.process}/${sample}/*")
-  file("${task.process}/${sample}/${sample}.vadr.fail.fa") into vadr_files_fail_fasta
-  file("${task.process}/${sample}/${sample}.vadr.fail.list") into vadr_files_fail_list
-  file("${task.process}/${sample}/${sample}.vadr.pass.fa") into vadr_files_pass_fasta
-  file("${task.process}/${sample}/${sample}.vadr.pass.list") into vadr_files_pass_list
-  file("${task.process}/${sample}/${sample}.vadr.sqc") into vadr_files_sqc
+  file("${task.process}/${sample}/*") optional true
+  file("${task.process}/${sample}/${sample}.vadr.fail.fa") optional true into vadr_files_fail_fasta
+  file("${task.process}/${sample}/${sample}.vadr.fail.list") optional true into vadr_files_fail_list
+  file("${task.process}/${sample}/${sample}.vadr.pass.fa") optional true into vadr_files_pass_fasta
+  file("${task.process}/${sample}/${sample}.vadr.pass.list") optional true into vadr_files_pass_list
+  file("${task.process}/${sample}/${sample}.vadr.sqc") optional true into vadr_files_sqc
   tuple sample, env(pass_fail) into vadr_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
@@ -1307,14 +1311,22 @@ process vadr {
     fasta-trim-terminal-ambigs.pl !{params.vadr_trim_options} \
       !{fasta} > trimmed_!{fasta}
 
-    v-annotate.pl !{params.vadr_options} \
-      --cpu !{task.cpus} \
-      --noseqnamemax \
-      --mkey !{params.vadr_reference} \
-      --mdir !{params.vadr_mdir} \
-      trimmed_!{fasta} \
-      !{task.process}/!{sample} \
-      2>> $err_file >> $log_file
+    if [ -s "trimmed_!{fasta}" ]
+    then
+      v-annotate.pl !{params.vadr_options} \
+        --cpu !{task.cpus} \
+        --noseqnamemax \
+        --mkey !{params.vadr_reference} \
+        --mdir !{params.vadr_mdir} \
+        trimmed_!{fasta} \
+        !{task.process}/!{sample} \
+        2>> $err_file >> $log_file
+
+      pass_fail=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/!{sample}.vadr.sqc | awk '{print $4}')
+    else
+      pass_fail="FAIL"
+    fi
+    if [ -z "$pass_fail" ] ; then pass_fail="NA" ; fi
   '''
 }
 
@@ -1377,14 +1389,14 @@ consensus_results
   .set { results }
 
 process summary {
-  //publishDir "${params.outdir}", mode: 'copy', overwrite: true
+  publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${sample}"
   echo false
   cpus 1
   container 'staphb/parallel-perl:latest'
 
   input:
-  set val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
+  tuple val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
     val(raw_1),
     val(raw_2),
     val(pairskept),
@@ -1569,7 +1581,7 @@ if (params.relatedness) {
   params.iqtree2_options = ''
   process iqtree2 {
     publishDir "${params.outdir}", mode: 'copy'
-    tag "Creating phylogenetic tree with iqtree2"
+    tag "Creating phylogenetic tree with iqtree"
     echo false
     cpus params.maxcpus
     container 'staphb/iqtree2:latest'
@@ -1587,14 +1599,13 @@ if (params.relatedness) {
     shell:
     '''
       mkdir -p !{task.process} logs/!{task.process}
-      log_file=logs/!{task.process}/${task.process}.!{workflow.sessionId}.log
-      err_file=logs/!{task.process}/${task.process}.!{workflow.sessionId}.err
+      log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+      err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
 
       date | tee -a $log_file $err_file > /dev/null
       iqtree2 --version >> $log_file
 
-      cat !{msa} | sed 's/!{params.outgroup}.*/!{params.outgroup}/g' > !{msa}.tmp
-      mv !{msa}.tmp !{msa}
+      cat !{msa} | sed 's/!{params.outgroup}.*/!{params.outgroup}/g' > !{msa}.renamed
 
       # creating a tree
     	iqtree2 !{params.iqtree2_options} \
@@ -1603,7 +1614,7 @@ if (params.relatedness) {
         -me 0.05 \
         -nt AUTO \
         -ntmax !{task.cpus} \
-        -s !{msa} \
+        -s !{msa}.renamed \
         -pre !{task.process}/iqtree2 \
         -m !{params.mode} \
         -o !{params.outgroup} \
@@ -1637,7 +1648,7 @@ if (params.rename) {
     stageInMode 'copy'
 
     input:
-    set val(sample), file(reads), val(paired_single), file(consensus), file(filtered_reads), file(sample_file) from rename
+    tuple val(sample), file(reads), val(paired_single), file(consensus), file(filtered_reads), file(sample_file) from rename
 
     when:
     params.sample_file.exists() && params.rename
