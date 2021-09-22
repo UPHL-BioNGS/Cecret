@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.20210815")
+println("Version: v.1.2.20210930")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -52,7 +52,7 @@ params.kraken2_organism = "Severe acute respiratory syndrome coronavirus 2"
 // for optional route of tree generation and counting snps between samples
 params.relatedness = false
 params.snpdists = true
-params.iqtree = true
+params.iqtree2 = true
 params.max_ambiguous = '0.50'
 params.outgroup = 'MN908947.3'
 params.mode='GTR'
@@ -128,7 +128,6 @@ paired_reads
 
 println("") // just for aesthetics
 
-// TBA : param that coincides with the staphb/seqyclean:1.10.09 container run with singularity
 params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
 params.seqyclean_minlen = 25
 process seqyclean {
@@ -170,16 +169,28 @@ process seqyclean {
 
     if [ "!{paired_single}" == "single" ]
     then
-      seqyclean -minlen !{params.seqyclean_minlen} -qual -c !{params.seqyclean_contaminant_file} -U !{reads} -o !{task.process}/!{sample}_cln 2>> $err_file >> $log_file
+      seqyclean \
+        -minlen !{params.seqyclean_minlen} \
+        -qual \
+        -c !{params.seqyclean_contaminant_file} \
+        -U !{reads} \
+        -o !{task.process}/!{sample}_cln \
+        -gz \
+        2>> $err_file >> $log_file
       kept=$(cut -f 36 !{task.process}/!{sample}_cln_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
       perc_kept=$(cut -f 37 !{task.process}/!{sample}_cln_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
     else
-      seqyclean -minlen !{params.seqyclean_minlen} -qual -c !{params.seqyclean_contaminant_file} -1 !{reads[0]} -2 !{reads[1]} -o !{task.process}/!{sample}_clean 2>> $err_file >> $log_file
+      seqyclean \
+        -minlen !{params.seqyclean_minlen} \
+        -qual \
+        -c !{params.seqyclean_contaminant_file} \
+        -1 !{reads[0]} -2 !{reads[1]} \
+        -o !{task.process}/!{sample}_clean \
+        -gz \
+        2>> $err_file >> $log_file
       kept=$(cut -f 58 !{task.process}/!{sample}_clean_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
       perc_kept=$(cut -f 59 !{task.process}/!{sample}_clean_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
     fi
-
-    gzip !{task.process}/!{sample}_clean*.fastq
 
     if [ -z "$kept" ] ; then kept="0" ; fi
     if [ -z "$perc_kept" ] ; then perc_kept="0" ; fi
@@ -292,7 +303,11 @@ process bwa {
     bwa index !{reference_genome}
 
     # bwa mem command
-    bwa mem -t !{task.cpus} !{reference_genome} !{reads} 2>> $err_file > aligned/!{sample}.sam
+    bwa mem \
+      -t !{task.cpus} \
+      !{reference_genome} \
+      !{reads} \
+      2>> $err_file > aligned/!{sample}.sam
   '''
 }
 
@@ -642,8 +657,7 @@ process ivar_consensus {
   set val(sample), file(bam), file(reference_genome) from trimmed_bams_ivar_consensus
 
   output:
-  tuple sample, file("consensus/${sample}.consensus.fa") into consensus_rename, consensus_pangolin, consensus_vadr
-  tuple sample, file("consensus/${sample}.consensus.fa"), file(reference_genome) into consensus_nextclade
+  tuple sample, file("consensus/${sample}.consensus.fa") into consensus_nextclade, consensus_rename, consensus_pangolin, consensus_vadr
   file("consensus/${sample}.consensus.fa") into consensus_mafft
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
@@ -1192,7 +1206,6 @@ pangolin_files
     storeDir: "${params.outdir}/pangolin")
 
 params.nextclade_options = ''
-params.nextclade_genes = 'E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S'
 process nextclade {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
@@ -1204,47 +1217,33 @@ process nextclade {
   params.nextclade
 
   input:
-  tuple val(sample), file(fasta), file(reference) from consensus_nextclade
+  set val(sample), file(fasta) from consensus_nextclade
 
   output:
-  file("${task.process}/${sample}/${sample}_nextclade.csv") into nextclade_files
+  file("${task.process}/${sample}_nextclade_report.csv") into nextclade_files
   tuple sample, env(nextclade_clade) into nextclade_clade_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p !{task.process}/!{sample} logs/!{task.process}
+    mkdir -p !{task.process} logs/!{task.process}
     log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
     err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     nextclade --version >> $log_file
 
-    wget https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/genemap.gff
-    wget https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/tree.json
-    wget https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/qc.json
-    wget https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/primers.csv
-
     nextclade !{params.nextclade_options} \
-      --input-fasta=!{fasta} \
-      --input-root-seq=!{reference} \
-      --genes=!{params.nextclade_genes} \
-      --input-gene-map=genemap.gff \
-      --input-tree=tree.json \
-      --input-qc-config=qc.json \
-      --input-pcr-primers=primers.csv \
-      --output-json=!{task.process}/!{sample}/!{sample}_nextclade.json \
-      --output-csv=!{task.process}/!{sample}/!{sample}_nextclade.csv \
-      --output-tsv=!{task.process}/!{sample}/!{sample}_nextclade.tsv \
-      --output-tree=!{task.process}/!{sample}/!{sample}_nextclade.auspice.json \
-      --output-dir=!{task.process}/!{sample} \
-      --output-basename=!{sample} \
+      --jobs !{task.cpus} \
+      --input-fasta !{fasta} \
+      --output-csv !{task.process}/!{sample}_nextclade_report.csv \
       2>> $err_file >> $log_file
 
-    nextclade_column=$(head -n 1 !{task.process}/!{sample}/!{sample}_nextclade.csv | tr ';' '\\n' | grep -wn "clade" | cut -f 1 -d ":" )
+
+    nextclade_column=$(head -n 1 !{task.process}/!{sample}_nextclade_report.csv | tr ';' '\\n' | grep -wn "clade" | cut -f 1 -d ":" )
     if [ -n "$nextclade_column" ]
     then
-      nextclade_clade=$(cat !{task.process}/!{sample}/!{sample}_nextclade.csv | grep !{sample} | cut -f $nextclade_column -d ";" | sed 's/,/;/g' | sed 's/"//g' | head -n 1 )
+      nextclade_clade=$(cat !{task.process}/!{sample}_nextclade_report.csv | grep !{sample} | cut -f $nextclade_column -d ";" | sed 's/,/;/g' | head -n 1 )
     else
       nextclade_clade="Not Found"
     fi
@@ -1259,14 +1258,24 @@ nextclade_files
     sort: true,
     storeDir: "${params.outdir}/nextclade")
 
+if ( Math.round(Runtime.runtime.totalMemory() / 10241024) / 2 > params.medcpus && params.vadr ) {
+  vadrmemory = params.medcpus + params.medcpus
+  vadrcpus = params.medcpus
+} else {
+  vadrmemory = 2
+  vadrcpus = 1
+}
+
 params.vadr_options = '--split --glsearch -s -r --nomisc --mkey sarscov2 --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn'
 params.vadr_reference = 'sarscov2'
 params.vadr_mdir = '/opt/vadr/vadr-models'
+params.vadr_trim_options = '--minlen 50 --maxlen 30000'
 process vadr {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
   echo false
-  cpus params.medcpus
+  cpus vadrcpus
+  memory vadrmemory.GB
   container 'staphb/vadr:latest'
 
   when:
@@ -1295,17 +1304,17 @@ process vadr {
     echo "no version" >> $log_file
     v-annotate.pl -h >> $log_file
 
+    fasta-trim-terminal-ambigs.pl !{params.vadr_trim_options} \
+      !{fasta} > trimmed_!{fasta}
+
     v-annotate.pl !{params.vadr_options} \
       --cpu !{task.cpus} \
       --noseqnamemax \
       --mkey !{params.vadr_reference} \
       --mdir !{params.vadr_mdir} \
-      !{fasta} \
+      trimmed_!{fasta} \
       !{task.process}/!{sample} \
       2>> $err_file >> $log_file
-
-    pass_fail=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/!{sample}.vadr.sqc | awk '{print $4}')
-    if [ -z "$pass_fail" ] ; then pass_fail="NA" ; fi
   '''
 }
 
@@ -1557,45 +1566,45 @@ if (params.relatedness) {
     '''
   }
 
-  params.iqtree_options = ''
-  process iqtree {
+  params.iqtree2_options = ''
+  process iqtree2 {
     publishDir "${params.outdir}", mode: 'copy'
-    tag "Creating phylogenetic tree with iqtree"
+    tag "Creating phylogenetic tree with iqtree2"
     echo false
     cpus params.maxcpus
-    container 'staphb/iqtree:latest'
+    container 'staphb/iqtree2:latest'
 
     when:
-    params.iqtree
+    params.iqtree2
 
     input:
     file(msa) from msa_file2
 
     output:
-    file("${task.process}/iqtree.{iqtree,treefile,mldist,log}")
-    file("logs/${task.process}/iqtree.${workflow.sessionId}.{log,err}")
+    file("${task.process}/${task.process}.{iqtree,treefile,mldist,log}")
+    file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
 
     shell:
     '''
       mkdir -p !{task.process} logs/!{task.process}
-      log_file=logs/!{task.process}/iqtree.!{workflow.sessionId}.log
-      err_file=logs/!{task.process}/iqtree.!{workflow.sessionId}.err
+      log_file=logs/!{task.process}/${task.process}.!{workflow.sessionId}.log
+      err_file=logs/!{task.process}/${task.process}.!{workflow.sessionId}.err
 
       date | tee -a $log_file $err_file > /dev/null
-      iqtree --version >> $log_file
+      iqtree2 --version >> $log_file
 
       cat !{msa} | sed 's/!{params.outgroup}.*/!{params.outgroup}/g' > !{msa}.tmp
       mv !{msa}.tmp !{msa}
 
       # creating a tree
-    	iqtree !{params.iqtree_options} \
+    	iqtree2 !{params.iqtree2_options} \
         -ninit 2 \
         -n 2 \
         -me 0.05 \
         -nt AUTO \
         -ntmax !{task.cpus} \
         -s !{msa} \
-        -pre !{task.process}/iqtree \
+        -pre !{task.process}/iqtree2 \
         -m !{params.mode} \
         -o !{params.outgroup} \
         >> $log_file 2>> $err_file

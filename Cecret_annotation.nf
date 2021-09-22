@@ -3,11 +3,11 @@
 println("For annotating SARS-CoV-2 fastas with pangolin, nextclade, and vadr\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.0.20210815")
+println("Version: v.0.20210930")
 println("")
 
 params.fastas = workflow.launchDir + '/fastas'
-params.outdir = workflow.launchDir + '/cecret'
+params.outdir = workflow.launchDir + '/cecret_annotation'
 params.reference_genome = workflow.projectDir + "/configs/MN908947.3.fasta"
 
 params.maxcpus = Runtime.runtime.availableProcessors()
@@ -161,13 +161,13 @@ process nextclade {
 params.vadr_options = '--split --glsearch -s -r --nomisc --mkey sarscov2 --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn'
 params.vadr_reference = 'sarscov2'
 params.vadr_mdir = '/opt/vadr/vadr-models'
+params.vadr_trim_options = '--minlen 50 --maxlen 30000'
 process vadr {
   publishDir "${params.outdir}", mode: 'copy'
   tag "Fasta QC with vadr"
   echo false
   cpus params.medcpus
   container 'staphb/vadr:latest'
-  //stageInMode = 'symlink'
 
   when:
   params.vadr
@@ -189,12 +189,15 @@ process vadr {
     echo "no version" >> $log_file
     v-annotate.pl -h >> $log_file
 
+    fasta-trim-terminal-ambigs.pl !{params.vadr_trim_options} \
+      !{fasta} > trimmed_!{fasta}
+
     v-annotate.pl !{params.vadr_options} \
       --cpu !{task.cpus} \
       --noseqnamemax \
       --mkey !{params.vadr_reference} \
       --mdir !{params.vadr_mdir} \
-      !{fasta} \
+      trimmed_!{fasta} \
       !{task.process} \
       2>> $err_file >> $log_file
   '''
@@ -286,26 +289,26 @@ if (params.relatedness){
     '''
   }
 
-  params.iqtree_options = ''
-  params.iqtree = true
+  params.iqtree2_options = ''
+  params.iqtree2 = true
   params.max_ambiguous = '0.50'
   params.outgroup = 'MN908947.3'
   params.mode='GTR'
-  process iqtree {
+  process iqtree2 {
     publishDir "${params.outdir}", mode: 'copy'
-    tag "Creating phylogenetic tree with iqtree"
+    tag "Creating phylogenetic tree with iqtree2"
     echo false
     cpus params.maxcpus
-    container 'staphb/iqtree:latest'
+    container 'staphb/iqtree2:latest'
 
     input:
     file(msa) from msa_file2
 
     when:
-    params.iqtree
+    params.iqtree2
 
     output:
-    file("${task.process}/iqtree.{iqtree,treefile,mldist,log}")
+    file("${task.process}/iqtree2.{iqtree,treefile,mldist,log}")
     file("logs/${task.process}/${workflow.sessionId}.{log,err}")
 
     shell:
@@ -315,20 +318,20 @@ if (params.relatedness){
       err_file=logs/!{task.process}/!{workflow.sessionId}.err
 
       date | tee -a $log_file $err_file > /dev/null
-      iqtree --version >> $log_file
+      iqtree2 --version >> $log_file
 
       cat !{msa} | sed 's/!{params.outgroup}.*/!{params.outgroup}/g' > !{msa}.tmp
       mv !{msa}.tmp !{msa}
 
       # creating a tree
-    	iqtree !{params.iqtree_options} \
+    	iqtree2 !{params.iqtree2_options} \
         -ninit 2 \
         -n 2 \
         -me 0.05 \
         -nt AUTO \
         -ntmax !{task.cpus} \
         -s !{msa} \
-        -pre !{task.process}/iqtree \
+        -pre !{task.process}/iqtree2 \
         -m !{params.mode} \
         -o !{params.outgroup} \
         >> $log_file 2>> $err_file
