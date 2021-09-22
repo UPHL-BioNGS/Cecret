@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.20210815")
+println("Version: v.1.2.20210930")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -47,12 +47,12 @@ params.vadr = true
 // for optional contamination determination
 params.kraken2 = false
 params.kraken2_db = ''
-params.kraken2_organism = "Severe acute respiratory syndrome coronavirus 2"
+params.kraken2_organism = "Severe acute respiratory syndrome-related coronavirus"
 
 // for optional route of tree generation and counting snps between samples
 params.relatedness = false
 params.snpdists = true
-params.iqtree = true
+params.iqtree2 = true
 params.max_ambiguous = '0.50'
 params.outgroup = 'MN908947.3'
 params.mode='GTR'
@@ -105,7 +105,7 @@ Channel
 
 Channel
   .fromFilePairs("${params.single_reads}/*.fastq*", size: 1 )
-  .map{ reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], "single" ) }
+  .map{ reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,"").replaceAll(~/.fastq.*/,""), reads[1], "single" ) }
   .set { single_reads }
 
 amplicon_bed = params.bedtools_multicov
@@ -134,7 +134,6 @@ params.seqyclean_minlen = 25
 process seqyclean {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/seqyclean:latest'
 
@@ -142,7 +141,7 @@ process seqyclean {
   params.cleaner == 'seqyclean'
 
   input:
-  set val(sample), file(reads), val(paired_single) from fastq_reads_seqyclean
+  tuple val(sample), file(reads), val(paired_single) from fastq_reads_seqyclean
 
   output:
   tuple sample, file("${task.process}/${sample}_clean_PE{1,2}.fastq.gz") optional true into seqyclean_paired_files
@@ -170,16 +169,28 @@ process seqyclean {
 
     if [ "!{paired_single}" == "single" ]
     then
-      seqyclean -minlen !{params.seqyclean_minlen} -qual -c !{params.seqyclean_contaminant_file} -U !{reads} -o !{task.process}/!{sample}_cln 2>> $err_file >> $log_file
+      seqyclean \
+        -minlen !{params.seqyclean_minlen} \
+        -qual \
+        -c !{params.seqyclean_contaminant_file} \
+        -U !{reads} \
+        -o !{task.process}/!{sample}_cln \
+        -gz \
+        2>> $err_file >> $log_file
       kept=$(cut -f 36 !{task.process}/!{sample}_cln_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
       perc_kept=$(cut -f 37 !{task.process}/!{sample}_cln_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
     else
-      seqyclean -minlen !{params.seqyclean_minlen} -qual -c !{params.seqyclean_contaminant_file} -1 !{reads[0]} -2 !{reads[1]} -o !{task.process}/!{sample}_clean 2>> $err_file >> $log_file
+      seqyclean \
+        -minlen !{params.seqyclean_minlen} \
+        -qual \
+        -c !{params.seqyclean_contaminant_file} \
+        -1 !{reads[0]} -2 !{reads[1]} \
+        -o !{task.process}/!{sample}_clean \
+        -gz \
+        2>> $err_file >> $log_file
       kept=$(cut -f 58 !{task.process}/!{sample}_clean_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
       perc_kept=$(cut -f 59 !{task.process}/!{sample}_clean_SummaryStatistics.tsv | grep -v "Kept" | head -n 1)
     fi
-
-    gzip !{task.process}/!{sample}_clean*.fastq
 
     if [ -z "$kept" ] ; then kept="0" ; fi
     if [ -z "$perc_kept" ] ; then perc_kept="0" ; fi
@@ -195,7 +206,6 @@ seqyclean_files
 process fastp {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'bromberglab/fastp:latest'
 
@@ -203,7 +213,7 @@ process fastp {
   params.cleaner == 'fastp'
 
   input:
-  set val(sample), file(reads), val(paired_single) from fastq_reads_fastp
+  tuple val(sample), file(reads), val(paired_single) from fastq_reads_fastp
 
   output:
   tuple sample, file("${task.process}/${sample}_clean_PE{1,2}.fastq.gz") optional true into fastp_paired_files
@@ -262,7 +272,6 @@ seqyclean_paired_files_classification
 process bwa {
   publishDir "${params.outdir}", mode: 'copy', pattern: "logs/bwa/*.{log,err}"
   tag "${sample}"
-  echo false
   cpus params.maxcpus
   container 'staphb/bwa:latest'
 
@@ -270,7 +279,7 @@ process bwa {
   params.aligner == 'bwa'
 
   input:
-  set val(sample), file(reads), file(reference_genome) from clean_reads_bwa
+  tuple val(sample), file(reads), file(reference_genome) from clean_reads_bwa
 
   output:
   tuple sample, file("aligned/${sample}.sam") into bwa_sams
@@ -302,7 +311,6 @@ params.minimap2_options = ''
 process minimap2 {
   publishDir "${params.outdir}", mode: 'copy', pattern: "logs/minimap2/*.{log,err}"
   tag "${sample}"
-  echo false
   cpus params.maxcpus
   container 'staphb/minimap2:latest'
 
@@ -310,7 +318,7 @@ process minimap2 {
   params.aligner == 'minimap2'
 
   input:
-  set val(sample), file(reads), file(reference_genome) from clean_reads_minimap2
+  tuple val(sample), file(reads), file(reference_genome) from clean_reads_minimap2
 
   output:
   tuple sample, file("aligned/${sample}.sam") into minimap2_sams
@@ -348,7 +356,6 @@ params.fastqc_options = ''
 process fastqc {
   publishDir "${params.outdir}", mode: 'copy'
   tag "$sample"
-  echo false
   cpus 1
   container 'staphb/fastqc:latest'
 
@@ -356,7 +363,7 @@ process fastqc {
   params.fastqc
 
   input:
-  set val(sample), file(raw), val(type) from fastq_reads_fastqc
+  tuple val(sample), file(raw), val(type) from fastq_reads_fastqc
 
   output:
   file("${task.process}/*.{html,zip}")
@@ -394,12 +401,11 @@ process fastqc {
 process sort {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.maxcpus
   container 'staphb/samtools:latest'
 
   input:
-  set val(sample), file(sam) from sams
+  tuple val(sample), file(sam) from sams
 
   output:
   tuple sample, file("aligned/${sample}.sorted.bam") into pre_trim_bams, pre_trim_bams2
@@ -428,7 +434,6 @@ params.filter_options = ''
 process filter {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -436,7 +441,7 @@ process filter {
   params.filter
 
   input:
-  set val(sample), file(sam) from sams_filter
+  tuple val(sample), file(sam) from sams_filter
 
   output:
   tuple sample, file("${task.process}/${sample}_filtered_{R1,R2}.fastq.gz") optional true into filtered_reads
@@ -474,7 +479,6 @@ params.mpileup_depth = 8000
 process ivar_trim {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/ivar:latest'
 
@@ -482,7 +486,7 @@ process ivar_trim {
   params.trimmer == 'ivar'
 
   input:
-  set val(sample), file(bam), file(primer_bed) from pre_trim_bams_ivar
+  tuple val(sample), file(bam), file(primer_bed) from pre_trim_bams_ivar
 
   output:
   tuple sample, file("${task.process}/${sample}.primertrim.sorted.bam") into ivar_bams
@@ -512,7 +516,6 @@ params.samtools_ampliconclip_options = ''
 process samtools_ampliconclip {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -520,11 +523,11 @@ process samtools_ampliconclip {
   params.trimmer == 'samtools'
 
   input:
-  set val(sample), file(bam), file(primer_bed) from pre_trim_bams_samtools
+  tuple val(sample), file(bam), file(primer_bed) from pre_trim_bams_samtools
 
   output:
   tuple sample, file("${task.process}/${sample}.primertrim.sorted.bam") into samtools_bams
-  tuple sample, file("${task.process}/${sample}.primertrim.sorted.bam"), file("samtools_trim/${sample}.primertrim.sorted.bam.bai") into samtools_bam_bai
+  tuple sample, file("${task.process}/${sample}.primertrim.sorted.bam"), file("${task.process}/${sample}.primertrim.sorted.bam.bai") into samtools_bam_bai
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -570,7 +573,6 @@ ivar_bam_bai
 process ivar_variants {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/ivar:latest'
   memory {2.GB * task.attempt}
@@ -581,7 +583,7 @@ process ivar_variants {
   params.ivar_variants
 
   input:
-  set val(sample), file(bam), file(reference_genome), file(gff_file) from trimmed_bams_ivar_variants
+  tuple val(sample), file(bam), file(reference_genome), file(gff_file) from trimmed_bams_ivar_variants
 
   output:
   tuple sample, file("${task.process}/${sample}.variants.tsv")
@@ -631,7 +633,6 @@ process ivar_consensus {
   publishDir "${params.outdir}", mode: 'copy', pattern: "logs/ivar_consensus/*.{log,err}"
   publishDir "${params.outdir}", mode: 'copy', pattern: "consensus/*.consensus.fa"
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/ivar:latest'
   memory {2.GB * task.attempt}
@@ -639,7 +640,7 @@ process ivar_consensus {
   maxRetries 2
 
   input:
-  set val(sample), file(bam), file(reference_genome) from trimmed_bams_ivar_consensus
+  tuple val(sample), file(bam), file(reference_genome) from trimmed_bams_ivar_consensus
 
   output:
   tuple sample, file("consensus/${sample}.consensus.fa") into consensus_rename, consensus_pangolin, consensus_vadr
@@ -679,7 +680,6 @@ process ivar_consensus {
 process bcftools_variants {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/bcftools:latest'
 
@@ -687,7 +687,7 @@ process bcftools_variants {
   params.bcftools_variants
 
   input:
-  set val(sample), file(bam), file(reference_genome) from trimmed_bams_bcftools_variants
+  tuple val(sample), file(bam), file(reference_genome) from trimmed_bams_bcftools_variants
 
   output:
   tuple sample, file("${task.process}/${sample}.vcf") into bcftools_variants_file
@@ -722,7 +722,6 @@ params.bamsnap_options = ''
 process bamsnap {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.medcpus
   errorStrategy 'ignore'
   container 'danielmsk/bamsnap:latest'
@@ -788,7 +787,6 @@ params.samtools_stats_options = ''
 process samtools_stats {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -796,7 +794,7 @@ process samtools_stats {
   params.samtools_stats
 
   input:
-  set val(sample), file(aligned), file(trimmed) from pre_post_bams
+  tuple val(sample), file(aligned), file(trimmed) from pre_post_bams
 
   output:
   file("${task.process}/aligned/${sample}.stats.txt")
@@ -826,7 +824,6 @@ params.samtools_coverage_options = ''
 process samtools_coverage {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -834,7 +831,7 @@ process samtools_coverage {
   params.samtools_coverage
 
   input:
-  set val(sample), file(aligned), file(trimmed) from pre_post_bams2
+  tuple val(sample), file(aligned), file(trimmed) from pre_post_bams2
 
   output:
   file("${task.process}/{aligned,trimmed}/${sample}.cov.{txt,hist}")
@@ -867,12 +864,11 @@ params.samtools_flagstat_options = ''
 process samtools_flagstat {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
   input:
-  set val(sample), file(aligned), file(trimmed) from pre_post_bams3
+  tuple val(sample), file(aligned), file(trimmed) from pre_post_bams3
 
   when:
   params.samtools_flagstat
@@ -904,12 +900,11 @@ params.samtools_depth_options = ''
 process samtools_depth {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
   input:
-  set val(sample), file(aligned), file(trimmed) from pre_post_bams4
+  tuple val(sample), file(aligned), file(trimmed) from pre_post_bams4
 
   when:
   params.samtools_depth
@@ -949,7 +944,6 @@ params.kraken2_options = ''
 process kraken2 {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.maxcpus
   container 'staphb/kraken2:latest'
 
@@ -957,7 +951,7 @@ process kraken2 {
   params.kraken2
 
   input:
-  set val(sample), file(clean), val(paired_single), path(kraken2_db) from clean_reads_kraken2
+  tuple val(sample), file(clean), val(paired_single), path(kraken2_db) from clean_reads_kraken2
 
   output:
   file("${task.process}/${sample}_kraken2_report.txt")
@@ -1011,7 +1005,6 @@ params.bedtools_multicov_options = '-f .1'
 process bedtools_multicov {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/bedtools:latest'
 
@@ -1019,7 +1012,7 @@ process bedtools_multicov {
   params.bedtools_multicov
 
   input:
-  set val(sample), file(bam), file(bai), file(amplicon_bed) from trimmed_bam_bai
+  tuple val(sample), file(bam), file(bai), file(amplicon_bed) from trimmed_bam_bai
 
   output:
   file("${task.process}/${sample}.multicov.txt")
@@ -1050,7 +1043,6 @@ params.samtools_ampliconstats_options = ''
 process samtools_ampliconstats {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -1058,7 +1050,7 @@ process samtools_ampliconstats {
   params.samtools_ampliconstats
 
   input:
-  set val(sample), file(bam), file(primer_bed) from trimmed_bams_ampliconstats
+  tuple val(sample), file(bam), file(primer_bed) from trimmed_bams_ampliconstats
 
   output:
   tuple sample, file("${task.process}/${sample}_ampliconstats.txt") into samtools_ampliconstats_files
@@ -1088,7 +1080,6 @@ params.samtools_plot_ampliconstats_options = '-size 1200,900 -size2 1200,900 -si
 process samtools_plot_ampliconstats {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
   errorStrategy 'ignore'
@@ -1097,7 +1088,7 @@ process samtools_plot_ampliconstats {
   params.samtools_plot_ampliconstats
 
   input:
-  set val(sample), file(ampliconstats) from samtools_ampliconstats_files
+  tuple val(sample), file(ampliconstats) from samtools_ampliconstats_files
 
   output:
   file("${task.process}/${sample}*")
@@ -1122,7 +1113,6 @@ params.pangolin_options = ''
 process pangolin {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.medcpus
   container 'staphb/pangolin:latest'
 
@@ -1130,7 +1120,7 @@ process pangolin {
   params.pangolin
 
   input:
-  set val(sample), file(fasta) from consensus_pangolin
+  tuple val(sample), file(fasta) from consensus_pangolin
 
   output:
   file("${task.process}/${sample}/lineage_report.csv") into pangolin_files
@@ -1196,7 +1186,6 @@ params.nextclade_genes = 'E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S'
 process nextclade {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.medcpus
   container 'nextstrain/nextclade:latest'
 
@@ -1259,13 +1248,13 @@ nextclade_files
     sort: true,
     storeDir: "${params.outdir}/nextclade")
 
-params.vadr_options = '--split --glsearch -s -r --nomisc --mkey sarscov2 --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn'
+params.vadr_options = '--split --glsearch -s -r --nomisc --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn'
 params.vadr_reference = 'sarscov2'
 params.vadr_mdir = '/opt/vadr/vadr-models'
+params.vadr_trim_options = '--minlen 50 --maxlen 30000'
 process vadr {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.medcpus
   container 'staphb/vadr:latest'
 
@@ -1273,15 +1262,15 @@ process vadr {
   params.vadr
 
   input:
-  set val(sample), file(fasta) from consensus_vadr
+  tuple val(sample), file(fasta) from consensus_vadr
 
   output:
-  file("${task.process}/${sample}/*")
-  file("${task.process}/${sample}/${sample}.vadr.fail.fa") into vadr_files_fail_fasta
-  file("${task.process}/${sample}/${sample}.vadr.fail.list") into vadr_files_fail_list
-  file("${task.process}/${sample}/${sample}.vadr.pass.fa") into vadr_files_pass_fasta
-  file("${task.process}/${sample}/${sample}.vadr.pass.list") into vadr_files_pass_list
-  file("${task.process}/${sample}/${sample}.vadr.sqc") into vadr_files_sqc
+  file("${task.process}/${sample}/*") optional true
+  file("${task.process}/${sample}/${sample}.vadr.fail.fa") optional true into vadr_files_fail_fasta
+  file("${task.process}/${sample}/${sample}.vadr.fail.list") optional true into vadr_files_fail_list
+  file("${task.process}/${sample}/${sample}.vadr.pass.fa") optional true into vadr_files_pass_fasta
+  file("${task.process}/${sample}/${sample}.vadr.pass.list") optional true into vadr_files_pass_list
+  file("${task.process}/${sample}/${sample}.vadr.sqc") optional true into vadr_files_sqc
   tuple sample, env(pass_fail) into vadr_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
@@ -1295,16 +1284,24 @@ process vadr {
     echo "no version" >> $log_file
     v-annotate.pl -h >> $log_file
 
-    v-annotate.pl !{params.vadr_options} \
-      --cpu !{task.cpus} \
-      --noseqnamemax \
-      --mkey !{params.vadr_reference} \
-      --mdir !{params.vadr_mdir} \
-      !{fasta} \
-      !{task.process}/!{sample} \
-      2>> $err_file >> $log_file
+    fasta-trim-terminal-ambigs.pl !{params.vadr_trim_options} \
+      !{fasta} > trimmed_!{fasta}
 
-    pass_fail=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/!{sample}.vadr.sqc | awk '{print $4}')
+    if [ -s "trimmed_!{fasta}" ]
+    then
+      v-annotate.pl !{params.vadr_options} \
+        --cpu !{task.cpus} \
+        --noseqnamemax \
+        --mkey !{params.vadr_reference} \
+        --mdir !{params.vadr_mdir} \
+        trimmed_!{fasta} \
+        !{task.process}/!{sample} \
+        2>> $err_file >> $log_file
+
+      pass_fail=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/!{sample}.vadr.sqc | awk '{print $4}')
+    else
+      pass_fail="FAIL"
+    fi
     if [ -z "$pass_fail" ] ; then pass_fail="NA" ; fi
   '''
 }
@@ -1368,14 +1365,13 @@ consensus_results
   .set { results }
 
 process summary {
-  //publishDir "${params.outdir}", mode: 'copy', overwrite: true
+  publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/parallel-perl:latest'
 
   input:
-  set val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
+  tuple val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
     val(raw_1),
     val(raw_2),
     val(pairskept),
@@ -1413,7 +1409,7 @@ process summary {
 
     date | tee -a $log_file $err_file > /dev/null
 
-    sample_id=$(echo !{sample} | cut -f 1 -d "-" )
+    sample_id=($(echo !{sample} | cut -f 1 -d "_" ))
 
     header="sample_id,sample,aligner_version,ivar_version"
     result="${sample_id},!{sample},!{bwa_version},!{ivar_version}"
@@ -1484,7 +1480,6 @@ if (params.relatedness) {
   process mafft {
     publishDir "${params.outdir}", mode: 'copy'
     tag "Multiple Sequence Alignment"
-    echo false
     cpus params.maxcpus
     container 'staphb/mafft:latest'
     errorStrategy 'retry'
@@ -1530,7 +1525,6 @@ if (params.relatedness) {
   process snpdists {
     publishDir "${params.outdir}", mode: 'copy'
     tag "createing snp matrix with snp-dists"
-    echo false
     cpus 1
     container 'staphb/snp-dists:latest'
 
@@ -1557,45 +1551,43 @@ if (params.relatedness) {
     '''
   }
 
-  params.iqtree_options = ''
-  process iqtree {
+  params.iqtree2_options = ''
+  process iqtree2 {
     publishDir "${params.outdir}", mode: 'copy'
     tag "Creating phylogenetic tree with iqtree"
-    echo false
     cpus params.maxcpus
-    container 'staphb/iqtree:latest'
+    container 'staphb/iqtree2:latest'
 
     when:
-    params.iqtree
+    params.iqtree2
 
     input:
     file(msa) from msa_file2
 
     output:
-    file("${task.process}/iqtree.{iqtree,treefile,mldist,log}")
-    file("logs/${task.process}/iqtree.${workflow.sessionId}.{log,err}")
+    file("${task.process}/${task.process}.{iqtree,treefile,mldist,log}")
+    file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
 
     shell:
     '''
       mkdir -p !{task.process} logs/!{task.process}
-      log_file=logs/!{task.process}/iqtree.!{workflow.sessionId}.log
-      err_file=logs/!{task.process}/iqtree.!{workflow.sessionId}.err
+      log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+      err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
 
       date | tee -a $log_file $err_file > /dev/null
-      iqtree --version >> $log_file
+      iqtree2 --version >> $log_file
 
-      cat !{msa} | sed 's/!{params.outgroup}.*/!{params.outgroup}/g' > !{msa}.tmp
-      mv !{msa}.tmp !{msa}
+      cat !{msa} | sed 's/!{params.outgroup}.*/!{params.outgroup}/g' > !{msa}.renamed
 
       # creating a tree
-    	iqtree !{params.iqtree_options} \
+    	iqtree2 !{params.iqtree2_options} \
         -ninit 2 \
         -n 2 \
         -me 0.05 \
         -nt AUTO \
         -ntmax !{task.cpus} \
-        -s !{msa} \
-        -pre !{task.process}/iqtree \
+        -s !{msa}.renamed \
+        -pre !{task.process}/iqtree2 \
         -m !{params.mode} \
         -o !{params.outgroup} \
         >> $log_file 2>> $err_file
@@ -1622,13 +1614,12 @@ if (params.rename) {
   process rename {
     publishDir "${params.outdir}", mode: 'copy'
     tag "Renaming files for ${sample}"
-    echo false
     cpus 1
     container 'staphb/parallel-perl:latest'
     stageInMode 'copy'
 
     input:
-    set val(sample), file(reads), val(paired_single), file(consensus), file(filtered_reads), file(sample_file) from rename
+    tuple val(sample), file(reads), val(paired_single), file(consensus), file(filtered_reads), file(sample_file) from rename
 
     when:
     params.sample_file.exists() && params.rename
