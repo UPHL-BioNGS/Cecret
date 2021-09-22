@@ -134,7 +134,6 @@ params.seqyclean_minlen = 25
 process seqyclean {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/seqyclean:latest'
 
@@ -207,7 +206,6 @@ seqyclean_files
 process fastp {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'bromberglab/fastp:latest'
 
@@ -274,7 +272,6 @@ seqyclean_paired_files_classification
 process bwa {
   publishDir "${params.outdir}", mode: 'copy', pattern: "logs/bwa/*.{log,err}"
   tag "${sample}"
-  echo false
   cpus params.maxcpus
   container 'staphb/bwa:latest'
 
@@ -314,7 +311,6 @@ params.minimap2_options = ''
 process minimap2 {
   publishDir "${params.outdir}", mode: 'copy', pattern: "logs/minimap2/*.{log,err}"
   tag "${sample}"
-  echo false
   cpus params.maxcpus
   container 'staphb/minimap2:latest'
 
@@ -360,7 +356,6 @@ params.fastqc_options = ''
 process fastqc {
   publishDir "${params.outdir}", mode: 'copy'
   tag "$sample"
-  echo false
   cpus 1
   container 'staphb/fastqc:latest'
 
@@ -406,7 +401,6 @@ process fastqc {
 process sort {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.maxcpus
   container 'staphb/samtools:latest'
 
@@ -440,7 +434,6 @@ params.filter_options = ''
 process filter {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -486,7 +479,6 @@ params.mpileup_depth = 8000
 process ivar_trim {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/ivar:latest'
 
@@ -524,7 +516,6 @@ params.samtools_ampliconclip_options = ''
 process samtools_ampliconclip {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -582,7 +573,6 @@ ivar_bam_bai
 process ivar_variants {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/ivar:latest'
   memory {2.GB * task.attempt}
@@ -643,7 +633,6 @@ process ivar_consensus {
   publishDir "${params.outdir}", mode: 'copy', pattern: "logs/ivar_consensus/*.{log,err}"
   publishDir "${params.outdir}", mode: 'copy', pattern: "consensus/*.consensus.fa"
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/ivar:latest'
   memory {2.GB * task.attempt}
@@ -691,7 +680,6 @@ process ivar_consensus {
 process bcftools_variants {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/bcftools:latest'
 
@@ -734,7 +722,6 @@ params.bamsnap_options = ''
 process bamsnap {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.medcpus
   errorStrategy 'ignore'
   container 'danielmsk/bamsnap:latest'
@@ -800,7 +787,6 @@ params.samtools_stats_options = ''
 process samtools_stats {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -838,7 +824,6 @@ params.samtools_coverage_options = ''
 process samtools_coverage {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -879,7 +864,6 @@ params.samtools_flagstat_options = ''
 process samtools_flagstat {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -916,7 +900,6 @@ params.samtools_depth_options = ''
 process samtools_depth {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -961,7 +944,6 @@ params.kraken2_options = ''
 process kraken2 {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.maxcpus
   container 'staphb/kraken2:latest'
 
@@ -1023,7 +1005,6 @@ params.bedtools_multicov_options = '-f .1'
 process bedtools_multicov {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/bedtools:latest'
 
@@ -1062,7 +1043,6 @@ params.samtools_ampliconstats_options = ''
 process samtools_ampliconstats {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
 
@@ -1100,7 +1080,6 @@ params.samtools_plot_ampliconstats_options = '-size 1200,900 -size2 1200,900 -si
 process samtools_plot_ampliconstats {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/samtools:latest'
   errorStrategy 'ignore'
@@ -1134,7 +1113,6 @@ params.pangolin_options = ''
 process pangolin {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.medcpus
   container 'staphb/pangolin:latest'
 
@@ -1208,7 +1186,6 @@ params.nextclade_genes = 'E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S'
 process nextclade {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.medcpus
   container 'nextstrain/nextclade:latest'
 
@@ -1278,7 +1255,6 @@ params.vadr_trim_options = '--minlen 50 --maxlen 30000'
 process vadr {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
-  echo false
   cpus params.medcpus
   container 'staphb/vadr:latest'
 
@@ -1391,7 +1367,6 @@ consensus_results
 process summary {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${sample}"
-  echo false
   cpus 1
   container 'staphb/parallel-perl:latest'
 
@@ -1434,7 +1409,7 @@ process summary {
 
     date | tee -a $log_file $err_file > /dev/null
 
-    sample_id=$(echo !{sample} | cut -f 1 -d "-" )
+    sample_id=($(echo !{sample} | cut -f 1 -d "_" ))
 
     header="sample_id,sample,aligner_version,ivar_version"
     result="${sample_id},!{sample},!{bwa_version},!{ivar_version}"
@@ -1505,7 +1480,6 @@ if (params.relatedness) {
   process mafft {
     publishDir "${params.outdir}", mode: 'copy'
     tag "Multiple Sequence Alignment"
-    echo false
     cpus params.maxcpus
     container 'staphb/mafft:latest'
     errorStrategy 'retry'
@@ -1551,7 +1525,6 @@ if (params.relatedness) {
   process snpdists {
     publishDir "${params.outdir}", mode: 'copy'
     tag "createing snp matrix with snp-dists"
-    echo false
     cpus 1
     container 'staphb/snp-dists:latest'
 
@@ -1582,7 +1555,6 @@ if (params.relatedness) {
   process iqtree2 {
     publishDir "${params.outdir}", mode: 'copy'
     tag "Creating phylogenetic tree with iqtree"
-    echo false
     cpus params.maxcpus
     container 'staphb/iqtree2:latest'
 
@@ -1642,7 +1614,6 @@ if (params.rename) {
   process rename {
     publishDir "${params.outdir}", mode: 'copy'
     tag "Renaming files for ${sample}"
-    echo false
     cpus 1
     container 'staphb/parallel-perl:latest'
     stageInMode 'copy'
