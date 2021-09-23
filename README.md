@@ -170,76 +170,322 @@ Sometimes sequencing fails, so there are parameters for how many non-ambiguous b
    <summary>Final File Tree after running cecret.nf</summary>
 
 ```
-cecret_run_results.txt                # information about the sequencing run that's compatible with legacy workflows
-covid_samples.csv                     # only if supplied initially
-cecret
-├─aligned
-│  └──pretrimmed.sorted.bam
+cecret_run_results.txt                # information about the sequencing run that's compatible with UPHL's legacy workflows
+covid_samples.csv                     # only if supplied initially - used to rename files for submission
+cecret                                # results from this workflow
+├── aligned                           # aligned (with aligner) but untrimmed bam files with indexes
+│   ├── SRR13957125.sorted.bam
+│   ├── SRR13957125.sorted.bam.bai
+│   ├── SRR13957170.sorted.bam
+│   ├── SRR13957170.sorted.bam.bai
+│   ├── SRR13957177.sorted.bam
+│   └── SRR13957177.sorted.bam.bai
+├── bcftools_variants                 # set to false by default; VCF files of variants identified
+│   ├── SRR13957125.vcf
+│   ├── SRR13957170.vcf
+│   └── SRR13957177.vcf
+├── bedtools_multicov                 # coverage for each amplicon
+│   ├── SRR13957125.multicov.txt
+│   ├── SRR13957170.multicov.txt
+│   └── SRR13957177.multicov.txt
+├── consensus                         # the likely reason you are running this workflow
+│   ├── SRR13957125.consensus.fa
+│   ├── SRR13957170.consensus.fa
+│   └── SRR13957177.consensus.fa
+├── fastqc                            # QC metrics for each fasta sequence
+│   ├── SRR13957125_1_fastqc.html
+│   ├── SRR13957125_1_fastqc.zip
+│   ├── SRR13957125_2_fastqc.html
+│   ├── SRR13957125_2_fastqc.zip
+│   ├── SRR13957170_1_fastqc.html
+│   ├── SRR13957170_1_fastqc.zip
+│   ├── SRR13957170_2_fastqc.html
+│   ├── SRR13957170_2_fastqc.zip
+│   ├── SRR13957177_1_fastqc.html
+│   ├── SRR13957177_1_fastqc.zip
+│   ├── SRR13957177_2_fastqc.html
+│   └── SRR13957177_2_fastqc.zip
+├── ivar_trim                        # bam files after primers have been trimmed off the reads with ivar
+│   ├── SRR13957125.primertrim.sorted.bam
+│   ├── SRR13957125.primertrim.sorted.bam.bai
+│   ├── SRR13957170.primertrim.sorted.bam
+│   ├── SRR13957170.primertrim.sorted.bam.bai
+│   ├── SRR13957177.primertrim.sorted.bam
+│   └── SRR13957177.primertrim.sorted.bam.bai
+├── ivar_variants                    # tsv and vcf files of variants identified in sample
+│   ├── SRR13957125.ivar_variants.vcf
+│   ├── SRR13957125.variants.tsv
+│   ├── SRR13957170.ivar_variants.vcf
+│   ├── SRR13957170.variants.tsv
+│   ├── SRR13957177.ivar_variants.vcf
+│   └── SRR13957177.variants.tsv
+├── kraken2                          # kraken2 report of the organisms your reads may be from
+│   ├── SRR13957125_kraken2_report.txt
+│   ├── SRR13957170_kraken2_report.txt
+│   └── SRR13957177_kraken2_report.txt
+├── logs                             # divided log and err files for your QC and troubleshooting pleasure
+│   └── processes*
+│       ├── sample.run_id.err
+│       └── sample.run_id.log
+├── nextclade                        # nextclade reports
+│   ├── combined_nextclade_report.txt
+│   ├── SRR13957125
+│   │   └── SRR13957125_nextclade.csv
+│   ├── SRR13957170
+│   │   └── SRR13957170_nextclade.csv
+│   └── SRR13957177
+│       └── SRR13957177_nextclade.csv
+├── pangolin                         # pangolin reports
+│   ├── combined_lineage_report.csv
+│   ├── SRR13957125
+│   │   └── lineage_report.csv
+│   ├── SRR13957170
+│   │   └── lineage_report.csv
+│   └── SRR13957177
+│       └── lineage_report.csv
+├── samtools_ampliconstats           # amplicon statistics and metrics as determined by samtools
+│   ├── SRR13957125_ampliconstats.txt
+│   ├── SRR13957170_ampliconstats.txt
+│   └── SRR13957177_ampliconstats.txt
+├── samtools_coverage                # coverage and metrics as determined by samtools
+│   └── aligned
+│       ├── SRR13957125.cov.hist
+│       ├── SRR13957125.cov.txt
+│       ├── SRR13957170.cov.hist
+│       ├── SRR13957170.cov.txt
+│       ├── SRR13957177.cov.hist
+│       └── SRR13957177.cov.txt
+├── samtools_depth                   # the number of reads
+│   ├── aligned
+│   │   ├── SRR13957125.depth.txt
+│   │   ├── SRR13957170.depth.txt
+│   │   └── SRR13957177.depth.txt
+│   └── trimmed
+│       ├── SRR13957125.depth.txt
+│       ├── SRR13957170.depth.txt
+│       └── SRR13957177.depth.txt
+├── samtools_flagstat                # flag information
+│   ├── aligned
+│   │   ├── SRR13957125.flagstat.txt
+│   │   ├── SRR13957170.flagstat.txt
+│   │   └── SRR13957177.flagstat.txt
+│   └── trimmed
+│       ├── SRR13957125.flagstat.txt
+│       ├── SRR13957170.flagstat.txt
+│       └── SRR13957177.flagstat.txt
+├── samtools_plot_ampliconstats      # plots of the ampliconstats for troubleshooting purposes
+│   ├── SRR13957125
+│   ├── SRR13957125-combined-amp.gp
+│   ├── SRR13957125-combined-amp.png
+│   ├── SRR13957125-combined-coverage-1.gp
+│   ├── SRR13957125-combined-coverage-1.png
+│   ├── SRR13957125-combined-depth.gp
+│   ├── SRR13957125-combined-depth.png
+│   ├── SRR13957125-combined-read-perc.gp
+│   ├── SRR13957125-combined-read-perc.png
+│   ├── SRR13957125-combined-reads.gp
+│   ├── SRR13957125-combined-reads.png
+│   ├── SRR13957125-combined-tcoord.gp
+│   ├── SRR13957125-combined-tcoord.png
+│   ├── SRR13957125-combined-tdepth.gp
+│   ├── SRR13957125-combined-tdepth.png
+│   ├── SRR13957125-heat-amp-1.gp
+│   ├── SRR13957125-heat-amp-1.png
+│   ├── SRR13957125-heat-coverage-1-1.gp
+│   ├── SRR13957125-heat-coverage-1-1.png
+│   ├── SRR13957125-heat-read-perc-1.gp
+│   ├── SRR13957125-heat-read-perc-1.png
+│   ├── SRR13957125-heat-read-perc-log-1.gp
+│   ├── SRR13957125-heat-read-perc-log-1.png
+│   ├── SRR13957125-heat-reads-1.gp
+│   ├── SRR13957125-heat-reads-1.png
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-amp.gp
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-amp.png
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-cov.gp
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-cov.png
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-reads.gp
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-reads.png
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-tcoord.gp
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-tcoord.png
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-tdepth.gp
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-tdepth.png
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-tsize.gp
+│   ├── SRR13957125-SRR13957125.primertrim.sorted-tsize.png
+│   ├── SRR13957170
+│   ├── SRR13957170-combined-amp.gp
+│   ├── SRR13957170-combined-amp.png
+│   ├── SRR13957170-combined-coverage-1.gp
+│   ├── SRR13957170-combined-coverage-1.png
+│   ├── SRR13957170-combined-depth.gp
+│   ├── SRR13957170-combined-depth.png
+│   ├── SRR13957170-combined-read-perc.gp
+│   ├── SRR13957170-combined-read-perc.png
+│   ├── SRR13957170-combined-reads.gp
+│   ├── SRR13957170-combined-reads.png
+│   ├── SRR13957170-combined-tdepth.gp
+│   ├── SRR13957170-combined-tdepth.png
+│   ├── SRR13957170-heat-amp-1.gp
+│   ├── SRR13957170-heat-amp-1.png
+│   ├── SRR13957170-heat-coverage-1-1.gp
+│   ├── SRR13957170-heat-coverage-1-1.png
+│   ├── SRR13957170-heat-read-perc-1.gp
+│   ├── SRR13957170-heat-read-perc-1.png
+│   ├── SRR13957170-heat-read-perc-log-1.gp
+│   ├── SRR13957170-heat-read-perc-log-1.png
+│   ├── SRR13957170-heat-reads-1.gp
+│   ├── SRR13957170-heat-reads-1.png
+│   ├── SRR13957170-SRR13957170.primertrim.sorted-amp.gp
+│   ├── SRR13957170-SRR13957170.primertrim.sorted-amp.png
+│   ├── SRR13957170-SRR13957170.primertrim.sorted-cov.gp
+│   ├── SRR13957170-SRR13957170.primertrim.sorted-cov.png
+│   ├── SRR13957170-SRR13957170.primertrim.sorted-reads.gp
+│   ├── SRR13957170-SRR13957170.primertrim.sorted-reads.png
+│   ├── SRR13957170-SRR13957170.primertrim.sorted-tdepth.gp
+│   ├── SRR13957170-SRR13957170.primertrim.sorted-tdepth.png
+│   ├── SRR13957177
+│   ├── SRR13957177-combined-amp.gp
+│   ├── SRR13957177-combined-amp.png
+│   ├── SRR13957177-combined-coverage-1.gp
+│   ├── SRR13957177-combined-coverage-1.png
+│   ├── SRR13957177-combined-depth.gp
+│   ├── SRR13957177-combined-depth.png
+│   ├── SRR13957177-combined-read-perc.gp
+│   ├── SRR13957177-combined-read-perc.png
+│   ├── SRR13957177-combined-reads.gp
+│   ├── SRR13957177-combined-reads.png
+│   ├── SRR13957177-combined-tcoord.gp
+│   ├── SRR13957177-combined-tcoord.png
+│   ├── SRR13957177-combined-tdepth.gp
+│   ├── SRR13957177-combined-tdepth.png
+│   ├── SRR13957177-heat-amp-1.gp
+│   ├── SRR13957177-heat-amp-1.png
+│   ├── SRR13957177-heat-coverage-1-1.gp
+│   ├── SRR13957177-heat-coverage-1-1.png
+│   ├── SRR13957177-heat-read-perc-1.gp
+│   ├── SRR13957177-heat-read-perc-1.png
+│   ├── SRR13957177-heat-read-perc-log-1.gp
+│   ├── SRR13957177-heat-read-perc-log-1.png
+│   ├── SRR13957177-heat-reads-1.gp
+│   ├── SRR13957177-heat-reads-1.png
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-amp.gp
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-amp.png
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-cov.gp
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-cov.png
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-reads.gp
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-reads.png
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-tcoord.gp
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-tcoord.png
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-tdepth.gp
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-tdepth.png
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-tsize.gp
+│   └── SRR13957177-SRR13957177.primertrim.sorted-tsize.png
+├── samtools_stats                   # stats as determined by samtools
+│   ├── aligned
+│   │   ├── SRR13957125.stats.txt
+│   │   ├── SRR13957170.stats.txt
+│   │   └── SRR13957177.stats.txt
+│   └── trimmed
+│       ├── SRR13957125.stats.trim.txt
+│       ├── SRR13957170.stats.trim.txt
+│       └── SRR13957177.stats.trim.txt
+├── seqyclean                        # reads that have had PhiX and adapters removed
+│   ├── Combined_SummaryStatistics.tsv
+│   ├── SRR13957125_clean_PE1.fastq.gz
+│   ├── SRR13957125_clean_PE2.fastq.gz
+│   ├── SRR13957125_clean_SummaryStatistics.tsv
+│   ├── SRR13957125_clean_SummaryStatistics.txt
+│   ├── SRR13957170_clean_PE1.fastq.gz
+│   ├── SRR13957170_clean_PE2.fastq.gz
+│   ├── SRR13957170_clean_SummaryStatistics.tsv
+│   ├── SRR13957170_clean_SummaryStatistics.txt
+│   ├── SRR13957177_clean_PE1.fastq.gz
+│   ├── SRR13957177_clean_PE2.fastq.gz
+│   ├── SRR13957177_clean_SummaryStatistics.tsv
+│   └── SRR13957177_clean_SummaryStatistics.txt
+├── summary                          # summary files with condensed results
+│   ├── SRR13957125.summary.csv
+│   ├── SRR13957125.summary.txt
+│   ├── SRR13957170.summary.csv
+│   ├── SRR13957170.summary.txt
+│   ├── SRR13957177.summary.csv
+│   └── SRR13957177.summary.txt
+├── summary.csv
+└── vadr                             # QC that mimics NCBI's metrics
+    ├── combined_vadr.fail.fasta
+    ├── combined_vadr.fail.list
+    ├── combined_vadr.pass.fasta
+    ├── combined_vadr.pass.list
+    ├── combined_vadr.sqc
+    ├── SRR13957125
+    │   ├── SRR13957125.vadr.alc
+    │   ├── SRR13957125.vadr.alt
+    │   ├── SRR13957125.vadr.alt.list
+    │   ├── SRR13957125.vadr.cmd
+    │   ├── SRR13957125.vadr.dcr
+    │   ├── SRR13957125.vadr.fail.fa
+    │   ├── SRR13957125.vadr.fail.list
+    │   ├── SRR13957125.vadr.fail.tbl
+    │   ├── SRR13957125.vadr.filelist
+    │   ├── SRR13957125.vadr.ftr
+    │   ├── SRR13957125.vadr.log
+    │   ├── SRR13957125.vadr.mdl
+    │   ├── SRR13957125.vadr.pass.fa
+    │   ├── SRR13957125.vadr.pass.list
+    │   ├── SRR13957125.vadr.pass.tbl
+    │   ├── SRR13957125.vadr.rpn
+    │   ├── SRR13957125.vadr.sda
+    │   ├── SRR13957125.vadr.seqstat
+    │   ├── SRR13957125.vadr.sgm
+    │   ├── SRR13957125.vadr.sqa
+    │   └── SRR13957125.vadr.sqc
+    └── SRR13957177
+        ├── SRR13957177.vadr.alc
+        ├── SRR13957177.vadr.alt
+        ├── SRR13957177.vadr.alt.list
+        ├── SRR13957177.vadr.cmd
+        ├── SRR13957177.vadr.dcr
+        ├── SRR13957177.vadr.fail.fa
+        ├── SRR13957177.vadr.fail.list
+        ├── SRR13957177.vadr.fail.tbl
+        ├── SRR13957177.vadr.filelist
+        ├── SRR13957177.vadr.ftr
+        ├── SRR13957177.vadr.log
+        ├── SRR13957177.vadr.mdl
+        ├── SRR13957177.vadr.pass.fa
+        ├── SRR13957177.vadr.pass.list
+        ├── SRR13957177.vadr.pass.tbl
+        ├── SRR13957177.vadr.rpn
+        ├── SRR13957177.vadr.sda
+        ├── SRR13957177.vadr.seqstat
+        ├── SRR13957177.vadr.sgm
+        ├── SRR13957177.vadr.sqa
+        └── SRR13957177.vadr.sqc
+reads                                # user supplied fastq files for analysis
+work                                 # nextflow's working directories
+
 ├─bamsnap
 |  └──sample
 |     ├──ivar
 |     └──variant.png                   # png of variants identified via ivar
 |   |-bcftools
 |     └──variant.png                   # png of variants identified via bcftools
-|-bedtools_multicov
-| └──sample.multicov.txt               # depth per amplicon
-|-consensus
-| └──sample.consensus.fa               # the likely reason you are running this workflow
+
 |-fastp
 | |-sample_clean_PE1.fastq            # clean file: only if params.cleaner=fastp
 | └──sample_clean_PE2.fastq            # clean file: only if params.cleaner=fastp
-|-fastqc
-| |-sample.fastqc.html
-| └──sample.fastqc.zip
+
 |-filter                              # optional: turns aligned bams into fastq files
 | |-sample_filtered_R1.fastq
 | |-sample_filtered_R2.fastq
 | └──sample_filtered_unpaired.fastq
 |-iqtree                              # optional: relatedness parameter must be set to true
 | └──iqtree.treefile
-|-ivar_trim
-| └──sample.primertrim.bam             # aligned reads after primer trimming. trimmer parameter must be set to 'ivar'
-|-ivar_variants
-| └──sample.variants.tsv               # list of variants identified via ivar and corresponding scores
-|-kraken2
-| └──sample_kraken2_report.txt         # kraken2 report of the percentage of reads matching virus and human sequences
-|-logs
-| └──process_logs                      # for troubleshooting puroses
+
 |-mafft                               # optional: relatedness parameter must be set to true
 | └──mafft_aligned.fasta               # multiple sequence alignement generated via mafft
-|-nextclade                           # identfication of nextclade clades and variants identified
-| └──sample_nextclade_report.csv       # actually a ";" deliminated file
-|-pangolin
-| └──lineage_report.csv                # identification of pangolin lineages
-|-samtools_ampliconstats
-| └──sample_ampliconstats.txt          # stats for the amplicons used
-├──samtools_coverage
-| ├──aligned
-| | ├──sample.cov.hist                 # histogram of coverage for aligned reads
-| | └──sample.cov.txt                  # tabular information of coverage for aligned reads
-| |-trimmed
-|   ├──sample.cov.trim.hist            # histogram of coverage for aligned reads after primer trimming
-|   └──sample.cov.trim.txt             # tabular information of coverage for aligned reads after primer trimming
-|-samtools_depth
-| ├──aligned
-| | └──sample.depth.txt                # read depth for each read position
-| |-trimmed
-|   └──sample.depth.txt                # read depth for each position
-|-samtools_flagstat
-| ├──aligned
-| | └──sample.flagstat.txt             # samtools stats for aligned reads
-| |-trimmed
-|   └──sample.flagstat.trim.txt        # samtools stats for trimmed reads
-|-samtools_plot_ampliconstats
-| └──sample.*.png                      # images corresponding to amiplicon performance
-|-samtools_stats
-| └──aligned
-| | └──sample.stats.txt                # samtools stats for aligned reads
-| ├──trimmed
-|   └──sample.stats.trim.txt           # samtools stats for trimmed reads
-|-seqyclean
-| ├──sample_clean_PE1.fastq            # clean file
-| └──sample_clean_PE2.fastq            # clean file
+
+
+
 |-snp-dists                           # optional: relatedness parameter must be set to true
 | └──snp-dists                         # file containing a table of the number of snps that differ between any two samples
 |-submission_files                    # optional: is only created if covid_samples.txt exists
@@ -247,15 +493,7 @@ cecret
 | ├──sample.gisaid.fa                  # fasta file with header for gisaid
 | ├──sample.R1.fastq.gz                # renamed raw fastq.gz file
 | └──sample.R2.fastq.gz                # renamed raw fastq.gz file
-|-summary
-| └──sample.summary.txt                # individual results
-|-summary.csv                         # tab-delimited summary of results from the workflow
-reads
-| ├──sample_S1_L001_R1_001.fastq.gz    # initial file
-| └──sample_S1_L001_R2_001.fastq.gz    # inital file
-work                                  # nextflows work directory. Likely fairly large.
-vadr
-  └──vadr*                             # vadr output
+
 ```
 
 </details>
@@ -301,6 +539,31 @@ nextflow run Cecret_annotation.nf -c configs/singularity.config --relatedness tr
 
 ### Where is an example config file?
 You're more than welcome to look at what we use here at UPHL [here](./configs/UPHL.config).
+
+### How can I tell if certain amplicons are failing?
+
+There are two ways to do this. 
+
+With bedtools multicov : 
+`cecret/bedtools_multicov` has a file for each sample.
+This is standard bedtools multicov output, so it doesn't have a header.
+
+Column 1 : The reference
+Column 2 : Start of amplicon
+Column 3 : End of amplicon
+Column 4 : Amplicon number
+Column 5-6 : version number and strand from bedfile
+Column 7 : (Column G) is the depth observed for that amplicon for that sample.
+
+With samtools ampliconstats 
+`cecret/samtools_ampliconstats` has a file for each sample
+Row number 126 (FDEPTH) has a column for each amplicon (also without a header). To get this row for all of your samples, you can grep the keyword "FDEPTH" from each sample.
+
+```
+grep "^FDEPTH" cecret/samtools_ampliconstats/* > samtools_ampliconstats_all.tsv
+``` 
+
+There are corresponding images in `cecret/samtools_plot_ampliconstats` for each sample.
 
 ### Why is bcftools set to 'false' by default?
 
