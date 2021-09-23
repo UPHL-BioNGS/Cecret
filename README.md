@@ -92,7 +92,7 @@ tar -zxvf minikraken2_v2_8GB_201904.tgz
 #### Step 2. Set the paramaters accordingly
 ```
 params.kraken2 = true
-params.kraken2_db = < path to kraken2 database, like kraken2_db above >
+params.kraken2_db = 'kraken2_db'
 params.kraken2_organism = "Severe acute respiratory syndrome-related coronavirus"
 ```
 
@@ -180,6 +180,8 @@ cecret                                # results from this workflow
 │   ├── SRR13957170.sorted.bam.bai
 │   ├── SRR13957177.sorted.bam
 │   └── SRR13957177.sorted.bam.bai
+├── bamsnap                           # images for variants (if it works, default is 'false' for a reason)
+│   └── sample
 ├── bcftools_variants                 # set to false by default; VCF files of variants identified
 │   ├── SRR13957125.vcf
 │   ├── SRR13957170.vcf
@@ -192,6 +194,19 @@ cecret                                # results from this workflow
 │   ├── SRR13957125.consensus.fa
 │   ├── SRR13957170.consensus.fa
 │   └── SRR13957177.consensus.fa
+├── fastp                             # optional tools for cleaning reads when 'params.cleaner = fastp'
+│   ├── SRR13957125_clean_PE1.fastq.gz
+│   ├── SRR13957125_clean_PE2.fastq.gz
+│   ├── SRR13957125_fastp.html
+│   ├── SRR13957125_fastp.json
+│   ├── SRR13957170_clean_PE1.fastq.gz
+│   ├── SRR13957170_clean_PE2.fastq.gz
+│   ├── SRR13957170_fastp.html
+│   ├── SRR13957170_fastp.json
+│   ├── SRR13957177_clean_PE1.fastq.gz
+│   ├── SRR13957177_clean_PE2.fastq.gz
+│   ├── SRR13957177_fastp.html
+│   └── SRR13957177_fastp.json
 ├── fastqc                            # QC metrics for each fasta sequence
 │   ├── SRR13957125_1_fastqc.html
 │   ├── SRR13957125_1_fastqc.zip
@@ -205,6 +220,21 @@ cecret                                # results from this workflow
 │   ├── SRR13957177_1_fastqc.zip
 │   ├── SRR13957177_2_fastqc.html
 │   └── SRR13957177_2_fastqc.zip
+├── filter                           # fastq.gz files from reads that were aligned to the reference genome
+│   ├── SRR13957125_filtered_R1.fastq.gz
+│   ├── SRR13957125_filtered_R2.fastq.gz
+│   ├── SRR13957125_filtered_unpaired.fastq.gz
+│   ├── SRR13957170_filtered_R1.fastq.gz
+│   ├── SRR13957170_filtered_R2.fastq.gz
+│   ├── SRR13957170_filtered_unpaired.fastq.gz
+│   ├── SRR13957177_filtered_R1.fastq.gz
+│   ├── SRR13957177_filtered_R2.fastq.gz
+│   └── SRR13957177_filtered_unpaired.fastq.gz
+├── iqtree2                          # phylogenetic tree that is generated with 'params.relatedness = true'
+│   ├── iqtree2.iqtree
+│   ├── iqtree2.log
+│   ├── iqtree2.mldist
+│   └── iqtree2.treefile
 ├── ivar_trim                        # bam files after primers have been trimmed off the reads with ivar
 │   ├── SRR13957125.primertrim.sorted.bam
 │   ├── SRR13957125.primertrim.sorted.bam.bai
@@ -227,6 +257,8 @@ cecret                                # results from this workflow
 │   └── processes*
 │       ├── sample.run_id.err
 │       └── sample.run_id.log
+├── mafft                            # multiple sequence alignment created when 'params.relatedness = true' 
+│   └── mafft_aligned.fasta
 ├── nextclade                        # nextclade reports
 │   ├── combined_nextclade_report.txt
 │   ├── SRR13957125
@@ -402,6 +434,19 @@ cecret                                # results from this workflow
 │   ├── SRR13957177_clean_PE2.fastq.gz
 │   ├── SRR13957177_clean_SummaryStatistics.tsv
 │   └── SRR13957177_clean_SummaryStatistics.txt
+├── snp-dists                        # SNP matrix created with 'params.relatedness = true'
+│   └── snp-dists.txt
+├── submission_files                 # optional functionality that requires a key and renames files when 'params.rename = true'
+│   ├── UT-UPHL-2103503681_filtered_R1.fastq.gz
+│   ├── UT-UPHL-2103503681_filtered_R2.fastq.gz
+│   ├── UT-UPHL-2103503681.genbank.fa
+│   ├── UT-UPHL-2103503681.gisaid.fa
+│   ├── UT-UPHL-2103929243_filtered_R1.fastq.gz
+│   ├── UT-UPHL-2103929243_filtered_R2.fastq.gz
+│   ├── UT-UPHL-2103929243.genbank.fa
+│   ├── UT-UPHL-2103929243.gisaid.fa
+│   ├── UT-UPHL-2103954304_filtered_R1.fastq.gz
+│   └── UT-UPHL-2103954304_filtered_R2.fastq.gz
 ├── summary                          # summary files with condensed results
 │   ├── SRR13957125.summary.csv
 │   ├── SRR13957125.summary.txt
@@ -463,37 +508,6 @@ cecret                                # results from this workflow
 reads                                # user supplied fastq files for analysis
 work                                 # nextflow's working directories
 
-├─bamsnap
-|  └──sample
-|     ├──ivar
-|     └──variant.png                   # png of variants identified via ivar
-|   |-bcftools
-|     └──variant.png                   # png of variants identified via bcftools
-
-|-fastp
-| |-sample_clean_PE1.fastq            # clean file: only if params.cleaner=fastp
-| └──sample_clean_PE2.fastq            # clean file: only if params.cleaner=fastp
-
-|-filter                              # optional: turns aligned bams into fastq files
-| |-sample_filtered_R1.fastq
-| |-sample_filtered_R2.fastq
-| └──sample_filtered_unpaired.fastq
-|-iqtree                              # optional: relatedness parameter must be set to true
-| └──iqtree.treefile
-
-|-mafft                               # optional: relatedness parameter must be set to true
-| └──mafft_aligned.fasta               # multiple sequence alignement generated via mafft
-
-
-
-|-snp-dists                           # optional: relatedness parameter must be set to true
-| └──snp-dists                         # file containing a table of the number of snps that differ between any two samples
-|-submission_files                    # optional: is only created if covid_samples.txt exists
-| ├──sample.genbank.fa                 # fasta file with formatting and header including metadata for genbank
-| ├──sample.gisaid.fa                  # fasta file with header for gisaid
-| ├──sample.R1.fastq.gz                # renamed raw fastq.gz file
-| └──sample.R2.fastq.gz                # renamed raw fastq.gz file
-
 ```
 
 </details>
@@ -518,7 +532,7 @@ This file contains all of the configurable parameters with their default values.
 * To use nextflow tower, use `-with-tower` with your nextflow command
 
 # Frequently Asked Questions (aka FAQ)
-### What do I do if I encounter an error?
+## What do I do if I encounter an error?
 
 **TELL ME ABOUT IT!!!**
 * [Github issue](https://github.com/UPHL-BioNGS/Cecret/issues)
@@ -527,7 +541,16 @@ This file contains all of the configurable parameters with their default values.
 
 Be sure to include the command that you used, what config file you used, and what the **nextflow** error was. 
 
-### What if I just want to annotate some SARS-CoV-2 fastas with pangolin, nextclade and vadr?
+## What if I want to test the workflow?
+
+In the [data](./data) directory of this repository, there are three sets of fastq.gz files with a corresponding results file for comparison.
+
+```
+nextflow run Cecret.nf -c configs/singularity.config --reads data
+nextflow run Cecret_annotation.nf -c configs/singularity.config --fastas data
+```
+
+## What if I just want to annotate some SARS-CoV-2 fastas with pangolin, nextclade and vadr?
 ```
 nextflow run Cecret_annotation.nf -c configs/singularity.config --fastas <directory with fastas>
 ```
@@ -537,25 +560,25 @@ nextflow run Cecret_annotation.nf -c configs/singularity.config --relatedness tr
 ```
 [Cecret_annotation.nf](./Cecret_annotation.nf) Uses the same basic structure as the main workflow, so the same config file can probably be used for both.
 
-### Where is an example config file?
+## Where is an example config file?
 You're more than welcome to look at what we use here at UPHL [here](./configs/UPHL.config).
 
-### How can I tell if certain amplicons are failing?
+## How can I tell if certain amplicons are failing?
 
 There are two ways to do this. 
 
-With bedtools multicov : 
+### With bedtools multicov : 
 `cecret/bedtools_multicov` has a file for each sample.
 This is standard bedtools multicov output, so it doesn't have a header.
 
-Column 1 : The reference
-Column 2 : Start of amplicon
-Column 3 : End of amplicon
-Column 4 : Amplicon number
-Column 5-6 : version number and strand from bedfile
-Column 7 : (Column G) is the depth observed for that amplicon for that sample.
+- Column 1 : The reference
+- Column 2 : Start of amplicon
+- Column 3 : End of amplicon
+- Column 4 : Amplicon number
+- Column 5-6 : version number and strand from bedfile
+- Column 7 : (Column G) is the depth observed for that amplicon for that sample.
 
-With samtools ampliconstats 
+### With samtools ampliconstats :
 `cecret/samtools_ampliconstats` has a file for each sample
 Row number 126 (FDEPTH) has a column for each amplicon (also without a header). To get this row for all of your samples, you can grep the keyword "FDEPTH" from each sample.
 
@@ -565,19 +588,19 @@ grep "^FDEPTH" cecret/samtools_ampliconstats/* > samtools_ampliconstats_all.tsv
 
 There are corresponding images in `cecret/samtools_plot_ampliconstats` for each sample.
 
-### Why is bcftools set to 'false' by default?
+## Why is bcftools set to 'false' by default?
 
 There's nothing wrong with the bcftools process, and the vcf created by bcftools is rather handy for additional analyses. The `'staphb/bcftools:latest'` container is really popular, and has issues downloading during high traffic times. I don't have the time to handle issues of users not understanding why the container did not download. /Sorry
 
 If you want to get the output from bcftools, set `params.bcftools = true` 
 
-### Can I get images of my SNPs and indels?
+## Can I get images of my SNPs and indels?
 
 Yes. Set `params.bamsnap = true`. This is false by default because of how long it takes. It will work with variants called by `ivar` and `bcftools`, although it is **MUCH** faster with the vcf created by bcftools. 
 
 Warning : will not work on all variants. This is due to how bamsnap runs. It is even less likely to work on indels. 
 
-### What is the difference between `params.amplicon_bed` and `params.primer_bed`?
+## What is the difference between `params.amplicon_bed` and `params.primer_bed`?
 
 The primer bedfile is the file with the start and stop of each **primer** sequence.
 
@@ -596,7 +619,7 @@ MN908947.3	664	1004	3	1	+
 ```
 Due to the many varieties of primer bedfiles, I determined it was best if the user supplied this file for custom primer sequences.
 
-### What if I am using an amplicon based library that is not SARS-CoV-2?
+## What if I am using an amplicon based library that is not SARS-CoV-2?
 
 In your config file, change the following relevant parameters:
 ```
@@ -611,11 +634,11 @@ params.pangolin = false
 params.nextclade = false
 params.vadr = false or configure your vadr container appropriately and params.vadr_reference
 ```
-### What if I need to filter out human reads or I only want reads that map to my reference?
+## What if I need to filter out human reads or I only want reads that map to my reference?
 
 Although not perfect, if `'params.filter = true'`, then only the reads that were mapped to the reference are returned. This should eliminate all human contamination (as long as human is not part of your reference). 
 
-### This workflow has too many bells and whistles. I really only care about generating a consensus fasta. How do I get rid of all the extras?
+## This workflow has too many bells and whistles. I really only care about generating a consensus fasta. How do I get rid of all the extras?
 
 Change the parameters in your config file and set most of them to false. 
 
