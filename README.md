@@ -57,7 +57,7 @@ nextflow run Cecret.nf -c configs/singularity.config
 ```
 
 ## Full workflow(s)
-![alt text](images/Cecret_DAG.drawio.png)
+![alt text](images/Cecret_DAG.png)
 
 ## Optional toggles:
 
