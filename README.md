@@ -55,6 +55,10 @@ WARNING : single and paired-end reads **cannot** be in the same directory
 ```
 nextflow run Cecret.nf -c configs/singularity.config
 ```
+
+## Full workflow(s)
+![alt text](images/Cecret_DAG.drawio.png)
+
 ## Optional toggles:
 
 ### Using fastp to clean reads instead of seqyclean
@@ -588,17 +592,14 @@ grep "^FDEPTH" cecret/samtools_ampliconstats/* > samtools_ampliconstats_all.tsv
 
 There are corresponding images in `cecret/samtools_plot_ampliconstats` for each sample.
 
+### Sample samtools plot ampliconstats depth graph
+![alt text](images/example-combined-depth.png)
+
 ## Why is bcftools set to 'false' by default?
 
 There's nothing wrong with the bcftools process, and the vcf created by bcftools is rather handy for additional analyses. The `'staphb/bcftools:latest'` container is really popular, and has issues downloading during high traffic times. I don't have the time to handle issues of users not understanding why the container did not download. /Sorry
 
 If you want to get the output from bcftools, set `params.bcftools = true` 
-
-## Can I get images of my SNPs and indels?
-
-Yes. Set `params.bamsnap = true`. This is false by default because of how long it takes. It will work with variants called by `ivar` and `bcftools`, although it is **MUCH** faster with the vcf created by bcftools. 
-
-Warning : will not work on all variants. This is due to how bamsnap runs. It is even less likely to work on indels. 
 
 ## What is the difference between `params.amplicon_bed` and `params.primer_bed`?
 
@@ -659,11 +660,13 @@ params.vadr = false
 ```
 And, yes, this means I added some bells and whistles so you could turn off the bells and whistles. /irony
 
-# Directed Acyclic Diagrams (DAG)
-### Full workflow
-![alt text](images/Cecret_workflow.png)
+## Can I get images of my SNPs and indels?
 
-# Sample bamsnap plot
+Yes. Set `params.bamsnap = true`. This is false by default because of how long it takes. It will work with variants called by `ivar` and `bcftools`, although it is **MUCH** faster with the vcf created by bcftools. 
+
+Warning : will not work on all variants. This is due to how bamsnap runs. It is even less likely to work on indels. 
+
+### Sample bamsnap plot
 ![alt text](images/sample_bamsnap.png)
 
 ![alt text](https://uphl.utah.gov/wp-content/uploads/New-UPHL-Logo.png)
