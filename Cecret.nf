@@ -1128,6 +1128,10 @@ process pangolin {
   tuple sample, env(pangolin_status) into pangolin_status
   tuple sample, env(pangolin_scorpio) into pangolin_scorpio
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
+  tuple sample, env(pangolin_version) into pangolin_version
+  tuple sample, env(pangolearn_version) into pangolearn_version
+  tuple sample, env(constellations_version) into constellations_version
+  tuple sample, env(scorpio_version) into scorpio_version
 
   shell:
   '''
@@ -1138,6 +1142,11 @@ process pangolin {
     date | tee -a $log_file $err_file > /dev/null
     pangolin --version >> $log_file
     pangolin --pangoLEARN-version >> $log_file
+
+    pangolin_version=$(pangolin --all-versions | grep pangolin | cut -d ' ' -f 2)
+    pangolearn_version=$(pangolin --all-versions | grep pangolearn | cut -d ' ' -f 2)
+    constellations_version=$(pangolin --all-versions | grep constellations | cut -d ' ' -f 2)
+    scorpio_version=$(pangolin --all-versions | grep scorpio | cut -d ' ' -f 2)
 
     pangolin !{params.pangolin_options} \
       --outdir !{task.process}/!{sample}   \
@@ -1199,6 +1208,7 @@ process nextclade {
   file("${task.process}/${sample}/${sample}_nextclade.csv") into nextclade_files
   tuple sample, env(nextclade_clade) into nextclade_clade_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
+  tuple sample, env(nextclade_version) into nextclade_version
 
   shell:
   '''
@@ -1208,6 +1218,7 @@ process nextclade {
 
     date | tee -a $log_file $err_file > /dev/null
     nextclade --version >> $log_file
+    nextclade_version=$(nextclade --version)
 
     wget https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/genemap.gff
     wget https://raw.githubusercontent.com/nextstrain/nextclade/master/data/sars-cov-2/tree.json
@@ -1362,6 +1373,11 @@ consensus_results
   .join(pangolin_status, remainder: true, by: 0)
   .join(pangolin_scorpio, remainder: true, by: 0)
   .join(vadr_results, remainder: true, by: 0)
+  .join(pangolin_version, remainder: true, by: 0)
+  .join(pangolearn_version, remainder: true, by: 0)
+  .join(constellations_version, remainder: true, by: 0)
+  .join(scorpio_version, remainder: true, by: 0)
+  .join(nextclade_version, remainder: true, by: 0)
   .set { results }
 
 process summary {
@@ -1394,7 +1410,12 @@ process summary {
     val(pangolin_lineage),
     val(pangolin_status),
     val(pangolin_scorpio),
-    val(vadr_results) from results
+    val(vadr_results),
+    val(pangolin_version),
+    val(pangolearn_version),
+    val(constellations_version),
+    val(scorpio_version),
+    val(nextclade_version) from results
 
   output:
   file("${task.process}/${sample}.summary.csv") into summary
@@ -1453,6 +1474,12 @@ process summary {
 
     header="$header,num_N,num_degenerage,num_non-ambiguous,num_total"
     result="$result,!{num_N},!{num_degenerate},!{num_ACTG},!{num_total}"
+
+    header="$header,pangolin_version,pangolearn_version,constellations_version"
+    result="$result,!{pangolin_version},!{pangolearn_version},!{constellations_version}"
+
+    header="$header,scorpio_version,nextclade_version"
+    result="$result,!{scorpio_version},!{nextclade_version}"
 
     echo $header > !{task.process}/!{sample}.summary.csv
     echo $result >> !{task.process}/!{sample}.summary.csv
