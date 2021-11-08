@@ -20,20 +20,23 @@ params.outdir = workflow.launchDir + '/cecret'
 Channel
   .fromFilePairs("${params.reads}/*{1,2}*.{fastq,fastq.gz,fq,fq.gz}", size: 2 )
   .map { reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], "paired" ) }
+  //.ifEmpty{ println("No paired-end fastq files were found at ${params.reads}." ) }
+  .view { "Fastq file found : ${it[0]}" }
   .into { paried_reads_check ; paired_reads }
 
 Channel
   .fromFilePairs("${params.single_reads}/*.{fastq,fastq.gz,fq,fz.gz}", size: 1 )
   .map { reads -> tuple(reads.baseName, reads, "single" ) }
   //.map { reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,"").replaceAll(~/.fastq*/,"").replaceAll(~/.fq*/,""), reads[1], "single" ) }
+  //.ifEmpty{ println("No single-end fastq files were found at ${params.single_reads}." ) }
+  .view { "Fastq file found : ${it[0]}" }
   .into { single_reads_check ; single_reads }
 
 Channel
   .fromPath("${params.fastas}/*{.fa,.fasta,.fna}", type:'file')
   .map { fasta -> tuple(fasta.baseName, fasta ) }
-  .ifEmpty{
-    println("No fasta files were found at ${params.fastas}.")
-  }
+  //.ifEmpty{ println("No fasta files were found at ${params.fastas}." ) }
+  .view { "Fasta file found : ${it[0]}" }
   .into { fastas_check ; fastas }
 
 paried_reads_check
@@ -41,8 +44,11 @@ paried_reads_check
   .concat(fastas_check)
   .ifEmpty{
     println("FATAL : No input files were found!")
+    println("No paired-end fastq files were found at ${params.reads}." )
     println("Set 'params.reads' to directory with paired-end reads")
+    println("No single-end fastq files were found at ${params.single_reads}." )
     println("Set 'params.single_reads' to directory with single-end reads")
+    println("No fasta files were found at ${params.fastas}." )
     println("Set 'params.fastas' to directory with fastas.")
     exit 1
   }
@@ -56,6 +62,7 @@ params.amplicon_bed = workflow.projectDir + "/configs/nCoV-2019.insert.bed"
 params.trimmer = 'ivar'
 params.cleaner = 'seqyclean'
 params.aligner = 'bwa'
+params.msa = 'mafft'
 
 // to toggle off processes
 params.bcftools_variants = false // fails to download a lot
@@ -112,7 +119,7 @@ Channel
     exit 1
   }
   .view { "Reference Genome : $it"}
-  .into { reference_genome ; reference_genome2 ; reference_genome_mafft ; reference_genome_bamsnap ; reference_genome3 }
+  .into { reference_genome ; reference_genome2 ; reference_genome_msa ; reference_genome_bamsnap ; reference_genome3 }
 
 Channel
   .fromPath(params.gff_file, type:'file')
@@ -619,7 +626,7 @@ process ivar_consensus {
 
   output:
   tuple sample, file("consensus/${sample}.consensus.fa") into consensus_rename, consensus_pangolin, consensus_vadr, consensus_nextclade
-  file("consensus/${sample}.consensus.fa") into consensus_mafft
+  file("consensus/${sample}.consensus.fa") into consensus_msa
   file("consensus/${sample}.consensus.qual.txt")
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
@@ -674,7 +681,8 @@ process fasta_prep {
   tuple val(sample), file(fasta) from fastas
 
   output:
-//  tuple sample, file("${task.process}/${fasta}") optional true into fastas_rename, fastas_pangolin, fastas_vadr, fastas_for_nextclade
+  tuple sample, file("${task.process}/${fasta}") optional true into fastas_rename, fastas_pangolin, fastas_vadr, fastas_nextclade
+  file("${task.process}/${fasta}") into fastas_msa
 
   shell:
   '''
@@ -689,10 +697,6 @@ process fasta_prep {
     fi
   '''
 }
-
-//fastas_for_nextclade
-//  .combine(reference_genome3)
-//  .set { fastas_nextclade }
 
 process bcftools_variants {
   publishDir "${params.outdir}", mode: 'copy'
@@ -1133,7 +1137,7 @@ process pangolin {
   params.pangolin
 
   input:
-  tuple val(sample), file(fasta) from consensus_pangolin
+  tuple val(sample), file(fasta) from consensus_pangolin.concat(fastas_pangolin)
 
   output:
   file("${task.process}/${sample}/lineage_report.csv") into pangolin_files
@@ -1203,16 +1207,17 @@ pangolin_files
     sort: true,
     storeDir: "${params.outdir}/pangolin")
 
+params.nextclade_prep = '--name sars-cov-2'
 process nextclade_prep {
   tag "Downloading SARS-CoV-2 dataset"
   cpus 1
   container 'nextstrain/nextclade:latest'
 
   when:
-  params.nextclade
+  params.nextclade || params.msa == 'nextalign'
 
   output:
-  path("${task.process}") into prepped_nextclade
+  path("${task.process}") into prepped_nextclade, prepped_nextalign
   file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -1224,7 +1229,7 @@ process nextclade_prep {
     date | tee -a $log_file $err_file > /dev/null
     nextclade --version >> $log_file
 
-    nextclade dataset get --name 'sars-cov-2' --output-dir '!{task.process}'
+    nextclade dataset get !{params.nextclade_prep_options} --output-dir '!{task.process}'
   '''
 }
 
@@ -1240,7 +1245,7 @@ process nextclade {
   params.nextclade
 
   input:
-  tuple val(sample), file(fasta), path(dataset) from consensus_nextclade.combine(prepped_nextclade)
+  tuple val(sample), file(fasta), path(dataset) from consensus_nextclade.concat(fastas_nextclade).combine(prepped_nextclade)
 
   output:
   file("${task.process}/${sample}/${sample}_nextclade.csv") into nextclade_files
@@ -1301,7 +1306,7 @@ process vadr {
   params.vadr
 
   input:
-  tuple val(sample), file(fasta) from consensus_vadr
+  tuple val(sample), file(fasta) from consensus_vadr.concat(fastas_vadr)
 
   output:
   file("${task.process}/${sample}/*") optional true
@@ -1538,49 +1543,84 @@ summary2
     storeDir: "${workflow.launchDir}")
 
 if (params.relatedness) {
-  params.mafft_options = ''
-  process mafft {
-    publishDir "${params.outdir}", mode: 'copy'
-    tag "Multiple Sequence Alignment"
-    cpus params.maxcpus
-    container 'staphb/mafft:latest'
-    errorStrategy 'retry'
-    maxRetries 2
+  if ( params.msa == 'mafft' ) {
+    params.mafft_options = ''
+    process mafft {
+      publishDir "${params.outdir}", mode: 'copy'
+      tag "Multiple Sequence Alignment"
+      cpus params.maxcpus
+      container 'staphb/mafft:latest'
+      errorStrategy 'retry'
+      maxRetries 2
 
-    input:
-    file(consensus) from consensus_mafft.collectFile(name:"ultimate.fasta")
-    file(reference_genome) from reference_genome_mafft
+      input:
+      file(consensus) from consensus_msa.concat(fastas_msa).collectFile(name:"ultimate.fasta")
+      file(reference_genome) from reference_genome_msa
 
-    output:
-    file("${task.process}/mafft_aligned.fasta") into msa_file
-    file("${task.process}/mafft_aligned.fasta") into msa_file2
-    file("logs/${task.process}/mafft.${workflow.sessionId}.{log,err}")
+      output:
+      file("${task.process}/mafft_aligned.fasta") into msa_file, msa_file2
+      file("logs/${task.process}/mafft.${workflow.sessionId}.{log,err}")
 
-    when:
-    params.relatedness
+      shell:
+      '''
+        mkdir -p !{task.process} logs/!{task.process}
+        log_file=logs/!{task.process}/mafft.!{workflow.sessionId}.log
+        err_file=logs/!{task.process}/mafft.!{workflow.sessionId}.err
 
-    shell:
-    '''
-      mkdir -p !{task.process} logs/!{task.process}
-      log_file=logs/!{task.process}/mafft.!{workflow.sessionId}.log
-      err_file=logs/!{task.process}/mafft.!{workflow.sessionId}.err
+        date | tee -a $log_file $err_file > /dev/null
+        echo "mafft version:" >> $log_file
+        mafft --version 2>&1 >> $log_file
 
-      date | tee -a $log_file $err_file > /dev/null
-      echo "mafft version:" >> $log_file
-      mafft --version 2>&1 >> $log_file
+        echo ">!{params.outgroup}" > reference.fasta
+        grep -v ">" !{reference_genome} >> reference.fasta
 
-      echo ">!{params.outgroup}" > reference.fasta
-      grep -v ">" !{reference_genome} >> reference.fasta
+        mafft --auto \
+          !{params.mafft_options} \
+          --thread !{task.cpus} \
+          --maxambiguous !{params.max_ambiguous} \
+          --addfragments !{consensus} \
+          reference.fasta \
+          > !{task.process}/mafft_aligned.fasta \
+          2>> $err_file
+      '''
+    }
+  } else if ( params.msa == 'nextalign' ) {
+    params.nextalign_options = ''
+    process nextalign {
+      publishDir "${params.outdir}", mode: 'copy'
+      tag "Multiple Sequence Alignment"
+      cpus params.maxcpus
+      container 'nextstrain/nextalign:latest'
+      errorStrategy 'retry'
+      maxRetries 2
 
-      mafft --auto \
-        !{params.mafft_options} \
-        --thread !{task.cpus} \
-        --maxambiguous !{params.max_ambiguous} \
-        --addfragments !{consensus} \
-        reference.fasta \
-        > !{task.process}/mafft_aligned.fasta \
-        2>> $err_file
-    '''
+      input:
+      file(consensus) from consensus_msa.concat(fastas_msa).collectFile(name:"ultimate.fasta")
+      path(dataset) from prepped_nextalign
+
+      output:
+      file("${task.process}/mafft_aligned.fasta") into msa_file, msa_file2
+      file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
+
+      shell:
+      '''
+        mkdir -p !{task.process} logs/!{task.process}
+        log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+        err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
+
+        date | tee -a $log_file $err_file > /dev/null
+        echo "nextalign version:" >> $log_file
+        nextalign --version 2>&1 >> $log_file
+
+        nextalign \
+          --sequences !{consensus} \
+          --input-dataset !{dataset} \
+          --output-dir !{task.process} \
+          --output-basename nextalign
+
+        exit 1
+      '''
+    }
   }
 
   params.snpdists_options = ''
