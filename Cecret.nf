@@ -20,22 +20,18 @@ params.outdir = workflow.launchDir + '/cecret'
 Channel
   .fromFilePairs("${params.reads}/*{1,2}*.{fastq,fastq.gz,fq,fq.gz}", size: 2 )
   .map { reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], "paired" ) }
-  //.ifEmpty{ println("No paired-end fastq files were found at ${params.reads}." ) }
   .view { "Fastq file found : ${it[0]}" }
   .into { paried_reads_check ; paired_reads }
 
 Channel
-  .fromFilePairs("${params.single_reads}/*.{fastq,fastq.gz,fq,fz.gz}", size: 1 )
-  .map { reads -> tuple(reads.baseName, reads, "single" ) }
-  //.map { reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,"").replaceAll(~/.fastq*/,"").replaceAll(~/.fq*/,""), reads[1], "single" ) }
-  //.ifEmpty{ println("No single-end fastq files were found at ${params.single_reads}." ) }
+  .fromPath("${params.single_reads}/*.{fastq,fastq.gz,fq,fz.gz}")
+  .map { reads -> tuple(reads.simpleName, reads, "single" ) }
   .view { "Fastq file found : ${it[0]}" }
   .into { single_reads_check ; single_reads }
 
 Channel
   .fromPath("${params.fastas}/*{.fa,.fasta,.fna}", type:'file')
   .map { fasta -> tuple(fasta.baseName, fasta ) }
-  //.ifEmpty{ println("No fasta files were found at ${params.fastas}." ) }
   .view { "Fasta file found : ${it[0]}" }
   .into { fastas_check ; fastas }
 
@@ -1207,7 +1203,7 @@ pangolin_files
     sort: true,
     storeDir: "${params.outdir}/pangolin")
 
-params.nextclade_prep = '--name sars-cov-2'
+params.nextclade_prep_options = '--name sars-cov-2'
 process nextclade_prep {
   tag "Downloading SARS-CoV-2 dataset"
   cpus 1
