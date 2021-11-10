@@ -87,9 +87,6 @@ params.kraken2_organism = "Severe acute respiratory syndrome-related coronavirus
 params.relatedness = false
 params.snpdists = true
 params.iqtree2 = true
-params.max_ambiguous = '0.50'
-params.outgroup = 'MN908947.3'
-params.mode='GTR'
 
 // for optional renaming of files for GISAID and GenBank submissions
 params.sample_file = workflow.launchDir + '/covid_samples.csv'
@@ -145,6 +142,52 @@ paired_reads
   .into { fastq_reads_seqyclean ; fastq_reads_fastp ; fastq_reads_fastqc ; fastq_reads_rename }
 
 println("") // just for aesthetics
+
+params.fastqc_options = ''
+process fastqc {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "$sample"
+  cpus 1
+  container 'staphb/fastqc:latest'
+
+  when:
+  params.fastqc
+
+  input:
+  tuple val(sample), file(raw), val(type) from fastq_reads_fastqc
+
+  output:
+  file("${task.process}/*.{html,zip}")
+  tuple sample, env(raw_1) into fastqc_1_results
+  tuple sample, env(raw_2) into fastqc_2_results
+  file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+    mkdir -p !{task.process} logs/!{task.process}
+    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+
+    # time stamp + capturing tool versions
+    date | tee -a $log_file $err_file > /dev/null
+    fastqc --version >> $log_file
+
+    fastqc !{params.fastqc_options} \
+      --outdir !{task.process} \
+      --threads !{task.cpus} \
+      !{raw} \
+      2>> $err_file >> $log_file
+
+    zipped_fastq=($(ls !{task.process}/*fastqc.zip) "")
+
+    raw_1=$(unzip -p ${zipped_fastq[0]} */fastqc_data.txt | grep "Total Sequences" | awk '{ print $3 }' )
+    raw_2=NA
+    if [ -f "${zipped_fastq[1]}" ] ; then raw_2=$(unzip -p !{task.process}/*fastqc.zip */fastqc_data.txt | grep "Total Sequences" | awk '{ print $3 }' ) ; fi
+
+    if [ -z "$raw_1" ] ; then raw_1="0" ; fi
+    if [ -z "$raw_2" ] ; then raw_2="0" ; fi
+  '''
+}
 
 if ( params.cleaner == 'seqyclean' ) {
   params.seqyclean_contaminant_file="/Adapters_plus_PhiX_174.fasta"
@@ -348,52 +391,6 @@ if (params.aligner == 'bwa') {
   }
 }
 
-params.fastqc_options = ''
-process fastqc {
-  publishDir "${params.outdir}", mode: 'copy'
-  tag "$sample"
-  cpus 1
-  container 'staphb/fastqc:latest'
-
-  when:
-  params.fastqc
-
-  input:
-  tuple val(sample), file(raw), val(type) from fastq_reads_fastqc
-
-  output:
-  file("${task.process}/*.{html,zip}")
-  tuple sample, env(raw_1) into fastqc_1_results
-  tuple sample, env(raw_2) into fastqc_2_results
-  file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
-
-  shell:
-  '''
-    mkdir -p !{task.process} logs/!{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
-
-    # time stamp + capturing tool versions
-    date | tee -a $log_file $err_file > /dev/null
-    fastqc --version >> $log_file
-
-    fastqc !{params.fastqc_options} \
-      --outdir !{task.process} \
-      --threads !{task.cpus} \
-      !{raw} \
-      2>> $err_file >> $log_file
-
-    zipped_fastq=($(ls !{task.process}/*fastqc.zip) "")
-
-    raw_1=$(unzip -p ${zipped_fastq[0]} */fastqc_data.txt | grep "Total Sequences" | awk '{ print $3 }' )
-    raw_2=NA
-    if [ -f "${zipped_fastq[1]}" ] ; then raw_2=$(unzip -p !{task.process}/*fastqc.zip */fastqc_data.txt | grep "Total Sequences" | awk '{ print $3 }' ) ; fi
-
-    if [ -z "$raw_1" ] ; then raw_1="0" ; fi
-    if [ -z "$raw_2" ] ; then raw_2="0" ; fi
-  '''
-}
-
 process sort {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
@@ -545,15 +542,16 @@ trimmed_bams
  .combine(reference_genome2)
  .into { trimmed_bams_genome ; trimmed_bams_ivar_consensus ; trimmed_bams_bcftools_variants }
 
+params.minimum_depth = 100
 params.mpileup_depth = 8000
-params.ivar_variants_options = '-q 20 -t 0.6 -m 100'
+params.ivar_variants_options = '-q 20 -t 0.6'
 process ivar_variants {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
   cpus 1
   container 'staphb/ivar:latest'
   memory {2.GB * task.attempt}
-  errorStrategy {'retry'}
+  errorStrategy 'retry'
   maxRetries 2
 
   when:
@@ -580,7 +578,7 @@ process ivar_variants {
     ivar version >> $log_file
 
     samtools mpileup -A -d !{params.mpileup_depth} -B -Q 0 --reference !{reference_genome} !{bam} 2>> $err_file | \
-      ivar variants -p !{task.process}/!{sample}.variants !{params.ivar_variants_options} -r !{reference_genome} -g !{gff_file} 2>> $err_file >> $log_file
+      ivar variants -p !{task.process}/!{sample}.variants !{params.ivar_variants_options} -m !{params.minimum_depth} -r !{reference_genome} -g !{gff_file} 2>> $err_file >> $log_file
 
     variants_num=$(grep "TRUE" !{task.process}/!{sample}.variants.tsv | wc -l)
 
@@ -606,7 +604,7 @@ process ivar_variants {
   '''
 }
 
-params.ivar_consensus_options = '-q 20 -t 0.6 -m 100 -n N'
+params.ivar_consensus_options = '-q 20 -t 0.6 -n N'
 process ivar_consensus {
   publishDir "${params.outdir}", mode: 'copy', pattern: "logs/ivar_consensus/*.{log,err}"
   publishDir "${params.outdir}", mode: 'copy', pattern: "consensus/*.consensus.fa"
@@ -640,7 +638,7 @@ process ivar_consensus {
     ivar_version=$(ivar version | grep "version")
 
     samtools mpileup -A -d !{params.mpileup_depth} -B -Q 0 --reference !{reference_genome} !{bam} 2>> $err_file | \
-      ivar consensus !{params.ivar_consensus_options} -p consensus/!{sample}.consensus 2>> $err_file >> $log_file
+      ivar consensus !{params.ivar_consensus_options} -m !{params.minimum_depth} -p consensus/!{sample}.consensus 2>> $err_file >> $log_file
 
     if [ -f "consensus/!{sample}.consensus.fa" ]
     then
@@ -948,7 +946,7 @@ process samtools_depth {
       !{trimmed} \
       2>> $err_file > !{task.process}/trimmed/!{sample}.depth.txt
 
-    depth=$(awk '{ if ($3 > 10) print $0 }' !{task.process}/trimmed/!{sample}.depth.txt | wc -l )
+    depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/trimmed/!{sample}.depth.txt | wc -l )
     if [ -z "$depth" ] ; then depth="0" ; fi
   '''
 }
@@ -1225,12 +1223,11 @@ process nextclade_prep {
     date | tee -a $log_file $err_file > /dev/null
     nextclade --version >> $log_file
 
-    nextclade dataset get !{params.nextclade_prep_options} --output-dir '!{task.process}'
+    nextclade dataset get !{params.nextclade_prep_options} --output-dir !{task.process}
   '''
 }
 
 params.nextclade_options = ''
-//params.nextclade_options = '--genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S'
 process nextclade {
   publishDir "${params.outdir}", mode: 'copy'
   tag "${sample}"
@@ -1486,7 +1483,7 @@ process summary {
     header="$header,depth_after_trimming,1X_coverage_after_trimming"
     result="$result,!{covdepth},!{coverage}"
 
-    header="$header,num_pos_10X"
+    header="$header,num_pos_!{params.minimum_depth}X"
     result="$result,!{depth}"
 
     header="$header,insert_size_before_trimming,insert_size_after_trimming"
@@ -1538,9 +1535,11 @@ summary2
     skip: 1,
     storeDir: "${workflow.launchDir}")
 
+
+
 if (params.relatedness) {
   if ( params.msa == 'mafft' ) {
-    params.mafft_options = ''
+    params.mafft_options = '--maxambiguous 0.5'
     process mafft {
       publishDir "${params.outdir}", mode: 'copy'
       tag "Multiple Sequence Alignment"
@@ -1573,7 +1572,6 @@ if (params.relatedness) {
         mafft --auto \
           !{params.mafft_options} \
           --thread !{task.cpus} \
-          --maxambiguous !{params.max_ambiguous} \
           --addfragments !{consensus} \
           reference.fasta \
           > !{task.process}/mafft_aligned.fasta \
@@ -1587,8 +1585,6 @@ if (params.relatedness) {
       tag "Multiple Sequence Alignment"
       cpus params.maxcpus
       container 'nextstrain/nextalign:latest'
-      errorStrategy 'retry'
-      maxRetries 2
 
       input:
       file(consensus) from consensus_msa.concat(fastas_msa).collectFile(name:"ultimate.fasta")
@@ -1649,7 +1645,8 @@ if (params.relatedness) {
     '''
   }
 
-  params.iqtree2_options = ''
+  params.iqtree2_outgroup = '-o MN908947.3'
+  params.iqtree2_options = '-ninit 2 -n 2 -me 0.05 -m GTR'
   process iqtree2 {
     publishDir "${params.outdir}", mode: 'copy'
     tag "Creating phylogenetic tree with iqtree"
@@ -1679,15 +1676,11 @@ if (params.relatedness) {
 
       # creating a tree
     	iqtree2 !{params.iqtree2_options} \
-        -ninit 2 \
-        -n 2 \
-        -me 0.05 \
         -nt AUTO \
         -ntmax !{task.cpus} \
         -s !{msa}.renamed \
         -pre !{task.process}/iqtree2 \
-        -m !{params.mode} \
-        -o !{params.outgroup} \
+        !{params.iqtree2_outgroup} \
         >> $log_file 2>> $err_file
     '''
   }
@@ -1719,9 +1712,6 @@ if (params.rename) {
 
     input:
     tuple val(sample), file(reads), val(paired_single), file(consensus), file(filtered_reads), file(sample_file) from rename
-
-    when:
-    params.sample_file.exists() && params.rename
 
     output:
     file("submission_files/*{genbank,gisaid}.fa") optional true
