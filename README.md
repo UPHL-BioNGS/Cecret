@@ -10,38 +10,51 @@ Cecret is a workflow developed by [@erinyoung](https://github.com/erinyoung) at 
 
 Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_toolkit).
 
-# Getting started
+
+# Dependencies
+
+- [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html)
+   - Nextflow version 20+ is required (`nextflow -v` to check your installation)
+- [Singularity](https://singularity.lbl.gov/install-linux) or [Docker](https://docs.docker.com/get-docker/) - set the profile as singularity or docker during runtime
+- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+
+# Usage
+
+## Downloading this repo with git
 
 ```
 git clone https://github.com/UPHL-BioNGS/Cecret.git
 ```
 
-To make your life easier, follow with
+### Start the workflow
 
 ```
-cd Cecret
-git init
+# using singularity
+nextflow run Cecret.nf -c configs/singularity.config
+# using docker
+nextflow run Cecret.nf -c configs/docker.config
 ```
 
-so that you can use `git pull` for updates.
+## Running from this github repository
 
-## Prior to starting the workflow
+```
+# using singularity
+nextflow run UPHL-BioNGS/Cecret -profile singularity
+# using docker
+nextflow run UPHL-BioNGS/Cecret -profile docker
+```
 
-### Install dependencies
-- [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html)
-   - Nextflow version 20+ is required (`nextflow -v` to check your installation)
-- [Singularity](https://singularity.lbl.gov/install-linux) or [Docker](https://docs.docker.com/get-docker/) 
+# Default file structure 
+(can be adjusted with 'params.reads', 'params.single_reads', and 'params.fastas')
 
-# Usage
-
-### Arrange paired-end fastq.gz reads as follows or designate directory with 'params.reads' or '--reads'
+### Paired-end fastq.gz (ending with 'fastq', 'fastq.gz', 'fq', or 'fq.gz') reads as follows or designate directory with 'params.reads' or '--reads'
 ```
 directory
 └── reads
      └── *fastq.gz
 ```
 
-### Arrange single-end fastq.gz reads as follows or designate directory with 'params.single_reads' or '--single_reads'
+### Single-end fastq.gz reads as follows or designate directory with 'params.single_reads' or '--single_reads'
 ```
 directory
 └── single_reads
@@ -50,40 +63,54 @@ directory
 
 WARNING : single and paired-end reads **cannot** be in the same directory
 
-### Start the workflow
-
+### Fasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.fastas' or '--fastas'
 ```
-nextflow run Cecret.nf -c configs/singularity.config
+directory
+└── fastas
+     └── *fasta
 ```
 
-## Full workflow(s)
-![alt text](images/Cecret_DAG.png)
+# Full workflow
+![alt text](images/Cecret_DAG.drawio.png)
 
 ## Optional toggles:
 
 ### Using fastp to clean reads instead of seqyclean
 ```
-nextflow run Cecret.nf -c configs/singularity.config --cleaner fastp
+nextflow run UPHL-BioNGS/Cecret -profile singularity --cleaner fastp
 ```
 Or set `params.cleaner = 'fastp'` in a config file
 
 ### Using samtools to trim amplicons instead of ivar
 ```
-nextflow run Cecret.nf -c configs/singularity.config --trimmer samtools
+nextflow run UPHL-BioNGS/Cecret -profile singularity --trimmer samtools
 ```
 Or set `params.trimmer = 'samtools'` in a config file
 
+### Skipping primer trimming completely
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity --trimmer none
+```
+Or set `params.trimmer = 'samtools'` in a config file
+
+
 ### Using minimap2 to align reads instead of bwa
 ```
-nextflow run Cecret.nf -c configs/singularity.config --aligner minimap2
+nextflow run UPHL-BioNGS/Cecret -profile singularity --aligner minimap2
 ```
 Or set `params.aligner = 'minimap2'` in a config file
 
-### Determining relatedness
+## Determining relatedness
 To create a multiple sequence alignment and corresponding phylogenetic tree and SNP matrix, set `params.relatedness = true` or 
 ```
-nextflow run Cecret.nf -c configs/singularity.config --relatedness true
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true
 ```
+### Using nextalign to for multiple sequence alignement instead of mafft
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --msa nextalign
+```
+Or set `params.msa = 'nextalign'` and `params.relatedness = true` in a config file
+
 ### Classify reads with kraken2
 To classify reads with kraken2 to identify reads from human or the organism of your choice
 #### Step 1. Get a kraken2 database (note : this link is no longer active. I'm actively working on creating my own)
@@ -117,6 +144,7 @@ params.kraken2_organism = "Severe acute respiratory syndrome-related coronavirus
 - [mafft](https://mafft.cbrc.jp/alignment/software/) - for multiple sequence alignment (optional, relatedness must be set to "true")
 - [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
 - [iqtree2](http://www.iqtree.org/) - for phylogenetic tree generation (optional, relatedness must be set to "true")
+- [nextalign](https://github.com/neherlab/nextalign) - for phylogenetic tree generation (optional, relatedness must be set to "true", and msa must be set to 'nextalign')
 - [bamsnap](https://github.com/parklab/bamsnap) - to create images of SNPs
 
 ### Turning off unneeded processes
@@ -134,9 +162,9 @@ params.samtools_plot_ampliconstats = true # images related to amplicon performan
 params.kraken2 = false                    # used to classify reads and needs a corresponding params.kraken2_db and organism if not SARS-CoV-2
 params.bedtools_multicov = true           # bedtools multicov for coverage approximation of amplicons
 params.nextclade = true                   # SARS-CoV-2 clade determination
-params.pangolin = true                    # SARS-CoV-2 clade determination
+params.pangolin = true                    # SARS-CoV-2 lineage determination
 params.vadr = false                       # NCBI fasta QC
-params.relatedness = false                # actually the toggle for mafft to create a multiple sequence alignement
+params.relatedness = false                # create multiple sequence alignments with input fastq and fasta files
 params.snpdists = true                    # creates snp matrix from mafft multiple sequence alignment
 params.iqtree2 = true                     # creates phylogenetic tree from mafft multiple sequence alignement
 params.bamsnap = false                    # can be really slow. Works best with bcftools variants. An example bamsnap image is below.
@@ -522,6 +550,7 @@ This file contains all of the configurable parameters with their default values.
 ### input and output directories
 * params.reads = workflow.launchDir + '/reads'
 * params.single_reads = workflow.launchDir + '/single_reads'
+* params.fastas = workflow.launchDir + '/fastas'
 * params.outdir = workflow.launchDir + "/cecret"
 
 ### reference files for SARS-CoV-2 with artic V3 primers (part of the github repository)
@@ -547,25 +576,40 @@ Be sure to include the command that you used, what config file you used, and wha
 
 ## What if I want to test the workflow?
 
-In the [data](./data) directory of this repository, there are three sets of fastq.gz files with a corresponding results file for comparison.
-
-```
-nextflow run Cecret.nf -c configs/singularity.config --reads data
-nextflow run Cecret_annotation.nf -c configs/singularity.config --fastas data
-```
+If you look at the history of this repository, there actually was an attempt to store fastq files here that the **End User** could use to test out this workflow. This made the repository very large and difficult to download. A better option is to use the [SARS-CoV-2 datasets](https://github.com/CDCgov/datasets-sars-cov-2) that the CDC has gathered. This workflow has been run on a subset of the files listed there and can be compared at [data/cecret_datasets_summary.csv](./data/cecret_datasets_summary.csv)
 
 ## What if I just want to annotate some SARS-CoV-2 fastas with pangolin, nextclade and vadr?
 ```
-nextflow run Cecret_annotation.nf -c configs/singularity.config --fastas <directory with fastas>
+nextflow run UPHL-BioNGS/Cecret -profile singularity --fastas <directory with fastas>
 ```
+WARNING : Does not currently accept multi-fastas. If there is interest in such a feature, please [submit an issue](https://github.com/UPHL-BioNGS/Cecret/issues).
+
 You can run mafft, snpdists, and iqtree on a collection of fastas as well with
 ```
-nextflow run Cecret_annotation.nf -c configs/singularity.config --relatedness true --fastas <directory with fastas>
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas>
 ```
-[Cecret_annotation.nf](./Cecret_annotation.nf) Uses the same basic structure as the main workflow, so the same config file can probably be used for both.
+You can also have paired-end, singled-end, and fastas that can all be put together into one big tree.
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas> --reads <directory with paire-end reads> --single_reads <directory with single-end reads>
+```
+
+WARNING : Does not currently accept multi-fastas. If there is interest in such a feature, please [submit an issue](https://github.com/UPHL-BioNGS/Cecret/issues).
 
 ## Where is an example config file?
-You're more than welcome to look at what we use here at UPHL [here](./configs/UPHL.config).
+You're more than welcome to look at an example [here](./configs/cecret_config_template.config). Just remove the comments for the parameters that need to be adjusted and specify with `-c`.
+
+At UPHL, our config file is small enough to be put as a profile option, but the text of the config file would be as follows: 
+
+```
+singularity.enabled = true
+singularity.autoMounts = true
+params {
+  reads = "Sequencing_reads/Raw"
+  kraken2 = true
+  kraken2_db = '/home/IDGenomics_NAS/Data/kraken2_db/h+v'
+  vadr = false
+}
+```
 
 ## How can I tell if certain amplicons are failing?
 
@@ -637,7 +681,7 @@ params.vadr = false or configure your vadr container appropriately and params.va
 ```
 ## What if I need to filter out human reads or I only want reads that map to my reference?
 
-Although not perfect, if `'params.filter = true'`, then only the reads that were mapped to the reference are returned. This should eliminate all human contamination (as long as human is not part of your reference). 
+Although not perfect, if `'params.filter = true'`, then only the reads that were mapped to the reference are returned. This _should_ eliminate all human contamination (as long as human is not part of your reference). 
 
 ## This workflow has too many bells and whistles. I really only care about generating a consensus fasta. How do I get rid of all the extras?
 
