@@ -1536,7 +1536,6 @@ summary2
     storeDir: "${workflow.launchDir}")
 
 if (params.relatedness) {
-  params.iqtree2_outgroup = 'MN908947'
   if ( params.msa == 'mafft' ) {
     params.mafft_options = '--maxambiguous 0.5'
     process mafft {
@@ -1565,14 +1564,11 @@ if (params.relatedness) {
         echo "mafft version:" >> $log_file
         mafft --version 2>&1 >> $log_file
 
-        echo ">!{params.iqtree2_outgroup}" > reference.fasta
-        grep -v ">" !{reference_genome} >> reference.fasta
-
         mafft --auto \
           !{params.mafft_options} \
           --thread !{task.cpus} \
           --addfragments !{consensus} \
-          reference.fasta \
+          !{reference_genome} \
           > !{task.process}/mafft_aligned.fasta \
           2>> $err_file
       '''
@@ -1645,6 +1641,7 @@ if (params.relatedness) {
       snp-dists !{params.snpdists_options} !{msa} > snp-dists/snp-dists.txt 2> $err_file
     '''
   }
+  params.iqtree2_outgroup = 'MN908947'
   params.iqtree2_options = '-ninit 2 -n 2 -me 0.05 -m GTR'
   process iqtree2 {
     publishDir "${params.outdir}", mode: 'copy'
