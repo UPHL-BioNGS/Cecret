@@ -151,7 +151,7 @@ process fastqc {
   container 'staphb/fastqc:latest'
 
   when:
-  params.fastqc
+  params.fastqc && sample != null
 
   input:
   tuple val(sample), file(raw), val(type) from fastq_reads_fastqc
@@ -199,7 +199,7 @@ if ( params.cleaner == 'seqyclean' ) {
     container 'staphb/seqyclean:latest'
 
     when:
-    params.cleaner == 'seqyclean'
+    params.cleaner == 'seqyclean' && sample != null
 
     input:
     tuple val(sample), file(reads), val(paired_single) from fastq_reads_seqyclean
@@ -1579,7 +1579,7 @@ if (params.relatedness) {
       '''
     }
   } else if ( params.msa == 'nextalign' ) {
-    params.nextalign_options = ''
+    params.nextalign_options = '--genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S --include-reference'
     process nextalign {
       publishDir "${params.outdir}", mode: 'copy'
       tag "Multiple Sequence Alignment"
@@ -1591,7 +1591,8 @@ if (params.relatedness) {
       path(dataset) from prepped_nextalign
 
       output:
-      file("${task.process}/mafft_aligned.fasta") into msa_file, msa_file2
+      file("${task.process}/nextalign.aligned.fasta") into msa_file, msa_file2
+      file("${task.process}/{*.fasta,nextalign.*.csv}")
       file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
 
       shell:
@@ -1602,15 +1603,16 @@ if (params.relatedness) {
 
         date | tee -a $log_file $err_file > /dev/null
         echo "nextalign version:" >> $log_file
-        nextalign --version 2>&1 >> $log_file
+        nextalign --version-detailed 2>&1 >> $log_file
 
-        nextalign \
+        nextalign !{params.nextalign_options} \
           --sequences !{consensus} \
-          --input-dataset !{dataset} \
+          --reference !{dataset}/reference.fasta \
+          --genemap !{dataset}/genemap.gff \
+          --jobs !{task.cpus} \
           --output-dir !{task.process} \
-          --output-basename nextalign
-
-        exit 1
+          --output-basename nextalign \
+          >> $log_file 2>> $err_file
       '''
     }
   }
@@ -1645,7 +1647,7 @@ if (params.relatedness) {
     '''
   }
 
-  params.iqtree2_outgroup = '-o MN908947.3'
+  params.iqtree2_outgroup = 'MN908947'
   params.iqtree2_options = '-ninit 2 -n 2 -me 0.05 -m GTR'
   process iqtree2 {
     publishDir "${params.outdir}", mode: 'copy'
@@ -1672,7 +1674,14 @@ if (params.relatedness) {
       date | tee -a $log_file $err_file > /dev/null
       iqtree2 --version >> $log_file
 
-      cat !{msa} | sed 's/!{params.outgroup}.*/!{params.outgroup}/g' > !{msa}.renamed
+      if [ -n "!{params.iqtree2_outgroup}" ] && [ "!{params.iqtree2_outgroup}" != "null" ]
+      then
+        outgroup="-o !{params.iqtree2_outgroup}"
+        cat !{msa} | sed 's/!{params.iqtree2_outgroup}.*/!{params.iqtree2_outgroup}/g' > !{msa}.renamed
+      else
+        outgroup=""
+        mv !{msa} !{msa}.renamed
+      fi
 
       # creating a tree
     	iqtree2 !{params.iqtree2_options} \
@@ -1680,7 +1689,7 @@ if (params.relatedness) {
         -ntmax !{task.cpus} \
         -s !{msa}.renamed \
         -pre !{task.process}/iqtree2 \
-        !{params.iqtree2_outgroup} \
+        $outgroup \
         >> $log_file 2>> $err_file
     '''
   }
