@@ -1,47 +1,114 @@
 #/bin/bash
 
-options=("reads" "single_reads" "fastas")
+test=$1
 
-for option in ${options[@]}
-do
-  # defaults with docker
-  nextflow run UPHL-BioNGS/Cecret -r erin-dev -profile docker --$option /home/eriny/sandbox/test_files/cecret/$option --outdir docker_defaults_$option -with-tower
-  cp docker_defaults_$option/summary.csv docker_defaults_summary_$option.csv
+if [ -z "$test" ]; then test="small" ; fi
 
-  # defaults
-  nextflow run UPHL-BioNGS/Cecret -r erin-dev -profile singularity --$option /home/eriny/sandbox/test_files/cecret/$option --outdir defaults_$option -with-tower
-  cp defaults_$option/summary.csv defaults_summary_$option.csv
+if [ "$test" == "small" ]
+then
+  options=("reads" "single_reads" "fastas")
 
-  # attempted bcftools, filter, and bamsnap
-  nextflow run UPHL-BioNGS/Cecret -r erin-dev -profile singularity  --$option /home/eriny/sandbox/test_files/cecret/$option --outdir all_on_$option --bamsnap true --bcftools_variants true --filter true  -with-tower -resume
-  cp all_on_$option/summary.csv all_on_summary_$option.csv
+  for option in ${options[@]}
+  do
+    # defaults with docker
+    nextflow run UPHL-BioNGS/Cecret \
+      -r erin-dev \
+      -profile docker \
+      --$option /home/eriny/sandbox/test_files/cecret/$option \
+      --outdir docker_defaults_$option \
+      -with-tower
 
-  # changing the cleaner, aligner, and trimmer
-  nextflow run UPHL-BioNGS/Cecret -r erin-dev -profile singularity  --$option /home/eriny/sandbox/test_files/cecret/$option --outdir toggled_$option --cleaner 'fastp' --trimmer 'samtools' --aligner 'minimap2' -with-tower -resume
-  cp toggled_$option/summary.csv toggled_summary_$option.csv
+    # defaults
+    nextflow run UPHL-BioNGS/Cecret \
+      -r erin-dev \
+      -profile singularity \
+      --$option /home/eriny/sandbox/test_files/cecret/$option \
+      --outdir singularity_defaults_$option \
+      -with-tower
 
-  # removing primer trimming
-  nextflow run UPHL-BioNGS/Cecret -r erin-dev -profile singularity  --$option /home/eriny/sandbox/test_files/cecret/$option --outdir nontrimmed_$option --trimmer 'none' -with-tower -resume
-  cp nontrimmed_$option/summary.csv nontrimmed_summary_$option.csv
+    # removed test for bamsnap and rename because of lack of interest
+    # attempted bcftools and filter
+    nextflow run UPHL-BioNGS/Cecret \
+      -r erin-dev \
+      -profile singularity \
+      --$option /home/eriny/sandbox/test_files/cecret/$option \
+      --outdir all_on_$option \
+      -with-tower \
+      --bcftools_variants true \
+      --filter true \
+      -resume
 
-  # with UPHL's config
-  nextflow run UPHL-BioNGS/Cecret -r erin-dev -profile uphl --$option /home/eriny/sandbox/test_files/cecret/$option --outdir uphl_$option -with-tower -resume
-  cp uphl_$option/summary.csv uphl_summary_$option.csv
+    # changing the cleaner, aligner, and trimmer
+    nextflow run UPHL-BioNGS/Cecret \
+      -r erin-dev \
+      -profile singularity \
+      --$option /home/eriny/sandbox/test_files/cecret/$option \
+      --outdir toggled_$option \
+      --cleaner 'fastp' \
+      --trimmer 'samtools' \
+      --aligner 'minimap2' \
+      -with-tower \
+      -resume
 
+    # removing primer trimming
+    nextflow run UPHL-BioNGS/Cecret \
+      -r erin-dev \
+      -profile singularity \
+      --$option /home/eriny/sandbox/test_files/cecret/$option \
+      --outdir nontrimmed_$option \
+      --trimmer 'none' \
+      -with-tower \
+      -resume
+
+    # with UPHL's config
+    nextflow run UPHL-BioNGS/Cecret \
+      -r erin-dev -profile uphl \
+      --$option /home/eriny/sandbox/test_files/cecret/$option \
+      --outdir uphl_$option \
+      -with-tower \
+      -resume
+  done
+
+  #################
+  ##### empty #####
+  #################
+  nextflow run UPHL-BioNGS/Cecret \
+    -r erin-dev \
+    -profile singularity \
+    --reads doesntexit \
+    --single-reads willnotexist \
+    --fastas shouldntexit \
+    --outdir empty  \
+    -with-tower
+else
   # CDC's test data with relatedness
-  nextflow run UPHL-BioNGS/Cecret -r erin-dev -profile singularity --$option /home/eriny/sandbox/sars-cov-2-datasets/reads/ --outdir datasets_$option --relatedness true  -with-tower
-  cp datasets_$option/summary.csv datasets_summary_$option.csv
+  nextflow run UPHL-BioNGS/Cecret \
+    -r erin-dev \
+    -profile singularity \
+    --reads /home/eriny/sandbox/sars-cov-2-datasets/reads/ \
+    --outdir default_datasets \
+    --relatedness true  \
+    -with-tower
+
+  nextflow run UPHL-BioNGS/Cecret \
+    -r erin-dev -profile uphl \
+    --reads /home/eriny/sandbox/sars-cov-2-datasets/reads/ \
+    --outdir uphl_datasets \
+    -with-tower \
+    -resume \
+    --relatedness true
 
   # CDC's test data with relatedness using nextalign
-  nextflow run UPHL-BioNGS/Cecret -r erin-dev -profile singularity --$option /home/eriny/sandbox/sars-cov-2-datasets/reads/ --outdir datasets_nextalign_$option --relatedness true --msa nextalign -with-tower -resume
-  cp datasets_nextalign_$option/summary.csv datasets_nextalign_summary_$option.csv
-
-  # CDC's test data with relatedness using nextalign
-  nextflow run UPHL-BioNGS/Cecret -r erin-dev -profile uphl --$option /home/eriny/sandbox/sars-cov-2-datasets/reads/ --outdir datasets_uphl_$option -with-tower -resume
-  cp datasets_uphl_$option/summary.csv datasets_uphl_summary_$option.csv
-done
-
-#################
-##### empty #####
-#################
-nextflow run UPHL-BioNGS/Cecret -r erin-dev -profile singularity --reads doesntexit --single-reads willnotexist --fastas shouldntexit --outdir empty  -with-tower
+  nextflow run UPHL-BioNGS/Cecret \
+    -r erin-dev \
+    -profile singularity \
+    --reads /home/eriny/sandbox/sars-cov-2-datasets/reads/ \
+    --outdir toggled_datasets \
+    --cleaner 'fastp' \
+    --trimmer 'samtools' \
+    --aligner 'minimap2' \
+    --relatedness true \
+    --msa 'nextalign' \
+    -with-tower \
+    -resume
+fi
