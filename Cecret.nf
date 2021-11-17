@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.2.1.2021117")
+println("Version: v.2.1.2021117.1")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -18,7 +18,8 @@ if ( params.reads == params.single_reads ) {
 params.outdir = workflow.launchDir + '/cecret'
 
 Channel
-  .fromFilePairs( "${params.reads}/*{R1,R2,_1,_2}*.{fastq,fastq.gz,fq,fq.gz}", size: 2 )
+  .fromFilePairs(["${params.reads}/*_R{1,2}*.{fastq,fastq.gz,fq,fq.gz}",
+                  "${params.reads}/*{1,2}*.{fastq,fastq.gz,fq,fq.gz}"], size: 2 )
   .map { reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], "paired" ) }
   .view { "Fastq file found : ${it[0]}" }
   .into { paried_reads_check ; paired_reads }
