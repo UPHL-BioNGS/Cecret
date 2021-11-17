@@ -293,8 +293,8 @@ if ( params.cleaner == 'seqyclean' ) {
 
       # time stamp + capturing tool versions
       date | tee -a $log_file $err_file > /dev/null
-      fastp --version >> $log_file
-      cleaner_version="fastp : $(fastp --version)"
+      fastp --version >> $log_file 2>> $err_file
+      cleaner_version="fastp : $(fastp --version | head -n 1)"
 
       if [ "!{paired_single}" == "single" ]
       then
@@ -523,7 +523,7 @@ if (params.trimmer == 'ivar' ) {
       # time stamp + capturing tool versions
       date | tee -a $log_file $err_file > /dev/null
       samtools --version >> $log_file
-      trimmer_version="samtools ampliconclip : $(samtools --version)"
+      trimmer_version="samtools ampliconclip : $(samtools --version | head -n 1)"
 
       # trimming the reads
       samtools ampliconclip !{params.samtools_ampliconclip_options} -b !{primer_bed} !{bam} 2>> $err_file | \
