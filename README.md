@@ -8,40 +8,55 @@ Location: 40.570°N 111.622°W , 9,875 feet (3,010 m) elevation
 
 Cecret is a workflow developed by [@erinyoung](https://github.com/erinyoung) at the [Utah Public Health Laborotory](https://uphl.utah.gov/) for SARS-COV-2 sequencing with the [artic](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)/Illumina hybrid library prep workflow for MiSeq data with protocols [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bffyjjpw) and [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bfefjjbn). Built to work on linux-based operating systems. Additional config options are needed for cloud batch usage.
 
+It is possible to use this workflow to simply annotate fastas generated from any workflow with pangolin, nextclade, and vadr. Another utility is to find consensus fasta files from fastq files, and add in fasta files that were generated previously or downloaded from [GISAID](https://www.gisaid.org/) or [NCBI](https://www.ncbi.nlm.nih.gov/sars-cov-2/) for multiple sequence alignment (MSA) and phylogenetic tree. 
+
 Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_toolkit).
 
-# Getting started
+
+# Dependencies
+
+- [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html)
+   - Nextflow version 20+ is required (`nextflow -v` to check)
+- [Singularity](https://singularity.lbl.gov/install-linux) or [Docker](https://docs.docker.com/get-docker/) - set the profile as singularity or docker during runtime
+- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+
+# Usage
+
+## Downloading this repo with git
 
 ```
 git clone https://github.com/UPHL-BioNGS/Cecret.git
 ```
 
-To make your life easier, follow with
+### Start the workflow
 
 ```
-cd Cecret
-git init
+# using singularity
+nextflow run Cecret.nf -c configs/singularity.config
+# using docker
+nextflow run Cecret.nf -c configs/docker.config
 ```
 
-so that you can use `git pull` for updates.
+## Running from this github repository
 
-## Prior to starting the workflow
+```
+# using singularity
+nextflow run UPHL-BioNGS/Cecret -profile singularity
+# using docker
+nextflow run UPHL-BioNGS/Cecret -profile docker
+```
 
-### Install dependencies
-- [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html)
-   - Nextflow version 20+ is required (`nextflow -v` to check your installation)
-- [Singularity](https://singularity.lbl.gov/install-linux) or [Docker](https://docs.docker.com/get-docker/) 
+# Default file structure 
+(can be adjusted with 'params.reads', 'params.single_reads', and 'params.fastas')
 
-# Usage
-
-### Arrange paired-end fastq.gz reads as follows or designate directory with 'params.reads' or '--reads'
+### Paired-end fastq.gz (ending with 'fastq', 'fastq.gz', 'fq', or 'fq.gz') reads as follows or designate directory with 'params.reads' or '--reads'
 ```
 directory
 └── reads
      └── *fastq.gz
 ```
 
-### Arrange single-end fastq.gz reads as follows or designate directory with 'params.single_reads' or '--single_reads'
+### Single-end fastq.gz reads as follows or designate directory with 'params.single_reads' or '--single_reads'
 ```
 directory
 └── single_reads
@@ -50,43 +65,57 @@ directory
 
 WARNING : single and paired-end reads **cannot** be in the same directory
 
-### Start the workflow
-
+### Fasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.fastas' or '--fastas'
 ```
-nextflow run Cecret.nf -c configs/singularity.config
+directory
+└── fastas
+     └── *fasta
 ```
 
-## Full workflow(s)
-![alt text](images/Cecret_DAG.png)
+# Full workflow
+![alt text](images/Cecret_DAG.drawio.png)
 
 ## Optional toggles:
 
 ### Using fastp to clean reads instead of seqyclean
 ```
-nextflow run Cecret.nf -c configs/singularity.config --cleaner fastp
+nextflow run UPHL-BioNGS/Cecret -profile singularity --cleaner fastp
 ```
 Or set `params.cleaner = 'fastp'` in a config file
 
 ### Using samtools to trim amplicons instead of ivar
 ```
-nextflow run Cecret.nf -c configs/singularity.config --trimmer samtools
+nextflow run UPHL-BioNGS/Cecret -profile singularity --trimmer samtools
 ```
 Or set `params.trimmer = 'samtools'` in a config file
 
+### Skipping primer trimming completely
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity --trimmer none
+```
+Or set `params.trimmer = 'none'` in a config file
+
+
 ### Using minimap2 to align reads instead of bwa
 ```
-nextflow run Cecret.nf -c configs/singularity.config --aligner minimap2
+nextflow run UPHL-BioNGS/Cecret -profile singularity --aligner minimap2
 ```
 Or set `params.aligner = 'minimap2'` in a config file
 
-### Determining relatedness
+## Determining relatedness
 To create a multiple sequence alignment and corresponding phylogenetic tree and SNP matrix, set `params.relatedness = true` or 
 ```
-nextflow run Cecret.nf -c configs/singularity.config --relatedness true
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true
 ```
+### Using nextalign to for multiple sequence alignement instead of mafft
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --msa nextalign
+```
+Or set `params.msa = 'nextalign'` and `params.relatedness = true` in a config file
+
 ### Classify reads with kraken2
-To classify reads with kraken2 to identify reads from human or the organism of your choice
-#### Step 1. Get a kraken2 database (note : this link is no longer active. I'm actively working on creating my own)
+To classify reads with kraken2 to identify reads from human or the organism of choice
+#### Step 1. Get a kraken2 database
 ```
 mkdir kraken2_db
 cd kraken2_db
@@ -117,6 +146,7 @@ params.kraken2_organism = "Severe acute respiratory syndrome-related coronavirus
 - [mafft](https://mafft.cbrc.jp/alignment/software/) - for multiple sequence alignment (optional, relatedness must be set to "true")
 - [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
 - [iqtree2](http://www.iqtree.org/) - for phylogenetic tree generation (optional, relatedness must be set to "true")
+- [nextalign](https://github.com/neherlab/nextalign) - for phylogenetic tree generation (optional, relatedness must be set to "true", and msa must be set to "nextalign")
 - [bamsnap](https://github.com/parklab/bamsnap) - to create images of SNPs
 
 ### Turning off unneeded processes
@@ -134,9 +164,9 @@ params.samtools_plot_ampliconstats = true # images related to amplicon performan
 params.kraken2 = false                    # used to classify reads and needs a corresponding params.kraken2_db and organism if not SARS-CoV-2
 params.bedtools_multicov = true           # bedtools multicov for coverage approximation of amplicons
 params.nextclade = true                   # SARS-CoV-2 clade determination
-params.pangolin = true                    # SARS-CoV-2 clade determination
+params.pangolin = true                    # SARS-CoV-2 lineage determination
 params.vadr = false                       # NCBI fasta QC
-params.relatedness = false                # actually the toggle for mafft to create a multiple sequence alignement
+params.relatedness = false                # create multiple sequence alignments with input fastq and fasta files
 params.snpdists = true                    # creates snp matrix from mafft multiple sequence alignment
 params.iqtree2 = true                     # creates phylogenetic tree from mafft multiple sequence alignement
 params.bamsnap = false                    # can be really slow. Works best with bcftools variants. An example bamsnap image is below.
@@ -253,11 +283,11 @@ cecret                                # results from this workflow
 │   ├── SRR13957170.variants.tsv
 │   ├── SRR13957177.ivar_variants.vcf
 │   └── SRR13957177.variants.tsv
-├── kraken2                          # kraken2 report of the organisms your reads may be from
+├── kraken2                          # kraken2 report of the organisms the reads may be from
 │   ├── SRR13957125_kraken2_report.txt
 │   ├── SRR13957170_kraken2_report.txt
 │   └── SRR13957177_kraken2_report.txt
-├── logs                             # divided log and err files for your QC and troubleshooting pleasure
+├── logs                             # divided log and err files for QC and troubleshooting pleasures
 │   └── processes*
 │       ├── sample.run_id.err
 │       └── sample.run_id.log
@@ -516,13 +546,15 @@ work                                 # nextflow's working directories
 
 </details>
    
-# **A FILE THAT THE END USER/YOU CAN COPY AND EDIT IS FOUND AT [configs/cecret_config_template.config](configs/cecret_config_template.config)**
-This file contains all of the configurable parameters with their default values. If you are using some sort of cloud or HPC setup, I highly recommend you copy this and edit it appropriately. A limited list of parameters is listed below:
+**A FILE THAT THE END USER CAN COPY AND EDIT IS FOUND AT [configs/cecret_config_template.config](configs/cecret_config_template.config)**
+
+This file contains all of the configurable parameters with their default values. Use `'-c'` to specify the edited config file. If the **End User** is using some sort of cloud or HPC setup, it is highly recommended that this file is copied and edited appropriately. A limited list of parameters is listed below:
 
 ### input and output directories
 * params.reads = workflow.launchDir + '/reads'
 * params.single_reads = workflow.launchDir + '/single_reads'
-* params.outdir = workflow.launchDir + "/cecret"
+* params.fastas = workflow.launchDir + '/fastas'
+* params.outdir = workflow.launchDir + '/cecret'
 
 ### reference files for SARS-CoV-2 with artic V3 primers (part of the github repository)
 * params.reference_genome = workflow.projectDir + "/configs/MN908947.3.fasta"
@@ -531,9 +563,9 @@ This file contains all of the configurable parameters with their default values.
 * params.amplicon_bed = workflow.projectDir + "/configs/nCoV-2019.insert.bed"
 
 ### Other useful options
-* To "resume" a workflow that use `-resume` with your nextflow command
-* To create a report, use `-with-report` with your nextflow command
-* To use nextflow tower, use `-with-tower` with your nextflow command
+* To "resume" a workflow that use `-resume` with the nextflow command
+* To create a report, use `-with-report` with the nextflow command
+* To use nextflow tower, use `-with-tower` with the nextflow command
 
 # Frequently Asked Questions (aka FAQ)
 ## What do I do if I encounter an error?
@@ -543,31 +575,53 @@ This file contains all of the configurable parameters with their default values.
 * Email me
 * Send me a message on slack
 
-Be sure to include the command that you used, what config file you used, and what the **nextflow** error was. 
+Be sure to include the command that was used, what config file was used, and what the **nextflow** error was. 
 
 ## What if I want to test the workflow?
 
-In the [data](./data) directory of this repository, there are three sets of fastq.gz files with a corresponding results file for comparison.
+In the history of this repository, there actually was an attempt to store fastq files here that the **End User** could use to test out this workflow. This made the repository very large and difficult to download. 
 
-```
-nextflow run Cecret.nf -c configs/singularity.config --reads data
-nextflow run Cecret_annotation.nf -c configs/singularity.config --fastas data
-```
+Instead, it recommended that the **End User** uses the [SARS-CoV-2 datasets](https://github.com/CDCgov/datasets-sars-cov-2), an effort of the CDC to provide a benchmark dataset for validating bioinformatic workflows. Fastq files from the [nonviovoc](https://github.com/CDCgov/datasets-sars-cov-2/blob/master/datasets/sars-cov-2-nonvoivoc.tsv), [voivoc](https://github.com/CDCgov/datasets-sars-cov-2/blob/master/datasets/sars-cov-2-voivoc.tsv), and [failed](https://github.com/CDCgov/datasets-sars-cov-2/blob/master/datasets/sars-cov-2-failedQC.tsv) projects were downloaded from the SRA and put through this workflow. The summary files are included in the data directory under the following filenames for comparison:
+- [data/default_datasets_summary.csv](./data/default_datasets_summary.csv) : Using the default options
+- [data/toggled_datasets_summary.csv](./data/toggled_datasets_summary.csv) : Using fastp, minimap2, and samtools ampliconclip
+- [data/uphl_datasets_summary.csv](./data/uphl_datasets_summary.csv) : Using UPHL's profile (which is essentially the same as using the default options, but includes a kraken2 database used locally)
+
+The expected amount of time to run this workflow with 250 G RAM and 48 CPUs, 'params.maxcpus = 8', and 'params.medcpus = 4' is ~42 minutes. This corresponded with 25.8 CPU hours.
 
 ## What if I just want to annotate some SARS-CoV-2 fastas with pangolin, nextclade and vadr?
 ```
-nextflow run Cecret_annotation.nf -c configs/singularity.config --fastas <directory with fastas>
+nextflow run UPHL-BioNGS/Cecret -profile singularity --fastas <directory with fastas>
 ```
-You can run mafft, snpdists, and iqtree on a collection of fastas as well with
+WARNING : Does not currently accept multi-fastas. If there is interest in such a feature, please [submit an issue](https://github.com/UPHL-BioNGS/Cecret/issues).
+
+The **End User** can run mafft, snpdists, and iqtree on a collection of fastas as well with
 ```
-nextflow run Cecret_annotation.nf -c configs/singularity.config --relatedness true --fastas <directory with fastas>
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas>
 ```
-[Cecret_annotation.nf](./Cecret_annotation.nf) Uses the same basic structure as the main workflow, so the same config file can probably be used for both.
+The **End User** can also have paired-end, singled-end, and fastas that can all be put together into one analysis.
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas> --reads <directory with paire-end reads> --single_reads <directory with single-end reads>
+```
+
+WARNING : Does not currently accept multi-fastas. If there is interest in such a feature, please [submit an issue](https://github.com/UPHL-BioNGS/Cecret/issues).
 
 ## Where is an example config file?
-You're more than welcome to look at what we use here at UPHL [here](./configs/UPHL.config).
+The **End User** is more than welcome to look at an example [here](./configs/cecret_config_template.config). Just remove the comments for the parameters that need to be adjusted and specify with `-c`.
 
-## How can I tell if certain amplicons are failing?
+At UPHL, our config file is small enough to be put as a profile option, but the text of the config file would be as follows: 
+
+```
+singularity.enabled = true
+singularity.autoMounts = true
+params {
+  reads = "Sequencing_reads/Raw"
+  kraken2 = true
+  kraken2_db = '/home/IDGenomics_NAS/Data/kraken2_db/h+v'
+  vadr = false
+}
+```
+
+## Is there a way to determine if certain amplicons are failing?
 
 There are two ways to do this. 
 
@@ -584,7 +638,7 @@ This is standard bedtools multicov output, so it doesn't have a header.
 
 ### With samtools ampliconstats :
 `cecret/samtools_ampliconstats` has a file for each sample
-Row number 126 (FDEPTH) has a column for each amplicon (also without a header). To get this row for all of your samples, you can grep the keyword "FDEPTH" from each sample.
+Row number 126 (FDEPTH) has a column for each amplicon (also without a header). To get this row for all of the samples, `grep` the keyword "FDEPTH" from each sample.
 
 ```
 grep "^FDEPTH" cecret/samtools_ampliconstats/* > samtools_ampliconstats_all.tsv
@@ -597,9 +651,9 @@ There are corresponding images in `cecret/samtools_plot_ampliconstats` for each 
 
 ## Why is bcftools set to 'false' by default?
 
-There's nothing wrong with the bcftools process, and the vcf created by bcftools is rather handy for additional analyses. The `'staphb/bcftools:latest'` container is really popular, and has issues downloading during high traffic times. I don't have the time to handle issues of users not understanding why the container did not download. /Sorry
+There's nothing wrong with the bcftools process, and the vcf created by bcftools is rather handy for additional analyses. The `'staphb/bcftools:latest'` container is really popular, and has issues downloading during high traffic times. The maintainers of this repository don't have the time to handle issues of users not understanding why the container did not download. /Sorry
 
-If you want to get the output from bcftools, set `params.bcftools = true` 
+To to get the vcf of variants from bcftools, set `params.bcftools_variants = true` 
 
 ## What is the difference between `params.amplicon_bed` and `params.primer_bed`?
 
@@ -622,7 +676,7 @@ Due to the many varieties of primer bedfiles, I determined it was best if the us
 
 ## What if I am using an amplicon based library that is not SARS-CoV-2?
 
-In your config file, change the following relevant parameters:
+In a config file, change the following relevant parameters:
 ```
 params.reference_genome
 params.primer_bed
@@ -632,16 +686,16 @@ params.gff_file or set params.ivar_variants = false
 And set
 ```
 params.pangolin = false 
-params.nextclade = false
-params.vadr = false or configure your vadr container appropriately and params.vadr_reference
+params.nextclade = false or adjust nexclade_prep_options from '--name sars-cov-2' to the name of the relevent dataset
+params.vadr = false or configure the vadr container appropriately and params.vadr_reference
 ```
 ## What if I need to filter out human reads or I only want reads that map to my reference?
 
-Although not perfect, if `'params.filter = true'`, then only the reads that were mapped to the reference are returned. This should eliminate all human contamination (as long as human is not part of your reference). 
+Although not perfect, if `'params.filter = true'`, then only the reads that were mapped to the reference are returned. This _should_ eliminate all human contamination (as long as human is not part of the supplied reference). 
 
 ## This workflow has too many bells and whistles. I really only care about generating a consensus fasta. How do I get rid of all the extras?
 
-Change the parameters in your config file and set most of them to false. 
+Change the parameters in a config file and set most of them to false. 
 
 ```
 params.fastqc = false
@@ -658,11 +712,11 @@ params.pangolin = false
 params.nextclade = false
 params.vadr = false
 ```
-And, yes, this means I added some bells and whistles so you could turn off the bells and whistles. /irony
+And, yes, this means I added some bells and whistles so the **End User** could turn off the bells and whistles. /irony
 
 ## Can I get images of my SNPs and indels?
 
-Yes. Set `params.bamsnap = true`. This is false by default because of how long it takes. It will work with variants called by `ivar` and `bcftools`, although it is **MUCH** faster with the vcf created by bcftools. 
+Yes. Set `params.bamsnap = true`. This is false by default because of how long it takes. It will work with variants called by `ivar_variants` and `bcftools_variants`, although it is **MUCH** faster with the vcf created by bcftools. 
 
 Warning : will not work on all variants. This is due to how bamsnap runs. It is even less likely to work on indels. 
 
