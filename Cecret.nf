@@ -200,7 +200,7 @@ if ( params.cleaner == 'seqyclean' ) {
     container 'staphb/seqyclean:latest'
 
     when:
-    params.cleaner == 'seqyclean' && sample != null
+    sample != null
 
     input:
     tuple val(sample), file(reads), val(paired_single) from fastq_reads_seqyclean
@@ -272,6 +272,9 @@ if ( params.cleaner == 'seqyclean' ) {
     tag "${sample}"
     cpus 1
     container 'bromberglab/fastp:latest'
+
+    when:
+    sample != null
 
     input:
     tuple val(sample), file(reads), val(paired_single) from fastq_reads_fastp
@@ -535,6 +538,8 @@ if (params.trimmer == 'ivar' ) {
     '''
   }
 } else if (params.trimmer == 'none') {
+  bam_bai=Channel.empty()
+  trimmer_version=Channel.empty()
   pre_trim_bams
     .into { trimmed_bams ; trimmed_bams4 ; trimmed_bams5 }
 }
@@ -676,6 +681,8 @@ process fasta_prep {
   tuple val(sample), file(fasta) from fastas
 
   output:
+  tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into fastas_results
+  //tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
   tuple sample, file("${task.process}/${fasta}") optional true into fastas_rename, fastas_pangolin, fastas_vadr, fastas_nextclade
   file("${task.process}/${fasta}") into fastas_msa
 
@@ -689,6 +696,15 @@ process fasta_prep {
     then
       echo ">!{sample}" > !{task.process}/!{fasta}
       grep -v ">" !{fasta} | fold -w 75 >> !{task.process}/!{fasta}
+
+      num_N=$(grep -v ">" !{fasta} | grep -o 'N' | wc -l )
+      num_ACTG=$(grep -v ">" !{fasta} | grep -o -E "C|A|T|G" | wc -l )
+      num_degenerate=$(grep -v ">" !{fasta} | grep -o -E "B|D|E|F|H|I|J|K|L|M|O|P|Q|R|S|U|V|W|X|Y|Z" | wc -l )
+
+      if [ -z "$num_N" ] ; then num_N="0" ; fi
+      if [ -z "$num_ACTG" ] ; then num_ACTG="0" ; fi
+      if [ -z "$num_degenerate" ] ; then num_degenerate="0" ; fi
+      num_total=$(( $num_N + $num_degenerate + $num_ACTG ))
     fi
   '''
 }
@@ -1136,7 +1152,7 @@ process pangolin {
 
   output:
   file("${task.process}/${sample}/lineage_report.csv") into pangolin_files
-  tuple sample, env(pangolin_lineage) into pangolin_lineage
+  tuple sample, env(pangolin_lineage) into pangolin_lineage, pangolin_lineage2
   tuple sample, env(pangolin_status) into pangolin_status
   tuple sample, env(pangolin_scorpio) into pangolin_scorpio
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
@@ -1171,21 +1187,21 @@ process pangolin {
 
     if [ -n "$lineage_column" ]
     then
-      pangolin_lineage=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $lineage_column -d ",")
+      pangolin_lineage=$(grep "!{sample}" !{task.process}/!{sample}/lineage_report.csv | cut -f $lineage_column -d ",")
     else
       pangolin_lineage="Not Found"
     fi
 
     if [ -n "$status_column" ]
     then
-      pangolin_status=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $status_column -d ",")
+      pangolin_status=$(grep "!{sample}" !{task.process}/!{sample}/lineage_report.csv | cut -f $status_column -d ",")
     else
       pangolin_lineage="Not Found"
     fi
 
     if [ -n "$scorpio_column" ]
     then
-      pangolin_scorpio=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $scorpio_column -d ",")
+      pangolin_scorpio=$(grep "!{sample}" !{task.process}/!{sample}/lineage_report.csv | cut -f $scorpio_column -d ",")
     else
       pangolin_lineage="Not Found"
     fi
@@ -1376,6 +1392,7 @@ vadr_files_sqc
     storeDir: "${params.outdir}/vadr")
 
 consensus_results
+  .concat(fastas_results)
 //tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
   .join(fastqc_1_results, remainder: true, by: 0)
   .join(fastqc_2_results, remainder: true, by: 0)
@@ -1466,51 +1483,96 @@ process summary {
     header="sample_id,sample"
     result="${sample_id},!{sample}"
 
-    header="$header,pangolin_lineage,pangolin_status,pangolin_scorpio_call"
-    result="$result,!{pangolin_lineage},!{pangolin_status},!{pangolin_scorpio}"
+    if [ "!{params.pangolin}" != "false" ]
+    then
+      header="$header,pangolin_lineage,pangolin_status,pangolin_scorpio_call"
+      result="$result,!{pangolin_lineage},!{pangolin_status},!{pangolin_scorpio}"
 
-    header="$header,nextclade_clade"
-    result="$result,!{nextclade_clade}"
+      header="$header,pangolin_version,pangolearn_version,constellations_version,scorpio_version"
+      result="$result,!{pangolin_version},!{pangolearn_version},!{constellations_version},!{scorpio_version}"
+    fi
 
-    header="$header,fastqc_raw_reads_1,fastqc_raw_reads_2"
-    result="$result,!{raw_1},!{raw_2}"
+    if [ "!{params.nextclade}" != "false" ]
+    then
+      header="$header,nextclade_clade,nextclade_version"
+      result="$result,!{nextclade_clade},!{nextclade_version}"
+    fi
 
-    header="$header,seqyclean_pairs_kept_after_cleaning,seqyclean_percent_kept_after_cleaning"
-    result="$result,!{pairskept},!{perc_kept}"
+    if [ "!{params.fastqc}" != "false" ]
+    then
+      header="$header,fastqc_raw_reads_1,fastqc_raw_reads_2"
+      result="$result,!{raw_1},!{raw_2}"
+    fi
 
-    header="$header,fastp_reads_passed"
-    result="$result,!{reads_passed}"
+    if [ "!{params.cleaner}" == "seqyclean" ]
+    then
+      header="$header,seqyclean_pairs_kept_after_cleaning,seqyclean_percent_kept_after_cleaning"
+      result="$result,!{pairskept},!{perc_kept}"
+    fi
 
-    header="$header,depth_after_trimming,1X_coverage_after_trimming"
-    result="$result,!{covdepth},!{coverage}"
+    if [ "!{params.cleaner}" == "fastp" ]
+    then
+      header="$header,fastp_reads_passed"
+      result="$result,!{reads_passed}"
+    fi
 
-    header="$header,num_pos_!{params.minimum_depth}X"
-    result="$result,!{depth}"
+    if [ "!{params.samtools_coverage}" != "false" ]
+    then
+      header="$header,depth_after_trimming,1X_coverage_after_trimming"
+      result="$result,!{covdepth},!{coverage}"
+    fi
 
-    header="$header,insert_size_before_trimming,insert_size_after_trimming"
-    result="$result,!{samtools_stats_before_size_results},!{samtools_stats_after_size_results}"
+    if [ "!{params.samtools_depth}" != "false" ]
+    then
+      header="$header,num_pos_!{params.minimum_depth}X"
+      result="$result,!{depth}"
+    fi
 
-    organism=$(echo "!{params.kraken2_organism}" | sed 's/ /_/g')
-    header="$header,%_human_reads,percent_${organism}_reads"
-    result="$result,!{percentage_human},!{percentage_cov}"
+    if [ "!{params.samtools_stats}" != "false" ]
+    then
+      header="$header,insert_size_before_trimming,insert_size_after_trimming"
+      result="$result,!{samtools_stats_before_size_results},!{samtools_stats_after_size_results}"
+    fi
 
-    header="$header,ivar_num_variants_identified,bcftools_variants_identified"
-    result="$result,!{ivar_variants},!{bcftools_variants}"
+    if [ "!{params.kraken2}" != "false" ]
+    then
+      organism=$(echo "!{params.kraken2_organism}" | sed 's/ /_/g')
+      header="$header,%_human_reads,percent_${organism}_reads"
+      result="$result,!{percentage_human},!{percentage_cov}"
+    fi
 
-    header="$header,bedtools_num_failed_amplicons,samtools_num_failed_amplicons"
-    result="$result,!{bedtools_num_failed_amplicons},!{samtools_num_failed_amplicons}"
+    if [ "!{params.ivar_variants}" != "false" ]
+    then
+      header="$header,ivar_num_variants_identified"
+      result="$result,!{ivar_variants}"
+    fi
 
-    header="$header,vadr_conclusion"
-    result="$result,!{vadr_results}"
+    if [ "!{params.bcftools_variants}" != "false" ]
+    then
+      header="$header,bcftools_variants_identified"
+      result="$result,!{bcftools_variants}"
+    fi
+
+    if [ "!{params.bedtools_multicov}" != "false" ]
+    then
+      header="$header,bedtools_num_failed_amplicons"
+      result="$result,!{bedtools_num_failed_amplicons}"
+    fi
+
+    if [ "!{params.samtools_ampliconstats}" != "false" ]
+    then
+      header="$header,samtools_num_failed_amplicons"
+      result="$result,!{samtools_num_failed_amplicons}"
+    fi
+
+    if [ "!{params.vadr}" != "false" ]
+    then
+      header="$header,vadr_conclusion"
+      result="$result,!{vadr_results}"
+    fi
 
     header="$header,num_N,num_degenerage,num_non-ambiguous,num_total"
     result="$result,!{num_N},!{num_degenerate},!{num_ACTG},!{num_total}"
-
-    header="$header,pangolin_version,pangolearn_version,constellations_version,scorpio_version"
-    result="$result,!{pangolin_version},!{pangolearn_version},!{constellations_version},!{scorpio_version}"
-
-    header="$header,nextclade_version"
-    result="$result,!{nextclade_version}"
 
     header="$header,cleaner_version,aligner_version,trimmer_version,ivar_version"
     result="$result,!{cleaner_version},!{aligner_version},!{trimmer_version},!{ivar_version}"
