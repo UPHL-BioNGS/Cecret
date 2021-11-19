@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.2.1.2021117.1")
+println("Version: v.2.1.20211120")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -200,7 +200,7 @@ if ( params.cleaner == 'seqyclean' ) {
     container 'staphb/seqyclean:latest'
 
     when:
-    params.cleaner == 'seqyclean' && sample != null
+    sample != null
 
     input:
     tuple val(sample), file(reads), val(paired_single) from fastq_reads_seqyclean
@@ -272,6 +272,9 @@ if ( params.cleaner == 'seqyclean' ) {
     tag "${sample}"
     cpus 1
     container 'bromberglab/fastp:latest'
+
+    when:
+    sample != null
 
     input:
     tuple val(sample), file(reads), val(paired_single) from fastq_reads_fastp
@@ -403,7 +406,7 @@ process sort {
 
   output:
   tuple sample, file("aligned/${sample}.sorted.bam") into pre_trim_bams, pre_trim_bams2
-  tuple sample, file("aligned/${sample}.sorted.bam"), file("aligned/${sample}.sorted.bam.bai") into pre_trim_bams_bamsnap
+  tuple sample, file("aligned/${sample}.sorted.bam"), file("aligned/${sample}.sorted.bam.bai") into pre_trim_bams_bamsnap, pre_trim_bams_bedtools
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -535,8 +538,12 @@ if (params.trimmer == 'ivar' ) {
     '''
   }
 } else if (params.trimmer == 'none') {
+  trimmer_version=Channel.empty()
+  trimmed_bams4=Channel.empty()
   pre_trim_bams
-    .into { trimmed_bams ; trimmed_bams4 ; trimmed_bams5 }
+    .into { trimmed_bams ; trimmed_bams5 }
+  pre_trim_bams_bedtools
+    .set { bam_bai }
 }
 
 trimmed_bams
@@ -676,6 +683,8 @@ process fasta_prep {
   tuple val(sample), file(fasta) from fastas
 
   output:
+  tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into fastas_results
+  //tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
   tuple sample, file("${task.process}/${fasta}") optional true into fastas_rename, fastas_pangolin, fastas_vadr, fastas_nextclade
   file("${task.process}/${fasta}") into fastas_msa
 
@@ -689,6 +698,15 @@ process fasta_prep {
     then
       echo ">!{sample}" > !{task.process}/!{fasta}
       grep -v ">" !{fasta} | fold -w 75 >> !{task.process}/!{fasta}
+
+      num_N=$(grep -v ">" !{fasta} | grep -o 'N' | wc -l )
+      num_ACTG=$(grep -v ">" !{fasta} | grep -o -E "C|A|T|G" | wc -l )
+      num_degenerate=$(grep -v ">" !{fasta} | grep -o -E "B|D|E|F|H|I|J|K|L|M|O|P|Q|R|S|U|V|W|X|Y|Z" | wc -l )
+
+      if [ -z "$num_N" ] ; then num_N="0" ; fi
+      if [ -z "$num_ACTG" ] ; then num_ACTG="0" ; fi
+      if [ -z "$num_degenerate" ] ; then num_degenerate="0" ; fi
+      num_total=$(( $num_N + $num_degenerate + $num_ACTG ))
     fi
   '''
 }
@@ -796,7 +814,7 @@ process bamsnap {
 }
 
 pre_trim_bams2
-   .combine(trimmed_bams4, by: 0)
+   .join(trimmed_bams4, remainder: true, by: 0)
    .into { pre_post_bams ; pre_post_bams2 ; pre_post_bams3 ; pre_post_bams4 }
 
 params.samtools_stats_options = ''
@@ -814,7 +832,7 @@ process samtools_stats {
 
   output:
   file("${task.process}/aligned/${sample}.stats.txt")
-  file("${task.process}/trimmed/${sample}.stats.trim.txt")
+  file("${task.process}/trimmed/${sample}.stats.trim.txt") optional true
   tuple sample, env(insert_size_before_trimming) into samtools_stats_before_size_results
   tuple sample, env(insert_size_after_trimming) into samtools_stats_after_size_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
@@ -829,10 +847,18 @@ process samtools_stats {
     samtools --version >> $log_file
 
     samtools stats !{params.samtools_stats_options} !{aligned} 2>> $err_file > !{task.process}/aligned/!{sample}.stats.txt
-    samtools stats !{params.samtools_stats_options} !{trimmed} 2>> $err_file > !{task.process}/trimmed/!{sample}.stats.trim.txt
 
+    if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
+    then
+      insert_size_after_trimming="NA"
+    else
+      samtools stats !{params.samtools_stats_options} !{trimmed} 2>> $err_file > !{task.process}/trimmed/!{sample}.stats.trim.txt
+      insert_size_after_trimming=$(grep "insert size average" !{task.process}/trimmed/!{sample}.stats.trim.txt | cut -f 3)
+    fi
     insert_size_before_trimming=$(grep "insert size average" !{task.process}/aligned/!{sample}.stats.txt | cut -f 3)
-    insert_size_after_trimming=$(grep "insert size average" !{task.process}/trimmed/!{sample}.stats.trim.txt | cut -f 3)
+
+    if [ -z "$insert_size_before_trimming" ] ; then insert_size_before_trimming=0 ; fi
+    if [ -z "$insert_size_after_trimming" ] ; then insert_size_after_trimming=0 ; fi
   '''
 }
 
@@ -850,7 +876,7 @@ process samtools_coverage {
   tuple val(sample), file(aligned), file(trimmed) from pre_post_bams2
 
   output:
-  file("${task.process}/{aligned,trimmed}/${sample}.cov.{txt,hist}")
+  file("${task.process}/{aligned,trimmed}/${sample}.cov.{txt,hist}") optional true
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(coverage) into samtools_coverage_results
   tuple sample, env(depth) into samtools_covdepth_results
@@ -866,13 +892,20 @@ process samtools_coverage {
 
     samtools coverage !{params.samtools_coverage_options} !{aligned} -m -o !{task.process}/aligned/!{sample}.cov.hist 2>> $err_file >> $log_file
     samtools coverage !{params.samtools_coverage_options} !{aligned}    -o !{task.process}/aligned/!{sample}.cov.txt 2>> $err_file >> $log_file
-    samtools coverage !{params.samtools_coverage_options} !{trimmed} -m -o !{task.process}/trimmed/!{sample}.cov.trim.hist 2>> $err_file >> $log_file
-    samtools coverage !{params.samtools_coverage_options} !{trimmed}    -o !{task.process}/trimmed/!{sample}.cov.trim.txt 2>> $err_file >> $log_file
 
-    coverage=$(cut -f 6 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
-    depth=$(cut -f 7 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
-    if [ -z "$coverage" ] ; then coverage_trim="0" ; fi
-    if [ -z "$depth" ] ; then depth_trim="0" ; fi
+    if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
+    then
+      coverage=$(cut -f 6 !{task.process}/aligned/!{sample}.cov.trim.txt | tail -n 1)
+      depth=$(cut -f 7 !{task.process}/aligned/!{sample}.cov.trim.txt | tail -n 1)
+    else
+      samtools coverage !{params.samtools_coverage_options} !{trimmed} -m -o !{task.process}/trimmed/!{sample}.cov.trim.hist 2>> $err_file >> $log_file
+      samtools coverage !{params.samtools_coverage_options} !{trimmed}    -o !{task.process}/trimmed/!{sample}.cov.trim.txt 2>> $err_file >> $log_file
+      coverage=$(cut -f 6 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
+      depth=$(cut -f 7 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
+    fi
+
+    if [ -z "$coverage" ] ; then coverage="0" ; fi
+    if [ -z "$depth" ] ; then depth="0" ; fi
   '''
 }
 
@@ -890,7 +923,7 @@ process samtools_flagstat {
   params.samtools_flagstat
 
   output:
-  file("${task.process}/{aligned,trimmed}/${sample}.flagstat.txt")
+  file("${task.process}/{aligned,trimmed}/${sample}.flagstat.txt") optional true
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -906,9 +939,14 @@ process samtools_flagstat {
       !{aligned} \
       2>> $err_file > !{task.process}/aligned/!{sample}.flagstat.txt
 
-    samtools flagstat !{params.samtools_flagstat_options} \
-      !{trimmed} \
-      2>> $err_file > !{task.process}/trimmed/!{sample}.flagstat.txt
+    if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
+    then
+      echo "No trimmed bam"
+    else
+      samtools flagstat !{params.samtools_flagstat_options} \
+        !{trimmed} \
+        2>> $err_file > !{task.process}/trimmed/!{sample}.flagstat.txt
+    fi
   '''
 }
 
@@ -926,7 +964,7 @@ process samtools_depth {
   params.samtools_depth
 
   output:
-  file("${task.process}/{aligned,trimmed}/${sample}.depth.txt")
+  file("${task.process}/{aligned,trimmed}/${sample}.depth.txt") optional true
   tuple sample, env(depth) into samtools_depth_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
@@ -943,11 +981,16 @@ process samtools_depth {
       !{aligned} \
       2>> $err_file > !{task.process}/aligned/!{sample}.depth.txt
 
-    samtools depth !{params.samtools_depth_options} \
-      !{trimmed} \
-      2>> $err_file > !{task.process}/trimmed/!{sample}.depth.txt
+    if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
+    then
+      depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/aligned/!{sample}.depth.txt | wc -l )
+    else
+      samtools depth !{params.samtools_depth_options} \
+        !{trimmed} \
+        2>> $err_file > !{task.process}/trimmed/!{sample}.depth.txt
+      depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/trimmed/!{sample}.depth.txt | wc -l )
+    fi
 
-    depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/trimmed/!{sample}.depth.txt | wc -l )
     if [ -z "$depth" ] ; then depth="0" ; fi
   '''
 }
@@ -1136,7 +1179,7 @@ process pangolin {
 
   output:
   file("${task.process}/${sample}/lineage_report.csv") into pangolin_files
-  tuple sample, env(pangolin_lineage) into pangolin_lineage
+  tuple sample, env(pangolin_lineage) into pangolin_lineage, pangolin_lineage2
   tuple sample, env(pangolin_status) into pangolin_status
   tuple sample, env(pangolin_scorpio) into pangolin_scorpio
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
@@ -1171,21 +1214,21 @@ process pangolin {
 
     if [ -n "$lineage_column" ]
     then
-      pangolin_lineage=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $lineage_column -d ",")
+      pangolin_lineage=$(grep "!{sample}" !{task.process}/!{sample}/lineage_report.csv | cut -f $lineage_column -d ",")
     else
       pangolin_lineage="Not Found"
     fi
 
     if [ -n "$status_column" ]
     then
-      pangolin_status=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $status_column -d ",")
+      pangolin_status=$(grep "!{sample}" !{task.process}/!{sample}/lineage_report.csv | cut -f $status_column -d ",")
     else
       pangolin_lineage="Not Found"
     fi
 
     if [ -n "$scorpio_column" ]
     then
-      pangolin_scorpio=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/lineage_report.csv | cut -f $scorpio_column -d ",")
+      pangolin_scorpio=$(grep "!{sample}" !{task.process}/!{sample}/lineage_report.csv | cut -f $scorpio_column -d ",")
     else
       pangolin_lineage="Not Found"
     fi
@@ -1376,6 +1419,7 @@ vadr_files_sqc
     storeDir: "${params.outdir}/vadr")
 
 consensus_results
+  .concat(fastas_results)
 //tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
   .join(fastqc_1_results, remainder: true, by: 0)
   .join(fastqc_2_results, remainder: true, by: 0)
@@ -1466,51 +1510,96 @@ process summary {
     header="sample_id,sample"
     result="${sample_id},!{sample}"
 
-    header="$header,pangolin_lineage,pangolin_status,pangolin_scorpio_call"
-    result="$result,!{pangolin_lineage},!{pangolin_status},!{pangolin_scorpio}"
+    if [ "!{params.pangolin}" != "false" ]
+    then
+      header="$header,pangolin_lineage,pangolin_status,pangolin_scorpio_call"
+      result="$result,!{pangolin_lineage},!{pangolin_status},!{pangolin_scorpio}"
 
-    header="$header,nextclade_clade"
-    result="$result,!{nextclade_clade}"
+      header="$header,pangolin_version,pangolearn_version,constellations_version,scorpio_version"
+      result="$result,!{pangolin_version},!{pangolearn_version},!{constellations_version},!{scorpio_version}"
+    fi
 
-    header="$header,fastqc_raw_reads_1,fastqc_raw_reads_2"
-    result="$result,!{raw_1},!{raw_2}"
+    if [ "!{params.nextclade}" != "false" ]
+    then
+      header="$header,nextclade_clade,nextclade_version"
+      result="$result,!{nextclade_clade},!{nextclade_version}"
+    fi
 
-    header="$header,seqyclean_pairs_kept_after_cleaning,seqyclean_percent_kept_after_cleaning"
-    result="$result,!{pairskept},!{perc_kept}"
+    if [ "!{params.fastqc}" != "false" ]
+    then
+      header="$header,fastqc_raw_reads_1,fastqc_raw_reads_2"
+      result="$result,!{raw_1},!{raw_2}"
+    fi
 
-    header="$header,fastp_reads_passed"
-    result="$result,!{reads_passed}"
+    if [ "!{params.cleaner}" == "seqyclean" ]
+    then
+      header="$header,seqyclean_pairs_kept_after_cleaning,seqyclean_percent_kept_after_cleaning"
+      result="$result,!{pairskept},!{perc_kept}"
+    fi
 
-    header="$header,depth_after_trimming,1X_coverage_after_trimming"
-    result="$result,!{covdepth},!{coverage}"
+    if [ "!{params.cleaner}" == "fastp" ]
+    then
+      header="$header,fastp_reads_passed"
+      result="$result,!{reads_passed}"
+    fi
 
-    header="$header,num_pos_!{params.minimum_depth}X"
-    result="$result,!{depth}"
+    if [ "!{params.samtools_coverage}" != "false" ]
+    then
+      header="$header,depth_after_trimming,1X_coverage_after_trimming"
+      result="$result,!{covdepth},!{coverage}"
+    fi
 
-    header="$header,insert_size_before_trimming,insert_size_after_trimming"
-    result="$result,!{samtools_stats_before_size_results},!{samtools_stats_after_size_results}"
+    if [ "!{params.samtools_depth}" != "false" ]
+    then
+      header="$header,num_pos_!{params.minimum_depth}X"
+      result="$result,!{depth}"
+    fi
 
-    organism=$(echo "!{params.kraken2_organism}" | sed 's/ /_/g')
-    header="$header,%_human_reads,percent_${organism}_reads"
-    result="$result,!{percentage_human},!{percentage_cov}"
+    if [ "!{params.samtools_stats}" != "false" ]
+    then
+      header="$header,insert_size_before_trimming,insert_size_after_trimming"
+      result="$result,!{samtools_stats_before_size_results},!{samtools_stats_after_size_results}"
+    fi
 
-    header="$header,ivar_num_variants_identified,bcftools_variants_identified"
-    result="$result,!{ivar_variants},!{bcftools_variants}"
+    if [ "!{params.kraken2}" != "false" ]
+    then
+      organism=$(echo "!{params.kraken2_organism}" | sed 's/ /_/g')
+      header="$header,%_human_reads,percent_${organism}_reads"
+      result="$result,!{percentage_human},!{percentage_cov}"
+    fi
 
-    header="$header,bedtools_num_failed_amplicons,samtools_num_failed_amplicons"
-    result="$result,!{bedtools_num_failed_amplicons},!{samtools_num_failed_amplicons}"
+    if [ "!{params.ivar_variants}" != "false" ]
+    then
+      header="$header,ivar_num_variants_identified"
+      result="$result,!{ivar_variants}"
+    fi
 
-    header="$header,vadr_conclusion"
-    result="$result,!{vadr_results}"
+    if [ "!{params.bcftools_variants}" != "false" ]
+    then
+      header="$header,bcftools_variants_identified"
+      result="$result,!{bcftools_variants}"
+    fi
+
+    if [ "!{params.bedtools_multicov}" != "false" ]
+    then
+      header="$header,bedtools_num_failed_amplicons"
+      result="$result,!{bedtools_num_failed_amplicons}"
+    fi
+
+    if [ "!{params.samtools_ampliconstats}" != "false" ]
+    then
+      header="$header,samtools_num_failed_amplicons"
+      result="$result,!{samtools_num_failed_amplicons}"
+    fi
+
+    if [ "!{params.vadr}" != "false" ]
+    then
+      header="$header,vadr_conclusion"
+      result="$result,!{vadr_results}"
+    fi
 
     header="$header,num_N,num_degenerage,num_non-ambiguous,num_total"
     result="$result,!{num_N},!{num_degenerate},!{num_ACTG},!{num_total}"
-
-    header="$header,pangolin_version,pangolearn_version,constellations_version,scorpio_version"
-    result="$result,!{pangolin_version},!{pangolearn_version},!{constellations_version},!{scorpio_version}"
-
-    header="$header,nextclade_version"
-    result="$result,!{nextclade_version}"
 
     header="$header,cleaner_version,aligner_version,trimmer_version,ivar_version"
     result="$result,!{cleaner_version},!{aligner_version},!{trimmer_version},!{ivar_version}"
