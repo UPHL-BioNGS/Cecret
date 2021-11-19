@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.2.1.2021117.1")
+println("Version: v.2.1.2021120")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -540,8 +540,9 @@ if (params.trimmer == 'ivar' ) {
 } else if (params.trimmer == 'none') {
   bam_bai=Channel.empty()
   trimmer_version=Channel.empty()
+  trimmed_bams4=Channel.empty()
   pre_trim_bams
-    .into { trimmed_bams ; trimmed_bams4 ; trimmed_bams5 }
+    .into { trimmed_bams ; trimmed_bams5 }
 }
 
 trimmed_bams
@@ -812,7 +813,7 @@ process bamsnap {
 }
 
 pre_trim_bams2
-   .combine(trimmed_bams4, by: 0)
+   .join(trimmed_bams4, remainder: true, by: 0)
    .into { pre_post_bams ; pre_post_bams2 ; pre_post_bams3 ; pre_post_bams4 }
 
 params.samtools_stats_options = ''
@@ -845,10 +846,18 @@ process samtools_stats {
     samtools --version >> $log_file
 
     samtools stats !{params.samtools_stats_options} !{aligned} 2>> $err_file > !{task.process}/aligned/!{sample}.stats.txt
-    samtools stats !{params.samtools_stats_options} !{trimmed} 2>> $err_file > !{task.process}/trimmed/!{sample}.stats.trim.txt
 
+    if [ "!{trimmed}" != "null" ] || [[ "!{trimmed}" != *"input"* ]]
+    then
+      samtools stats !{params.samtools_stats_options} !{trimmed} 2>> $err_file > !{task.process}/trimmed/!{sample}.stats.trim.txt
+      insert_size_after_trimming=$(grep "insert size average" !{task.process}/trimmed/!{sample}.stats.trim.txt | cut -f 3)
+    else
+      insert_size_after_trimming="NA"
+    fi
     insert_size_before_trimming=$(grep "insert size average" !{task.process}/aligned/!{sample}.stats.txt | cut -f 3)
-    insert_size_after_trimming=$(grep "insert size average" !{task.process}/trimmed/!{sample}.stats.trim.txt | cut -f 3)
+
+    if [ -z "$insert_size_before_trimming" ] ; then insert_size_before_trimming=0 ; fi
+    if [ -z "$insert_size_after_trimming" ] ; then insert_size_after_trimming=0 ; fi
   '''
 }
 
@@ -866,7 +875,7 @@ process samtools_coverage {
   tuple val(sample), file(aligned), file(trimmed) from pre_post_bams2
 
   output:
-  file("${task.process}/{aligned,trimmed}/${sample}.cov.{txt,hist}")
+  file("${task.process}/{aligned,trimmed}/${sample}.cov.{txt,hist}") optional true
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(coverage) into samtools_coverage_results
   tuple sample, env(depth) into samtools_covdepth_results
@@ -882,11 +891,18 @@ process samtools_coverage {
 
     samtools coverage !{params.samtools_coverage_options} !{aligned} -m -o !{task.process}/aligned/!{sample}.cov.hist 2>> $err_file >> $log_file
     samtools coverage !{params.samtools_coverage_options} !{aligned}    -o !{task.process}/aligned/!{sample}.cov.txt 2>> $err_file >> $log_file
-    samtools coverage !{params.samtools_coverage_options} !{trimmed} -m -o !{task.process}/trimmed/!{sample}.cov.trim.hist 2>> $err_file >> $log_file
-    samtools coverage !{params.samtools_coverage_options} !{trimmed}    -o !{task.process}/trimmed/!{sample}.cov.trim.txt 2>> $err_file >> $log_file
 
-    coverage=$(cut -f 6 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
-    depth=$(cut -f 7 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
+    if [ "!{trimmed}" != "null" ] || [[ "!{trimmed}" != *"input"* ]]
+    then
+      samtools coverage !{params.samtools_coverage_options} !{trimmed} -m -o !{task.process}/trimmed/!{sample}.cov.trim.hist 2>> $err_file >> $log_file
+      samtools coverage !{params.samtools_coverage_options} !{trimmed}    -o !{task.process}/trimmed/!{sample}.cov.trim.txt 2>> $err_file >> $log_file
+      coverage=$(cut -f 6 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
+      depth=$(cut -f 7 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
+    else
+      coverage=$(cut -f 6 !{task.process}/aligned/!{sample}.cov.trim.txt | tail -n 1)
+      depth=$(cut -f 7 !{task.process}/aligned/!{sample}.cov.trim.txt | tail -n 1)
+    fi
+
     if [ -z "$coverage" ] ; then coverage_trim="0" ; fi
     if [ -z "$depth" ] ; then depth_trim="0" ; fi
   '''
@@ -906,7 +922,7 @@ process samtools_flagstat {
   params.samtools_flagstat
 
   output:
-  file("${task.process}/{aligned,trimmed}/${sample}.flagstat.txt")
+  file("${task.process}/{aligned,trimmed}/${sample}.flagstat.txt") optional true
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -922,9 +938,12 @@ process samtools_flagstat {
       !{aligned} \
       2>> $err_file > !{task.process}/aligned/!{sample}.flagstat.txt
 
-    samtools flagstat !{params.samtools_flagstat_options} \
-      !{trimmed} \
-      2>> $err_file > !{task.process}/trimmed/!{sample}.flagstat.txt
+    if [ "!{trimmed}" != "null" ] || [[ "!{trimmed}" != *"input"* ]]
+    then
+      samtools flagstat !{params.samtools_flagstat_options} \
+        !{trimmed} \
+        2>> $err_file > !{task.process}/trimmed/!{sample}.flagstat.txt
+    fi
   '''
 }
 
@@ -942,7 +961,7 @@ process samtools_depth {
   params.samtools_depth
 
   output:
-  file("${task.process}/{aligned,trimmed}/${sample}.depth.txt")
+  file("${task.process}/{aligned,trimmed}/${sample}.depth.txt") optional true
   tuple sample, env(depth) into samtools_depth_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
@@ -959,11 +978,16 @@ process samtools_depth {
       !{aligned} \
       2>> $err_file > !{task.process}/aligned/!{sample}.depth.txt
 
-    samtools depth !{params.samtools_depth_options} \
-      !{trimmed} \
-      2>> $err_file > !{task.process}/trimmed/!{sample}.depth.txt
+    if [ "!{trimmed}" != "null" ] || [[ "!{trimmed}" != *"input"* ]]
+    then
+      samtools depth !{params.samtools_depth_options} \
+        !{trimmed} \
+        2>> $err_file > !{task.process}/trimmed/!{sample}.depth.txt
+      depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/trimmed/!{sample}.depth.txt | wc -l )
+    else
+      depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/aligned/!{sample}.depth.txt | wc -l )
+    fi
 
-    depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/trimmed/!{sample}.depth.txt | wc -l )
     if [ -z "$depth" ] ; then depth="0" ; fi
   '''
 }
