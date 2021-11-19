@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.2.1.2021120")
+println("Version: v.2.1.20211120")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -406,7 +406,7 @@ process sort {
 
   output:
   tuple sample, file("aligned/${sample}.sorted.bam") into pre_trim_bams, pre_trim_bams2
-  tuple sample, file("aligned/${sample}.sorted.bam"), file("aligned/${sample}.sorted.bam.bai") into pre_trim_bams_bamsnap
+  tuple sample, file("aligned/${sample}.sorted.bam"), file("aligned/${sample}.sorted.bam.bai") into pre_trim_bams_bamsnap, pre_trim_bams_bedtools
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -538,11 +538,12 @@ if (params.trimmer == 'ivar' ) {
     '''
   }
 } else if (params.trimmer == 'none') {
-  bam_bai=Channel.empty()
   trimmer_version=Channel.empty()
   trimmed_bams4=Channel.empty()
   pre_trim_bams
     .into { trimmed_bams ; trimmed_bams5 }
+  pre_trim_bams_bedtools
+    .set { bam_bai }
 }
 
 trimmed_bams
@@ -831,7 +832,7 @@ process samtools_stats {
 
   output:
   file("${task.process}/aligned/${sample}.stats.txt")
-  file("${task.process}/trimmed/${sample}.stats.trim.txt")
+  file("${task.process}/trimmed/${sample}.stats.trim.txt") optional true
   tuple sample, env(insert_size_before_trimming) into samtools_stats_before_size_results
   tuple sample, env(insert_size_after_trimming) into samtools_stats_after_size_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
@@ -847,12 +848,12 @@ process samtools_stats {
 
     samtools stats !{params.samtools_stats_options} !{aligned} 2>> $err_file > !{task.process}/aligned/!{sample}.stats.txt
 
-    if [ "!{trimmed}" != "null" ] || [[ "!{trimmed}" != *"input"* ]]
+    if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
     then
+      insert_size_after_trimming="NA"
+    else
       samtools stats !{params.samtools_stats_options} !{trimmed} 2>> $err_file > !{task.process}/trimmed/!{sample}.stats.trim.txt
       insert_size_after_trimming=$(grep "insert size average" !{task.process}/trimmed/!{sample}.stats.trim.txt | cut -f 3)
-    else
-      insert_size_after_trimming="NA"
     fi
     insert_size_before_trimming=$(grep "insert size average" !{task.process}/aligned/!{sample}.stats.txt | cut -f 3)
 
@@ -892,19 +893,19 @@ process samtools_coverage {
     samtools coverage !{params.samtools_coverage_options} !{aligned} -m -o !{task.process}/aligned/!{sample}.cov.hist 2>> $err_file >> $log_file
     samtools coverage !{params.samtools_coverage_options} !{aligned}    -o !{task.process}/aligned/!{sample}.cov.txt 2>> $err_file >> $log_file
 
-    if [ "!{trimmed}" != "null" ] || [[ "!{trimmed}" != *"input"* ]]
+    if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
     then
+      coverage=$(cut -f 6 !{task.process}/aligned/!{sample}.cov.trim.txt | tail -n 1)
+      depth=$(cut -f 7 !{task.process}/aligned/!{sample}.cov.trim.txt | tail -n 1)
+    else
       samtools coverage !{params.samtools_coverage_options} !{trimmed} -m -o !{task.process}/trimmed/!{sample}.cov.trim.hist 2>> $err_file >> $log_file
       samtools coverage !{params.samtools_coverage_options} !{trimmed}    -o !{task.process}/trimmed/!{sample}.cov.trim.txt 2>> $err_file >> $log_file
       coverage=$(cut -f 6 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
       depth=$(cut -f 7 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
-    else
-      coverage=$(cut -f 6 !{task.process}/aligned/!{sample}.cov.trim.txt | tail -n 1)
-      depth=$(cut -f 7 !{task.process}/aligned/!{sample}.cov.trim.txt | tail -n 1)
     fi
 
-    if [ -z "$coverage" ] ; then coverage_trim="0" ; fi
-    if [ -z "$depth" ] ; then depth_trim="0" ; fi
+    if [ -z "$coverage" ] ; then coverage="0" ; fi
+    if [ -z "$depth" ] ; then depth="0" ; fi
   '''
 }
 
@@ -938,8 +939,10 @@ process samtools_flagstat {
       !{aligned} \
       2>> $err_file > !{task.process}/aligned/!{sample}.flagstat.txt
 
-    if [ "!{trimmed}" != "null" ] || [[ "!{trimmed}" != *"input"* ]]
+    if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
     then
+      echo "No trimmed bam"
+    else
       samtools flagstat !{params.samtools_flagstat_options} \
         !{trimmed} \
         2>> $err_file > !{task.process}/trimmed/!{sample}.flagstat.txt
@@ -978,14 +981,14 @@ process samtools_depth {
       !{aligned} \
       2>> $err_file > !{task.process}/aligned/!{sample}.depth.txt
 
-    if [ "!{trimmed}" != "null" ] || [[ "!{trimmed}" != *"input"* ]]
+    if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
     then
+      depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/aligned/!{sample}.depth.txt | wc -l )
+    else
       samtools depth !{params.samtools_depth_options} \
         !{trimmed} \
         2>> $err_file > !{task.process}/trimmed/!{sample}.depth.txt
       depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/trimmed/!{sample}.depth.txt | wc -l )
-    else
-      depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/aligned/!{sample}.depth.txt | wc -l )
     fi
 
     if [ -z "$depth" ] ; then depth="0" ; fi
