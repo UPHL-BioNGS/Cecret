@@ -3,18 +3,28 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.2.1.20211120")
+println("Version: v.2.2.20211209")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
 params.single_reads = workflow.launchDir + '/single_reads'
 params.fastas = workflow.launchDir + '/fastas'
+params.multifastas = workflow.launchDir + '/multifastas'
+
 if ( params.reads == params.single_reads ) {
   println("'params.reads' and 'params.single_reads' cannot point to the same directory!")
   println("'params.reads' is set to " + params.reads)
   println("'params.single_reads' is set to " + params.single_reads)
   exit 1
 }
+
+if ( params.fastas == params.multifastas ) {
+  println("'params.fastas' and 'params.multifastas' cannot point to the same directory!")
+  println("'params.fastas' is set to " + params.fastas)
+  println("'params.multifastas' is set to " + params.multifastas)
+  exit 1
+}
+
 params.outdir = workflow.launchDir + '/cecret'
 
 Channel
@@ -36,9 +46,15 @@ Channel
   .view { "Fasta file found : ${it[0]}" }
   .into { fastas_check ; fastas }
 
+Channel
+  .fromPath("${params.multifastas}/*{.fa,.fasta,.fna}", type:'file')
+  .view { "MultiFasta file found : ${it}" }
+  .into { multifastas_check ; multifastas_pangolin ; multifastas_vadr ; multifastas_nextclade }
+
 paried_reads_check
   .concat(single_reads_check)
   .concat(fastas_check)
+  .concat(multifastas_check)
   .ifEmpty{
     println("FATAL : No input files were found!")
     println("No paired-end fastq files were found at ${params.reads}." )
@@ -47,6 +63,8 @@ paried_reads_check
     println("Set 'params.single_reads' to directory with single-end reads")
     println("No fasta files were found at ${params.fastas}." )
     println("Set 'params.fastas' to directory with fastas.")
+    println("No multifasta files were found at ${params.fastas}." )
+    println("Set 'params.multifastas' to directory with multifastas.")
     exit 1
   }
 
@@ -490,7 +508,7 @@ if (params.trimmer == 'ivar' ) {
       # time stamp + capturing tool versions
       date | tee -a $log_file $err_file > /dev/null
       ivar version >> $log_file
-      trimmer_version="ivar : $(ivar version)"
+      trimmer_version="ivar : $(ivar version | grep version)"
 
       # trimming the reads
       ivar trim !{params.ivar_trim_options} -e -i !{bam} -b !{primer_bed} -p !{task.process}/!{sample}.primertrim 2>> $err_file >> $log_file
@@ -627,8 +645,8 @@ process ivar_consensus {
   tuple val(sample), file(bam), file(reference_genome) from trimmed_bams_ivar_consensus
 
   output:
-  tuple sample, file("consensus/${sample}.consensus.fa") into consensus_rename, consensus_pangolin, consensus_vadr, consensus_nextclade
-  file("consensus/${sample}.consensus.fa") into consensus_msa
+  tuple sample, file("consensus/${sample}.consensus.fa") into consensus_rename
+  file("consensus/${sample}.consensus.fa") into consensus_pangolin, consensus_vadr, consensus_nextclade, consensus_msa
   file("consensus/${sample}.consensus.qual.txt")
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
@@ -674,7 +692,7 @@ process fasta_prep {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${fasta}"
   cpus 1
-  container 'staphb/parallel-perl:latest'
+  container 'docker://quay.io/biocontainers/pandas:1.1.5'
 
   when:
   sample != null && sample != 'input.1'
@@ -684,8 +702,7 @@ process fasta_prep {
 
   output:
   tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into fastas_results
-  //tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
-  tuple sample, file("${task.process}/${fasta}") optional true into fastas_rename, fastas_pangolin, fastas_vadr, fastas_nextclade
+  file("${task.process}/${fasta}") optional true into fastas_rename, fastas_pangolin, fastas_vadr, fastas_nextclade
   file("${task.process}/${fasta}") into fastas_msa
 
   shell:
@@ -1167,95 +1184,20 @@ process samtools_plot_ampliconstats {
 params.pangolin_options = ''
 process pangolin {
   publishDir "${params.outdir}", mode: 'copy'
-  tag "${sample}"
+  tag "SARS-CoV-2 lineage Determination"
   cpus params.medcpus
   container 'staphb/pangolin:latest'
+  stageInMode 'copy'
 
   when:
   params.pangolin
 
   input:
-  tuple val(sample), file(fasta) from consensus_pangolin.concat(fastas_pangolin)
+  file(fasta) from consensus_pangolin.concat(fastas_pangolin).concat(multifastas_pangolin).collect()
 
   output:
-  file("${task.process}/${sample}/lineage_report.csv") into pangolin_files
-  tuple sample, env(pangolin_lineage) into pangolin_lineage, pangolin_lineage2
-  tuple sample, env(pangolin_status) into pangolin_status
-  tuple sample, env(pangolin_scorpio) into pangolin_scorpio
-  file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
-  tuple sample, env(pangolin_version) into pangolin_version
-  tuple sample, env(pangolearn_version) into pangolearn_version
-  tuple sample, env(constellations_version) into constellations_version
-  tuple sample, env(scorpio_version) into scorpio_version
-
-  shell:
-  '''
-    mkdir -p !{task.process} logs/!{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
-
-    date | tee -a $log_file $err_file > /dev/null
-    pangolin --version >> $log_file
-    pangolin --pangoLEARN-version >> $log_file
-
-    pangolin_version=$(pangolin --all-versions | grep pangolin | cut -d ' ' -f 2)
-    pangolearn_version=$(pangolin --all-versions | grep pangolearn | cut -d ' ' -f 2)
-    constellations_version=$(pangolin --all-versions | grep constellations | cut -d ' ' -f 2)
-    scorpio_version=$(pangolin --all-versions | grep scorpio | cut -d ' ' -f 2)
-
-    pangolin !{params.pangolin_options} \
-      --outdir !{task.process}/!{sample}   \
-      !{fasta} \
-      2>> $err_file >> $log_file
-
-    lineage_column=$(head -n 1 !{task.process}/!{sample}/lineage_report.csv | tr ',' '\\n' | grep -n "lineage"      | cut -f 1 -d ":" )
-    status_column=$(head  -n 1 !{task.process}/!{sample}/lineage_report.csv | tr ',' '\\n' | grep -n "status"       | cut -f 1 -d ":" )
-    scorpio_column=$(head -n 1 !{task.process}/!{sample}/lineage_report.csv | tr ',' '\\n' | grep -n "scorpio_call" | cut -f 1 -d ":" )
-
-    if [ -n "$lineage_column" ]
-    then
-      pangolin_lineage=$(grep "!{sample}" !{task.process}/!{sample}/lineage_report.csv | cut -f $lineage_column -d ",")
-    else
-      pangolin_lineage="Not Found"
-    fi
-
-    if [ -n "$status_column" ]
-    then
-      pangolin_status=$(grep "!{sample}" !{task.process}/!{sample}/lineage_report.csv | cut -f $status_column -d ",")
-    else
-      pangolin_lineage="Not Found"
-    fi
-
-    if [ -n "$scorpio_column" ]
-    then
-      pangolin_scorpio=$(grep "!{sample}" !{task.process}/!{sample}/lineage_report.csv | cut -f $scorpio_column -d ",")
-    else
-      pangolin_lineage="Not Found"
-    fi
-
-    if [ -z "$pangolin_lineage" ] ; then pangolin_lineage="NA" ; fi
-    if [ -z "$pangolin_status" ]  ; then pangolin_status="NA"  ; fi
-    if [ -z "$pangolin_scorpio" ] ; then pangolin_scorpio="NA" ; fi
-  '''
-}
-
-pangolin_files
-  .collectFile(name: "combined_lineage_report.csv",
-    keepHeader: true,
-    sort: true,
-    storeDir: "${params.outdir}/pangolin")
-
-params.nextclade_prep_options = '--name sars-cov-2'
-process nextclade_prep {
-  tag "Downloading SARS-CoV-2 dataset"
-  cpus 1
-  container 'nextstrain/nextclade:latest'
-
-  when:
-  params.nextclade || params.msa == 'nextalign'
-
-  output:
-  path("${task.process}") into prepped_nextclade, prepped_nextalign
+  file("${task.process}/*")
+  file("${task.process}/lineage_report.csv") into pangolin_file
   file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -1265,69 +1207,72 @@ process nextclade_prep {
     err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
-    nextclade --version >> $log_file
+    pangolin --all-versions >> $log_file
 
-    nextclade dataset get !{params.nextclade_prep_options} --output-dir !{task.process}
+    for fasta in !{fasta}
+    do
+      cat $fasta >> ultimate_fasta.fasta
+    done
+
+    pangolin !{params.pangolin_options} \
+      --threads !{task.cpus} \
+      --outdir !{task.process} \
+      ultimate_fasta.fasta \
+      2>> $err_file >> $log_file
+    cp ultimate_fasta.fasta !{task.process}/combined.fasta
   '''
 }
 
 params.nextclade_options = ''
+params.nextclade_dataset = 'sars-cov-2'
 process nextclade {
   publishDir "${params.outdir}", mode: 'copy'
-  tag "${sample}"
+  tag "Clade Determination"
   cpus params.medcpus
   container 'nextstrain/nextclade:latest'
 
   when:
-  params.nextclade
+  params.nextclade || params.msa == 'nextalign'
 
   input:
-  tuple val(sample), file(fasta), path(dataset) from consensus_nextclade.concat(fastas_nextclade).combine(prepped_nextclade)
+  file(fasta) from consensus_nextclade.concat(fastas_nextclade).concat(multifastas_nextclade).collect()
 
   output:
-  file("${task.process}/${sample}/${sample}_nextclade.csv") into nextclade_files
-  file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
-  tuple sample, env(nextclade_clade) into nextclade_clade_results
-  tuple sample, env(nextclade_version) into nextclade_version
+  file("${task.process}/nextclade.csv") into nextclade_file
+  file("${task.process}/*")
+  file("${task.process}/nextclade.aligned.fasta") into nextclade_aligned_fasta
+  file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p !{task.process}/!{sample} logs/!{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+    mkdir -p !{task.process} dataset logs/!{task.process}
+    log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     nextclade --version >> $log_file
     nextclade_version=$(nextclade --version)
 
+    nextclade dataset get --name !{params.nextclade_dataset} --output-dir dataset
+
+    for fasta in !{fasta}
+    do
+      cat $fasta >> ultimate_fasta.fasta
+    done
+
     nextclade !{params.nextclade_options} \
-      --input-fasta=!{fasta} \
-      --input-dataset !{dataset} \
-      --output-json=!{task.process}/!{sample}/!{sample}_nextclade.json \
-      --output-csv=!{task.process}/!{sample}/!{sample}_nextclade.csv \
-      --output-tsv=!{task.process}/!{sample}/!{sample}_nextclade.tsv \
-      --output-tree=!{task.process}/!{sample}/!{sample}_nextclade.auspice.json \
-      --output-dir=!{task.process}/!{sample} \
-      --output-basename=!{sample} \
+      --input-fasta=ultimate_fasta.fasta \
+      --input-dataset dataset \
+      --output-json=!{task.process}/nextclade.json \
+      --output-csv=!{task.process}/nextclade.csv \
+      --output-tsv=!{task.process}/nextclade.tsv \
+      --output-tree=!{task.process}/nextclade.auspice.json \
+      --output-dir=!{task.process} \
+      --output-basename=nextclade \
       2>> $err_file >> $log_file
-
-    nextclade_column=$(head -n 1 !{task.process}/!{sample}/!{sample}_nextclade.csv | tr ';' '\\n' | grep -wn "clade" | cut -f 1 -d ":" )
-    if [ -n "$nextclade_column" ]
-    then
-      nextclade_clade=$(cat !{task.process}/!{sample}/!{sample}_nextclade.csv | grep !{sample} | cut -f $nextclade_column -d ";" | sed 's/,/;/g' | sed 's/"//g' | head -n 1 )
-    else
-      nextclade_clade="Not Found"
-    fi
-
-    if [ -z "$nextclade_clade" ] ; then nextclade_clade="clade" ; fi
+    cp ultimate_fasta.fasta !{task.process}/combined.fasta
   '''
 }
-
-nextclade_files
-  .collectFile(name: "combined_nextclade_report.txt",
-    keepHeader: true,
-    sort: true,
-    storeDir: "${params.outdir}/nextclade")
 
 params.vadr_options = '--split --glsearch -s -r --nomisc --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn'
 params.vadr_reference = 'sarscov2'
@@ -1335,7 +1280,7 @@ params.vadr_mdir = '/opt/vadr/vadr-models'
 params.vadr_trim_options = '--minlen 50 --maxlen 30000'
 process vadr {
   publishDir "${params.outdir}", mode: 'copy'
-  tag "${sample}"
+  tag "QC metrics"
   cpus params.medcpus
   container 'staphb/vadr:latest'
 
@@ -1343,80 +1288,46 @@ process vadr {
   params.vadr
 
   input:
-  tuple val(sample), file(fasta) from consensus_vadr.concat(fastas_vadr)
+  file(fasta) from consensus_vadr.concat(fastas_vadr).concat(multifastas_vadr).collect()
 
   output:
-  file("${task.process}/${sample}/*") optional true
-  file("${task.process}/${sample}/${sample}.vadr.fail.fa") optional true into vadr_files_fail_fasta
-  file("${task.process}/${sample}/${sample}.vadr.fail.list") optional true into vadr_files_fail_list
-  file("${task.process}/${sample}/${sample}.vadr.pass.fa") optional true into vadr_files_pass_fasta
-  file("${task.process}/${sample}/${sample}.vadr.pass.list") optional true into vadr_files_pass_list
-  file("${task.process}/${sample}/${sample}.vadr.sqc") optional true into vadr_files_sqc
-  tuple sample, env(pass_fail) into vadr_results
-  file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
+  file("${task.process}/*") optional true
+  file("${task.process}/vadr.vadr.sqa") optional true into vadr_file
+  file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p logs/!{task.process} !{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+    mkdir -p logs/!{task.process}
+    log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     echo "no version" >> $log_file
     v-annotate.pl -h >> $log_file
 
-    fasta-trim-terminal-ambigs.pl !{params.vadr_trim_options} \
-      !{fasta} > trimmed_!{fasta}
+    for fasta in !{fasta}
+    do
+      cat $fasta >> ultimate_fasta.fasta
+    done
 
-    if [ -s "trimmed_!{fasta}" ]
+    fasta-trim-terminal-ambigs.pl !{params.vadr_trim_options} \
+      ultimate_fasta.fasta > trimmed_ultimate_fasta.fasta
+
+    if [ -s "trimmed_ultimate_fasta.fasta" ]
     then
       v-annotate.pl !{params.vadr_options} \
         --cpu !{task.cpus} \
         --noseqnamemax \
         --mkey !{params.vadr_reference} \
         --mdir !{params.vadr_mdir} \
-        trimmed_!{fasta} \
-        !{task.process}/!{sample} \
+        trimmed_ultimate_fasta.fasta \
+        !{task.process} \
         2>> $err_file >> $log_file
-
-      pass_fail=$(grep "Consensus_!{sample}.consensus_threshold" !{task.process}/!{sample}/!{sample}.vadr.sqc | awk '{print $4}')
-    else
-      pass_fail="FAIL"
     fi
-    if [ -z "$pass_fail" ] ; then pass_fail="NA" ; fi
+    cp ultimate_fasta.fasta !{task.process}/combined.fasta
+    cp trimmed_ultimate_fasta.fasta !{task.process}/trimmed.fasta
   '''
 }
-
-vadr_files_fail_fasta
-  .collectFile(name: "combined_vadr.fail.fasta",
-    keepHeader: false,
-    sort: false,
-    storeDir: "${params.outdir}/vadr")
-
-vadr_files_fail_list
-  .collectFile(name: "combined_vadr.fail.list",
-    keepHeader: false,
-    sort: true,
-    storeDir: "${params.outdir}/vadr")
-
-vadr_files_pass_fasta
-  .collectFile(name: "combined_vadr.pass.fasta",
-    keepHeader: false,
-    sort: false,
-    storeDir: "${params.outdir}/vadr")
-
-vadr_files_pass_list
-  .collectFile(name: "combined_vadr.pass.list",
-    keepHeader: false,
-    sort: true,
-    storeDir: "${params.outdir}/vadr")
-
-vadr_files_sqc
-  .collectFile(name: "combined_vadr.sqc",
-    keepHeader: true,
-    sort: true,
-    skip: 3,
-    storeDir: "${params.outdir}/vadr")
 
 consensus_results
   .concat(fastas_results)
@@ -1435,29 +1346,19 @@ consensus_results
   .join(samtools_stats_after_size_results, remainder: true, by: 0)
   .join(kraken2_human_results, remainder: true, by: 0)
   .join(kraken2_sars_results, remainder: true, by: 0)
-  .join(nextclade_clade_results, remainder: true, by: 0)
   .join(bedtools_results, remainder: true, by: 0)
   .join(samtools_ampliconstats_results, remainder: true, by: 0)
   .join(aligner_version, remainder: true, by: 0)
   .join(trimmer_version, remainder: true, by: 0)
   .join(cleaner_version, remainder: true, by: 0)
   .join(ivar_version, remainder: true, by: 0)
-  .join(pangolin_lineage, remainder: true, by: 0)
-  .join(pangolin_status, remainder: true, by: 0)
-  .join(pangolin_scorpio, remainder: true, by: 0)
-  .join(vadr_results, remainder: true, by: 0)
-  .join(pangolin_version, remainder: true, by: 0)
-  .join(pangolearn_version, remainder: true, by: 0)
-  .join(constellations_version, remainder: true, by: 0)
-  .join(scorpio_version, remainder: true, by: 0)
-  .join(nextclade_version, remainder: true, by: 0)
   .set { results }
 
 process summary {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${sample}"
   cpus 1
-  container 'staphb/parallel-perl:latest'
+  container 'docker://quay.io/biocontainers/pandas:1.1.5'
 
   input:
   tuple val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
@@ -1475,26 +1376,15 @@ process summary {
     val(samtools_stats_after_size_results),
     val(percentage_human),
     val(percentage_cov),
-    val(nextclade_clade),
     val(bedtools_num_failed_amplicons),
     val(samtools_num_failed_amplicons),
     val(aligner_version),
     val(trimmer_version),
     val(cleaner_version),
-    val(ivar_version),
-    val(pangolin_lineage),
-    val(pangolin_status),
-    val(pangolin_scorpio),
-    val(vadr_results),
-    val(pangolin_version),
-    val(pangolearn_version),
-    val(constellations_version),
-    val(scorpio_version),
-    val(nextclade_version) from results
+    val(ivar_version) from results
 
   output:
-  file("${task.process}/${sample}.summary.csv") into summary
-  file("${task.process}/${sample}.summary.txt") into summary2
+  file("${task.process}/${sample}.summary.csv") into summary_file, summary
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -1509,21 +1399,6 @@ process summary {
 
     header="sample_id,sample"
     result="${sample_id},!{sample}"
-
-    if [ "!{params.pangolin}" != "false" ]
-    then
-      header="$header,pangolin_lineage,pangolin_status,pangolin_scorpio_call"
-      result="$result,!{pangolin_lineage},!{pangolin_status},!{pangolin_scorpio}"
-
-      header="$header,pangolin_version,pangolearn_version,constellations_version,scorpio_version"
-      result="$result,!{pangolin_version},!{pangolearn_version},!{constellations_version},!{scorpio_version}"
-    fi
-
-    if [ "!{params.nextclade}" != "false" ]
-    then
-      header="$header,nextclade_clade,nextclade_version"
-      result="$result,!{nextclade_clade},!{nextclade_version}"
-    fi
 
     if [ "!{params.fastqc}" != "false" ]
     then
@@ -1592,12 +1467,6 @@ process summary {
       result="$result,!{samtools_num_failed_amplicons}"
     fi
 
-    if [ "!{params.vadr}" != "false" ]
-    then
-      header="$header,vadr_conclusion"
-      result="$result,!{vadr_results}"
-    fi
-
     header="$header,num_N,num_degenerage,num_non-ambiguous,num_total"
     result="$result,!{num_N},!{num_degenerate},!{num_ACTG},!{num_total}"
 
@@ -1606,24 +1475,56 @@ process summary {
 
     echo $header > !{task.process}/!{sample}.summary.csv
     echo $result >> !{task.process}/!{sample}.summary.csv
-
-    cat !{task.process}/!{sample}.summary.csv | tr ',' '\t' > !{task.process}/!{sample}.summary.txt
   '''
 }
 
 summary
-  .collectFile(name: "summary.csv",
-      keepHeader: true,
-      sort: true,
-      skip: 1,
-      storeDir: "${params.outdir}")
-
-summary2
-  .collectFile(name: "cecret_run_results.txt",
+  .collectFile(name: "combined_summary.csv",
     keepHeader: true,
     sort: true,
     skip: 1,
-    storeDir: "${workflow.launchDir}")
+    storeDir: "${params.outdir}/summary")
+
+process combine_results {
+  publishDir "${params.outdir}", mode: 'copy', overwrite: true
+  tag "Combining Results"
+  cpus 1
+  container 'docker://quay.io/biocontainers/pandas:1.1.5'
+
+  when:
+  params.nextclade || params.pangolin || params.vadr
+
+  input:
+  file(nextclade) from nextclade_file.ifEmpty([])
+  file(pangolin) from pangolin_file.ifEmpty([])
+  file(vadr) from vadr_file.ifEmpty([])
+  file(summary) from summary_file.collect()
+
+  output:
+  file("cecret_results.{csv,txt}")
+  file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+    mkdir -p summary logs/!{task.process}
+    log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
+
+    date | tee -a $log_file $err_file > /dev/null
+
+    cat !{summary} | head -n 1 > combined_summary.csv
+    for summary in !{summary}
+    do
+      tail -n +2 $summary >> combined_summary.csv
+    done
+
+    tail -n +2 !{vadr} | tr -s '[:blank:]' ',' > vadr.csv
+
+    python !{workflow.projectDir}/bin/combine_results.py
+
+    cat cecret_results.csv | tr ',' '\\t' > cecret_results.txt
+  '''
+}
 
 if (params.relatedness) {
   if ( params.msa == 'mafft' ) {
@@ -1700,6 +1601,9 @@ if (params.relatedness) {
           >> $log_file 2>> $err_file
       '''
     }
+  } else if ( params.msa == 'nextclade' ) {
+    nextclade_aligned_fasta
+      .into { msa_file ; msa_file2 }
   }
 
   params.snpdists_options = ''
@@ -1758,7 +1662,7 @@ if (params.relatedness) {
       date | tee -a $log_file $err_file > /dev/null
       iqtree2 --version >> $log_file
 
-      if [ -n "!{params.iqtree2_outgroup}" ] && [ "!{params.iqtree2_outgroup}" != "null" ]
+      if [ -n "!{params.iqtree2_outgroup}" ] && [ "!{params.iqtree2_outgroup}" != "null" ] && [ "!{params.msa}" != "nextclade" ]
       then
         outgroup="-o !{params.iqtree2_outgroup}"
         cat !{msa} | sed 's/!{params.iqtree2_outgroup}.*/!{params.iqtree2_outgroup}/g' > !{msa}.renamed
@@ -1831,8 +1735,17 @@ if (params.rename) {
   }
 }
 
-workflow.onComplete {
-    println("Pipeline completed at: $workflow.complete")
-    println("A summary of results can be found in a tab-delimited file: ${workflow.launchDir}/run_results.txt")
-    println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
+if (params.nextclade || params.nextclade || params.nextclade) {
+  workflow.onComplete {
+      println("Pipeline completed at: $workflow.complete")
+      println("A summary of results can be found in a tab-delimited file: ${params.outdir}/cecret_results.txt")
+      println("Or a comma-delimited file: ${params.outdir}/cecret_results.csv")
+      println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
+  }
+} else {
+  workflow.onComplete {
+      println("Pipeline completed at: $workflow.complete")
+      println("A summary of results can be found in a comma-delimited file: ${params.outdir}/summary.csv")
+      println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
+  }
 }

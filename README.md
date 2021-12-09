@@ -69,6 +69,15 @@ directory
      └── *fasta
 ```
 
+### MultiFasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.multifastas' or '--multifastas'
+```
+directory
+└── multifastas
+     └── *fasta
+```
+
+WARNING : fastas and multifastas **cannot** be in the same directory. If no fasta preprocessing is necessary, just put the single fastas in the multifastas directory.
+
 # Full workflow
 ![alt text](images/Cecret_DAG.drawio.png)
 
@@ -119,6 +128,14 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --msa nextalign
 ```
 Or set `params.msa = 'nextalign'` and `params.relatedness = true` in a config file
+
+### Using the aligned fasta from nextclade to for multiple sequence alignement instead of mafft or nextalign
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --msa nextclade
+```
+Or set `params.msa = 'nextclade'` and `params.relatedness = true` in a config file. 
+
+WARNING : the aligned fasta from nextclade does not include a reference sequence. If this is desired for iqtree2, a fasta of the reference MUST be included with the input files and the outgroup CAN be specified with `params.iqtree2_options = '-ninit 2 -n 2 -me 0.05 -m GTR -o <YOUR OUTGROUP>'`. Specifying the outgroup via `'params.iqtree2_outgroup'` will not be used.
 
 ### Classify reads with kraken2
 To classify reads with kraken2 to identify reads from human or the organism of choice
@@ -211,7 +228,6 @@ Sometimes sequencing fails, so there are parameters for how many non-ambiguous b
    <summary>Final File Tree after running cecret.nf</summary>
 
 ```
-cecret_run_results.txt                # information about the sequencing run that's compatible with UPHL's legacy workflows
 covid_samples.csv                     # only if supplied initially - used to rename files for submission
 cecret                                # results from this workflow
 ├── aligned                           # aligned (with aligner) but untrimmed bam files with indexes
@@ -231,6 +247,8 @@ cecret                                # results from this workflow
 │   ├── SRR13957125.multicov.txt
 │   ├── SRR13957170.multicov.txt
 │   └── SRR13957177.multicov.txt
+├── cecret_results.csv                # comma-delimeted summary of results
+├── cecret_results.txt                # tab-delimited summary of results
 ├── consensus                         # the likely reason you are running this workflow
 │   ├── SRR13957125.consensus.fa
 │   ├── SRR13957170.consensus.fa
@@ -301,21 +319,29 @@ cecret                                # results from this workflow
 ├── mafft                            # multiple sequence alignment created when 'params.relatedness = true' 
 │   └── mafft_aligned.fasta
 ├── nextclade                        # nextclade reports
-│   ├── combined_nextclade_report.txt
-│   ├── SRR13957125
-│   │   └── SRR13957125_nextclade.csv
-│   ├── SRR13957170
-│   │   └── SRR13957170_nextclade.csv
-│   └── SRR13957177
-│       └── SRR13957177_nextclade.csv
-├── pangolin                         # pangolin reports
-│   ├── combined_lineage_report.csv
-│   ├── SRR13957125
-│   │   └── lineage_report.csv
-│   ├── SRR13957170
-│   │   └── lineage_report.csv
-│   └── SRR13957177
-│       └── lineage_report.csv
+│   ├── combined.fasta
+│   ├── nextclade.aligned.fasta
+│   ├── nextclade.auspice.json
+│   ├── nextclade.csv
+│   ├── nextclade.errors.csv
+│   ├── nextclade.gene.E.fasta
+│   ├── nextclade.gene.M.fasta
+│   ├── nextclade.gene.N.fasta
+│   ├── nextclade.gene.ORF1a.fasta
+│   ├── nextclade.gene.ORF1b.fasta
+│   ├── nextclade.gene.ORF3a.fasta
+│   ├── nextclade.gene.ORF6.fasta
+│   ├── nextclade.gene.ORF7a.fasta
+│   ├── nextclade.gene.ORF7b.fasta
+│   ├── nextclade.gene.ORF8.fasta
+│   ├── nextclade.gene.ORF9b.fasta
+│   ├── nextclade.gene.S.fasta
+│   ├── nextclade.insertions.csv
+│   ├── nextclade.json
+│   └── nextclade.tsv
+├── pangolin                         # pangolin results
+│   ├── combined.fasta
+│   └── lineage_report.csv
 ├── samtools_ampliconstats           # amplicon statistics and metrics as determined by samtools
 │   ├── SRR13957125_ampliconstats.txt
 │   ├── SRR13957170_ampliconstats.txt
@@ -497,56 +523,33 @@ cecret                                # results from this workflow
 │   └── SRR13957177.summary.txt
 ├── summary.csv
 └── vadr                             # QC that mimics NCBI's metrics
-    ├── combined_vadr.fail.fasta
-    ├── combined_vadr.fail.list
-    ├── combined_vadr.pass.fasta
-    ├── combined_vadr.pass.list
-    ├── combined_vadr.sqc
-    ├── SRR13957125
-    │   ├── SRR13957125.vadr.alc
-    │   ├── SRR13957125.vadr.alt
-    │   ├── SRR13957125.vadr.alt.list
-    │   ├── SRR13957125.vadr.cmd
-    │   ├── SRR13957125.vadr.dcr
-    │   ├── SRR13957125.vadr.fail.fa
-    │   ├── SRR13957125.vadr.fail.list
-    │   ├── SRR13957125.vadr.fail.tbl
-    │   ├── SRR13957125.vadr.filelist
-    │   ├── SRR13957125.vadr.ftr
-    │   ├── SRR13957125.vadr.log
-    │   ├── SRR13957125.vadr.mdl
-    │   ├── SRR13957125.vadr.pass.fa
-    │   ├── SRR13957125.vadr.pass.list
-    │   ├── SRR13957125.vadr.pass.tbl
-    │   ├── SRR13957125.vadr.rpn
-    │   ├── SRR13957125.vadr.sda
-    │   ├── SRR13957125.vadr.seqstat
-    │   ├── SRR13957125.vadr.sgm
-    │   ├── SRR13957125.vadr.sqa
-    │   └── SRR13957125.vadr.sqc
-    └── SRR13957177
-        ├── SRR13957177.vadr.alc
-        ├── SRR13957177.vadr.alt
-        ├── SRR13957177.vadr.alt.list
-        ├── SRR13957177.vadr.cmd
-        ├── SRR13957177.vadr.dcr
-        ├── SRR13957177.vadr.fail.fa
-        ├── SRR13957177.vadr.fail.list
-        ├── SRR13957177.vadr.fail.tbl
-        ├── SRR13957177.vadr.filelist
-        ├── SRR13957177.vadr.ftr
-        ├── SRR13957177.vadr.log
-        ├── SRR13957177.vadr.mdl
-        ├── SRR13957177.vadr.pass.fa
-        ├── SRR13957177.vadr.pass.list
-        ├── SRR13957177.vadr.pass.tbl
-        ├── SRR13957177.vadr.rpn
-        ├── SRR13957177.vadr.sda
-        ├── SRR13957177.vadr.seqstat
-        ├── SRR13957177.vadr.sgm
-        ├── SRR13957177.vadr.sqa
-        └── SRR13957177.vadr.sqc
+    ├── combined.fasta
+    ├── trimmed.fasta
+    ├── vadr.vadr.alc
+    ├── vadr.vadr.alt
+    ├── vadr.vadr.alt.list
+    ├── vadr.vadr.cmd
+    ├── vadr.vadr.dcr
+    ├── vadr.vadr.fail.fa
+    ├── vadr.vadr.fail.list
+    ├── vadr.vadr.fail.tbl
+    ├── vadr.vadr.filelist
+    ├── vadr.vadr.ftr
+    ├── vadr.vadr.log
+    ├── vadr.vadr.mdl
+    ├── vadr.vadr.pass.fa
+    ├── vadr.vadr.pass.list
+    ├── vadr.vadr.pass.tbl
+    ├── vadr.vadr.rpn
+    ├── vadr.vadr.sda
+    ├── vadr.vadr.seqstat
+    ├── vadr.vadr.sgm
+    ├── vadr.vadr.sqa
+    └── vadr.vadr.sqc
 reads                                # user supplied fastq files for analysis
+single_reads                         # user supplied fastq files for analysis
+fastas                               # user supplied fasta files for analysis
+multifastas                          # user supplied multifasta files for analysis
 work                                 # nextflow's working directories
 
 ```
@@ -597,20 +600,18 @@ The expected amount of time to run this workflow with 250 G RAM and 48 CPUs, 'pa
 
 ## What if I just want to annotate some SARS-CoV-2 fastas with pangolin, nextclade and vadr?
 ```
-nextflow run UPHL-BioNGS/Cecret -profile singularity --fastas <directory with fastas>
+nextflow run UPHL-BioNGS/Cecret -profile singularity --fastas <directory with fastas> --multifastas <directory with multifastas>
 ```
-WARNING : Does not currently accept multi-fastas. If there is interest in such a feature, please [submit an issue](https://github.com/UPHL-BioNGS/Cecret/issues).
 
 The **End User** can run mafft, snpdists, and iqtree on a collection of fastas as well with
 ```
-nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas>
-```
-The **End User** can also have paired-end, singled-end, and fastas that can all be put together into one analysis.
-```
-nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas> --reads <directory with paire-end reads> --single_reads <directory with single-end reads>
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas> --multifastas <directory with multifastas>
 ```
 
-WARNING : Does not currently accept multi-fastas. If there is interest in such a feature, please [submit an issue](https://github.com/UPHL-BioNGS/Cecret/issues).
+The **End User** can also have paired-end, singled-end, and fastas that can all be put together into one analysis.
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas> --multifastas <directory with multifastas> --reads <directory with paire-end reads> --single_reads <directory with single-end reads>
+```
 
 ## Where is an example config file?
 The **End User** is more than welcome to look at an example [here](./configs/cecret_config_template.config). Just remove the comments for the parameters that need to be adjusted and specify with `-c`.
