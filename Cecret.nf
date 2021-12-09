@@ -702,7 +702,6 @@ process fasta_prep {
 
   output:
   tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into fastas_results
-  //tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
   file("${task.process}/${fasta}") optional true into fastas_rename, fastas_pangolin, fastas_vadr, fastas_nextclade
   file("${task.process}/${fasta}") into fastas_msa
 
@@ -1199,14 +1198,7 @@ process pangolin {
   output:
   file("${task.process}/*")
   file("${task.process}/lineage_report.csv") into pangolin_file
-  //tuple sample, env(pangolin_lineage) into pangolin_lineage, pangolin_lineage2
-  //tuple sample, env(pangolin_status) into pangolin_status
-  //tuple sample, env(pangolin_scorpio) into pangolin_scorpio
   file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
-  //tuple sample, env(pangolin_version) into pangolin_version
-  //tuple sample, env(pangolearn_version) into pangolearn_version
-  //tuple sample, env(constellations_version) into constellations_version
-  //tuple sample, env(scorpio_version) into scorpio_version
 
   shell:
   '''
@@ -1250,8 +1242,6 @@ process nextclade {
   file("${task.process}/*")
   file("${task.process}/nextclade.aligned.fasta") into nextclade_aligned_fasta
   file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
-//  tuple sample, env(nextclade_clade) into nextclade_clade_results
-//  tuple sample, env(nextclade_version) into nextclade_version
 
   shell:
   '''
@@ -1303,7 +1293,6 @@ process vadr {
   output:
   file("${task.process}/*") optional true
   file("${task.process}/vadr.vadr.sqa") optional true into vadr_file
-  //tuple sample, env(pass_fail) into vadr_results
   file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -1673,7 +1662,7 @@ if (params.relatedness) {
       date | tee -a $log_file $err_file > /dev/null
       iqtree2 --version >> $log_file
 
-      if [ -n "!{params.iqtree2_outgroup}" ] && [ "!{params.iqtree2_outgroup}" != "null" ]
+      if [ -n "!{params.iqtree2_outgroup}" ] && [ "!{params.iqtree2_outgroup}" != "null" ] && [ "!{params.msa}" != "nextclade" ]
       then
         outgroup="-o !{params.iqtree2_outgroup}"
         cat !{msa} | sed 's/!{params.iqtree2_outgroup}.*/!{params.iqtree2_outgroup}/g' > !{msa}.renamed
@@ -1746,8 +1735,17 @@ if (params.rename) {
   }
 }
 
-workflow.onComplete {
-    println("Pipeline completed at: $workflow.complete")
-    println("A summary of results can be found in a tab-delimited file: ${workflow.launchDir}/run_results.txt")
-    println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
+if (params.nextclade || params.nextclade || params.nextclade) {
+  workflow.onComplete {
+      println("Pipeline completed at: $workflow.complete")
+      println("A summary of results can be found in a tab-delimited file: ${params.outdir}/cecret_results.txt")
+      println("Or a comma-delimited file: ${params.outdir}/cecret_results.csv")
+      println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
+  }
+} else {
+  workflow.onComplete {
+      println("Pipeline completed at: $workflow.complete")
+      println("A summary of results can be found in a comma-delimited file: ${params.outdir}/summary.csv")
+      println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
+  }
 }
