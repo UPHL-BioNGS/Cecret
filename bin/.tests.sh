@@ -1,4 +1,5 @@
 #/bin/bash
+#nextflow ~/sandbox/Cecret/Cecret.nf -profile singularity --reads /home/eriny/sandbox/test_files/cecret/reads --outdir tests -with-tower -resume
 
 test=$1
 
