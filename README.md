@@ -49,14 +49,16 @@ nextflow run UPHL-BioNGS/Cecret -profile docker
 # Default file structure 
 (can be adjusted with 'params.reads', 'params.single_reads', and 'params.fastas')
 
-### Paired-end fastq.gz (ending with 'fastq', 'fastq.gz', 'fq', or 'fq.gz') reads as follows or designate directory with 'params.reads' or '--reads'
+### Paired-end fastq.gz 
+Paired-end fastq.gz (ending with 'fastq', 'fastq.gz', 'fq', or 'fq.gz') reads as follows or designate directory with 'params.reads' or '--reads'
 ```
 directory
 └── reads
      └── *fastq.gz
 ```
 
-### Single-end fastq.gz reads as follows or designate directory with 'params.single_reads' or '--single_reads'
+### Single-end fastq.gz reads 
+Single-end fastq.gz reads as follows or designate directory with 'params.single_reads' or '--single_reads'
 ```
 directory
 └── single_reads
@@ -65,14 +67,16 @@ directory
 
 WARNING : single and paired-end reads **cannot** be in the same directory
 
-### Fasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.fastas' or '--fastas'
+### Fasta files 
+Fasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.fastas' or '--fastas'
 ```
 directory
 └── fastas
      └── *fasta
 ```
 
-### MultiFasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.multifastas' or '--multifastas'
+### MultiFasta files 
+MultiFasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.multifastas' or '--multifastas'
 ```
 directory
 └── multifastas
