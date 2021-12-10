@@ -12,7 +12,6 @@ It is possible to use this workflow to simply annotate fastas generated from any
 
 Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_toolkit).
 
-
 # Dependencies
 
 - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html)
@@ -22,28 +21,24 @@ Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_to
 
 # Usage
 
-## Downloading this repo with git
-
-```
-git clone https://github.com/UPHL-BioNGS/Cecret.git
-```
-
-### Start the workflow
-
-```
-# using singularity
-nextflow run Cecret.nf -c configs/singularity.config
-# using docker
-nextflow run Cecret.nf -c configs/docker.config
-```
-
-## Running from this github repository
+## Option 1. Running from this github repository
 
 ```
 # using singularity
 nextflow run UPHL-BioNGS/Cecret -profile singularity
 # using docker
 nextflow run UPHL-BioNGS/Cecret -profile docker
+```
+
+## Option 2. Downloading this repository with git and specifying a config file
+
+```
+git clone https://github.com/UPHL-BioNGS/Cecret.git
+
+# using singularity
+nextflow run Cecret.nf -c configs/singularity.config
+# using docker
+nextflow run Cecret.nf -c configs/docker.config
 ```
 
 # Default file structure 
@@ -57,8 +52,11 @@ directory
      └── *fastq.gz
 ```
 
-### Single-end fastq.gz reads 
+WARNING : Sometimes nextflow does not catch every name of paired-end fastq files. This workflow is meant to be fairly agnostic, but if paired-end fastq files are not being found it might be worth renaming them to some sort of `sample_1.fastq.gz` format.
+
+### Single-end fastq.gz reads
 Single-end fastq.gz reads as follows or designate directory with 'params.single_reads' or '--single_reads'
+
 ```
 directory
 └── single_reads
@@ -88,6 +86,17 @@ WARNING : fastas and multifastas **cannot** be in the same directory. If no fast
 # Full workflow
 ![alt text](images/Cecret_DAG.drawio.png)
 
+## Determining CPU usage
+For the sake of simplicity, processes in this workflow are designated 1 CPU, a medium amount of CPUs (5), or the largest amount of CPUs (the number of CPUs of the environment launching the workflow if using the main [workflow](./Cecret.nf) and a simple config file or 8 if using profiles and the [config template](./configs/cecret_config_template.config)). The medium amount of CPUs can be adjusted by the **End User** by adjusting `'params.medcpus'`, the largest amount can be adjusted with `'params.maxcpus'`, or the cpus can be specified for each process individually in a config file.
+
+The main [Cecret.nf](./Cecret.nf) file will attempt to determine how many cpus are available, and will set `params.maxcpus` to the number of cpus available. This option apparently caused havoc for running this workflow in the cloud and other resource management systems, so by default this is overridden when using a `-profile` to `'params.maxcpus = 8'` in [config template](./configs/cecret_config_template.config).
+
+The **End User** can adjust this by specifying the maximum cpus that one process can take in the config file `'params.maxcpus = <new value>'` or on the command line 
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity --maxcpus <new value>
+```
+It is important to remember that nextflow will attempt to utilize all CPUs available, and this value is restricted to one process. As a specific example, the prcoess 'bwa' will be allocated `'params.maxcpus'`. If there are 48 CPUs available and `'params.maxcpus = 8'`, then 6 samples can be run simultaneously.
+
 ## Optional toggles:
 
 ### Using fastp to clean reads instead of seqyclean
@@ -107,7 +116,6 @@ Or set `params.trimmer = 'samtools'` in a config file
 nextflow run UPHL-BioNGS/Cecret -profile singularity --trimmer none
 ```
 Or set `params.trimmer = 'none'` in a config file
-
 
 ### Using minimap2 to align reads instead of bwa
 ```
@@ -621,7 +629,7 @@ singularity.autoMounts = true
 params {
   reads = "Sequencing_reads/Raw"
   kraken2 = true
-  kraken2_db = '/home/IDGenomics_NAS/Data/kraken2_db/h+v'
+  kraken2_db = '/Volumes/IDGenomics_NAS/Data/kraken2_db/h+v'
   vadr = false
 }
 ```
