@@ -1241,6 +1241,7 @@ process nextclade {
   file("${task.process}/nextclade.csv") into nextclade_file
   file("${task.process}/*")
   file("${task.process}/nextclade.aligned.fasta") into nextclade_aligned_fasta
+  path("dataset") into prepped_nextalign
   file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
 
   shell:
