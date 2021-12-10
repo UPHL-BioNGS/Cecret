@@ -316,7 +316,7 @@ if ( params.cleaner == 'seqyclean' ) {
       # time stamp + capturing tool versions
       date | tee -a $log_file $err_file > /dev/null
       fastp --version >> $log_file 2>> $err_file
-      cleaner_version="fastp : $(fastp --version | head -n 1)"
+      cleaner_version="$(fastp --version 2>&1 | head -n 1)"
 
       if [ "!{paired_single}" == "single" ]
       then
