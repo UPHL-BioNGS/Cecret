@@ -49,7 +49,7 @@ Channel
 Channel
   .fromPath("${params.multifastas}/*{.fa,.fasta,.fna}", type:'file')
   .view { "MultiFasta file found : ${it}" }
-  .into { multifastas_check ; multifastas_pangolin ; multifastas_vadr ; multifastas_nextclade }
+  .into { multifastas_check ; multifastas_pangolin ; multifastas_vadr ; multifastas_nextclade ; multifastas_msa}
 
 paried_reads_check
   .concat(single_reads_check)
@@ -702,8 +702,7 @@ process fasta_prep {
 
   output:
   tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into fastas_results
-  file("${task.process}/${fasta}") optional true into fastas_rename, fastas_pangolin, fastas_vadr, fastas_nextclade
-  file("${task.process}/${fasta}") into fastas_msa
+  file("${task.process}/${fasta}") optional true into fastas_rename, fastas_pangolin, fastas_vadr, fastas_nextclade, fastas_msa
 
   shell:
   '''
@@ -1519,7 +1518,7 @@ process combine_results {
       tail -n +2 $summary >> combined_summary.csv
     done
 
-    tail -n +2 !{vadr} | tr -s '[:blank:]' ',' > vadr.csv
+    if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | tr -s '[:blank:]' ',' > vadr.csv ; fi
 
     python !{workflow.projectDir}/bin/combine_results.py
 
@@ -1539,7 +1538,7 @@ if (params.relatedness) {
       maxRetries 2
 
       input:
-      file(consensus) from consensus_msa.concat(fastas_msa).collectFile(name:"ultimate.fasta")
+      file(consensus) from consensus_msa.concat(fastas_msa).concat(multifastas_msa)
       file(reference_genome) from reference_genome_msa
 
       output:
@@ -1556,10 +1555,15 @@ if (params.relatedness) {
         echo "mafft version:" >> $log_file
         mafft --version 2>&1 >> $log_file
 
+        for fasta in !{task.process}/!{consensus}
+        do
+          cat $fasta >> ultimate.fasta
+        done
+
         mafft --auto \
           !{params.mafft_options} \
           --thread !{task.cpus} \
-          --addfragments !{consensus} \
+          --addfragments !{task.process}/ultimate.fasta \
           !{reference_genome} \
           > !{task.process}/mafft_aligned.fasta \
           2>> $err_file
@@ -1574,7 +1578,7 @@ if (params.relatedness) {
       container 'nextstrain/nextalign:latest'
 
       input:
-      file(consensus) from consensus_msa.concat(fastas_msa).collectFile(name:"ultimate.fasta")
+      file(consensus) from consensus_msa.concat(fastas_msa).concat(multifastas_msa)
       path(dataset) from prepped_nextalign
 
       output:
@@ -1592,8 +1596,13 @@ if (params.relatedness) {
         echo "nextalign version:" >> $log_file
         nextalign --version-detailed 2>&1 >> $log_file
 
+        for fasta in !{consensus}
+        do
+          cat $fasta >> !{task.process}/ultimate.fasta
+        done
+
         nextalign !{params.nextalign_options} \
-          --sequences !{consensus} \
+          --sequences !{task.process}/ultimate.fasta \
           --reference !{dataset}/reference.fasta \
           --genemap !{dataset}/genemap.gff \
           --jobs !{task.cpus} \
