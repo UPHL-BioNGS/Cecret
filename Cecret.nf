@@ -692,7 +692,7 @@ process fasta_prep {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${fasta}"
   cpus 1
-  container 'docker://quay.io/biocontainers/pandas:1.1.5'
+  container 'quay.io/biocontainers/pandas:1.1.5'
 
   when:
   sample != null && sample != 'input.1'
@@ -1489,7 +1489,7 @@ process combine_results {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "Combining Results"
   cpus 1
-  container 'docker://quay.io/biocontainers/pandas:1.1.5'
+  container 'quay.io/biocontainers/pandas:1.1.5'
 
   when:
   params.nextclade || params.pangolin || params.vadr
