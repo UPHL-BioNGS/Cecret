@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.2.2.20211213")
+println("Version: v.2.2.20211215")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -35,7 +35,7 @@ Channel
   .into { paried_reads_check ; paired_reads }
 
 Channel
-  .fromPath("${params.single_reads}/*.{fastq,fastq.gz,fq,fz.gz}")
+  .fromPath("${params.single_reads}/*.{fastq,fastq.gz,fq,fq.gz}")
   .map { reads -> tuple(reads.simpleName, reads, "single" ) }
   .view { "Fastq file found : ${it[0]}" }
   .into { single_reads_check ; single_reads }
@@ -692,7 +692,7 @@ process fasta_prep {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "${fasta}"
   cpus 1
-  container 'docker://quay.io/biocontainers/pandas:1.1.5'
+  container 'quay.io/biocontainers/pandas:1.1.5'
 
   when:
   sample != null && sample != 'input.1'
@@ -1489,7 +1489,7 @@ process combine_results {
   publishDir "${params.outdir}", mode: 'copy', overwrite: true
   tag "Combining Results"
   cpus 1
-  container 'docker://quay.io/biocontainers/pandas:1.1.5'
+  container 'quay.io/biocontainers/pandas:1.1.5'
 
   when:
   params.nextclade || params.pangolin || params.vadr
