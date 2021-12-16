@@ -1555,9 +1555,9 @@ if (params.relatedness) {
         echo "mafft version:" >> $log_file
         mafft --version 2>&1 >> $log_file
 
-        for fasta in !{task.process}/!{consensus}
+        for fasta in !{consensus}
         do
-          cat $fasta >> ultimate.fasta
+          cat $fasta >> !{task.process}/ultimate.fasta
         done
 
         mafft --auto \
