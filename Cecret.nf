@@ -1538,7 +1538,7 @@ if (params.relatedness) {
       maxRetries 2
 
       input:
-      file(consensus) from consensus_msa.concat(fastas_msa).concat(multifastas_msa)
+      file(consensus) from consensus_msa.concat(fastas_msa).concat(multifastas_msa).collect()
       file(reference_genome) from reference_genome_msa
 
       output:
@@ -1578,7 +1578,7 @@ if (params.relatedness) {
       container 'nextstrain/nextalign:latest'
 
       input:
-      file(consensus) from consensus_msa.concat(fastas_msa).concat(multifastas_msa)
+      file(consensus) from consensus_msa.concat(fastas_msa).concat(multifastas_msa).collect()
       path(dataset) from prepped_nextalign
 
       output:
