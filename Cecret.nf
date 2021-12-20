@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.2.2.20211215")
+println("Version: v.2.2.20211220")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -67,6 +67,10 @@ paried_reads_check
     println("Set 'params.multifastas' to directory with multifastas.")
     exit 1
   }
+
+Channel
+  .fromPath("${workflow.projectDir}/bin/combine_results.py", type:'file')
+  .set { combine_results_script }
 
 // reference files for SARS-CoV-2 (part of the github repository)
 params.reference_genome = workflow.projectDir + "/configs/MN908947.3.fasta"
@@ -1499,6 +1503,7 @@ process combine_results {
   file(pangolin) from pangolin_file.ifEmpty([])
   file(vadr) from vadr_file.ifEmpty([])
   file(summary) from summary_file.collect()
+  file(combine_results) from combine_results_script
 
   output:
   file("cecret_results.{csv,txt}")
@@ -1520,8 +1525,7 @@ process combine_results {
 
     if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | tr -s '[:blank:]' ',' > vadr.csv ; fi
 
-    python !{workflow.projectDir}/bin/combine_results.py
-
+    python !{combine_results}
     cat cecret_results.csv | tr ',' '\\t' > cecret_results.txt
   '''
 }
