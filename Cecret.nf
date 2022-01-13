@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.2.2.20211220")
+println("Version: v.2.3.20220113")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -75,8 +75,8 @@ Channel
 // reference files for SARS-CoV-2 (part of the github repository)
 params.reference_genome = workflow.projectDir + "/configs/MN908947.3.fasta"
 params.gff_file = workflow.projectDir + "/configs/MN908947.3.gff"
-params.primer_bed = workflow.projectDir + "/configs/artic_V3_nCoV-2019.bed"
-params.amplicon_bed = workflow.projectDir + "/configs/nCoV-2019.insert.bed"
+params.primer_bed = workflow.projectDir + "/configs/artic_V4_SARS-CoV-2.scheme.bed"
+params.amplicon_bed = workflow.projectDir + "/configs/artic_V4_SARS-CoV-2.insert.bed"
 
 params.trimmer = 'ivar'
 params.cleaner = 'seqyclean'
