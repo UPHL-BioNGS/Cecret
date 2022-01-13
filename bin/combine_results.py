@@ -11,7 +11,7 @@ summary_file='combined_summary.csv'
 summary_df = pd.read_csv(summary_file, dtype = str)
 
 if exists(pangolin_file) :
-    pangolin_df = pd.read_csv(pangolin_file, dtype = str, usecols = ['taxon', 'status', 'scorpio_call', 'version', 'pangolin_version', 'pango_version', 'pangoLEARN_version'])
+    pangolin_df = pd.read_csv(pangolin_file, dtype = str, usecols = ['taxon', 'lineage', 'status', 'scorpio_call', 'version', 'pangolin_version', 'pango_version', 'pangoLEARN_version'])
     pangolin_df['simple_name'] = pangolin_df['taxon'].replace('Consensus_','', regex=True).replace('.consensus.*', '', regex=True)
     pangolin_df=pangolin_df.add_prefix('pangolin_')
 
@@ -50,4 +50,4 @@ if exists(vadr_file) :
     summary_df.drop('vadr_simple_name', axis=1, inplace=True)
     summary_df.drop('vadr_name', axis=1, inplace=True)
 
-summary_df.to_csv('cecret_results.csv')
+summary_df.to_csv('cecret_results.csv', index=False)
