@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.2.3.20220113")
+println("Version: v.2.3.20220114")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -77,13 +77,13 @@ params.reference_genome = workflow.projectDir + "/configs/MN908947.3.fasta"
 params.gff_file = workflow.projectDir + "/configs/MN908947.3.gff"
 params.primer_set = 'ncov_V4'
 if ( params.primer_set == 'ncov_V3' ) {
-  params.primer_bed   = workflow.projectDir + "/configs/artic_V3_nCoV-2019.scheme.bed"
+  params.primer_bed   = workflow.projectDir + "/configs/artic_V3_nCoV-2019.primer.bed"
   params.amplicon_bed = workflow.projectDir + "/configs/artic_V3_nCoV-2019.insert.bed"
 } else if ( params.primer_set == 'ncov_V4' ) {
-  params.primer_bed   = workflow.projectDir + "/configs/artic_V4_SARS-CoV-2.scheme.bed"
+  params.primer_bed   = workflow.projectDir + "/configs/artic_V4_SARS-CoV-2.primer.bed"
   params.amplicon_bed = workflow.projectDir + "/configs/artic_V4_SARS-CoV-2.insert.bed"
 } else if ( params.primer_set == 'ncov_V4.1' ) {
-  params.primer_bed   = workflow.projectDir + "/configs/artic_V4.1_SARS-CoV-2.scheme.bed"
+  params.primer_bed   = workflow.projectDir + "/configs/artic_V4.1_SARS-CoV-2.primer.bed"
   params.amplicon_bed = workflow.projectDir + "/configs/artic_V4.1_SARS-CoV-2.insert.bed"
 } else {
   println("!{params.primer_set} has not been defined as an acceptable value for 'params.primer_set'.")
