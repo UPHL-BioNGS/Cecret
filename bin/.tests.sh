@@ -58,6 +58,16 @@ then
       -resume
   done
 
+  # multifasta
+  nextflow ~/sandbox/Cecret/Cecret.nf \
+    -profile singularity \
+    --reads /home/eriny/sandbox/test_files/cecret/reads \
+    --single-reads /home/eriny/sandbox/test_files/cecret/single-reads \
+    --fastas /home/eriny/sandbox/test_files/cecret/fastas \
+    --multifastas /home/eriny/sandbox/test_files/cecret/multifasta \
+    --outdir kitchen_sink  \
+    -with-tower
+
   # empty
   nextflow ~/sandbox/Cecret/Cecret.nf \
     -profile singularity \
