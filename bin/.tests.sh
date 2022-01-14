@@ -13,7 +13,7 @@ then
   do
     # defaults
     nextflow ~/sandbox/Cecret/Cecret.nf \
-      -profile singularity \
+      -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir singularity_defaults_$option \
       -with-tower
@@ -21,7 +21,7 @@ then
     # removed test for bamsnap and rename because of lack of interest
     # attempted bcftools and filter
     nextflow ~/sandbox/Cecret/Cecret.nf \
-      -profile singularity \
+      -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir all_on_$option \
       -with-tower \
@@ -31,7 +31,7 @@ then
 
     # removing primer trimming
     nextflow ~/sandbox/Cecret/Cecret.nf \
-      -profile singularity \
+      -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir nontrimmed_$option \
       --trimmer 'none' \
@@ -40,7 +40,7 @@ then
 
     # changing the cleaner, aligner, and trimmer
     nextflow ~/sandbox/Cecret/Cecret.nf \
-      -profile singularity \
+      -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir toggled_$option \
       --cleaner 'fastp' \
@@ -51,16 +51,26 @@ then
 
     # with UPHL's config
     nextflow ~/sandbox/Cecret/Cecret.nf \
-      -profile uphl \
+      -profile uphl,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir uphl_$option \
       -with-tower \
       -resume
   done
 
+  # multifasta
+  nextflow ~/sandbox/Cecret/Cecret.nf \
+    -profile singularity,artic_V3 \
+    --reads /home/eriny/sandbox/test_files/cecret/reads \
+    --single-reads /home/eriny/sandbox/test_files/cecret/single-reads \
+    --fastas /home/eriny/sandbox/test_files/cecret/fastas \
+    --multifastas /home/eriny/sandbox/test_files/cecret/multifasta \
+    --outdir kitchen_sink  \
+    -with-tower
+
   # empty
   nextflow ~/sandbox/Cecret/Cecret.nf \
-    -profile singularity \
+    -profile singularity,artic_V3 \
     --reads doesntexit \
     --single-reads willnotexist \
     --fastas shouldntexit \
@@ -70,14 +80,14 @@ then
 else
   # CDC's test data with relatedness
   nextflow ~/sandbox/Cecret/Cecret.nf \
-    -profile singularity \
+    -profile singularity,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir default_datasets \
     --relatedness true  \
     -with-tower
 
   nextflow ~/sandbox/Cecret/Cecret.nf \
-    -profile uphl \
+    -profile uphl,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir uphl_datasets \
     -with-tower \
@@ -86,7 +96,7 @@ else
 
   # CDC's test data with relatedness using nextalign
   nextflow ~/sandbox/Cecret/Cecret.nf \
-    -profile singularity \
+    -profile singularity,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir toggled_datasets \
     --cleaner 'fastp' \

@@ -8,16 +8,15 @@ Location: 40.570°N 111.622°W , 9,875 feet (3,010 m) elevation
 
 Cecret is a workflow developed by [@erinyoung](https://github.com/erinyoung) at the [Utah Public Health Laborotory](https://uphl.utah.gov/) for SARS-COV-2 sequencing with the [artic](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)/Illumina hybrid library prep workflow for MiSeq data with protocols [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bffyjjpw) and [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bfefjjbn). Built to work on linux-based operating systems. Additional config options are needed for cloud batch usage.
 
-It is possible to use this workflow to simply annotate fastas generated from any workflow with pangolin, nextclade, and vadr. Another utility is to find consensus fasta files from fastq files, and add in fasta files that were generated previously or downloaded from [GISAID](https://www.gisaid.org/) or [NCBI](https://www.ncbi.nlm.nih.gov/sars-cov-2/) for multiple sequence alignment (MSA) and phylogenetic tree. 
+It is possible to use this workflow to simply annotate fastas generated from any workflow with pangolin, nextclade, and vadr. Another utility is to find consensus fasta files from fastq files, and add in fasta files that were generated previously or downloaded from [GISAID](https://www.gisaid.org/) or [NCBI](https://www.ncbi.nlm.nih.gov/sars-cov-2/) for multiple sequence alignment (MSA) and phylogenetic tree creation. 
 
 Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_toolkit).
 
 # Dependencies
 
 - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html)
-   - Nextflow version 20+ is required (`nextflow -v` to check)
 - [Singularity](https://singularity.lbl.gov/install-linux) or [Docker](https://docs.docker.com/get-docker/) - set the profile as singularity or docker during runtime
-- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+- [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 
 # Usage
 
@@ -86,6 +85,22 @@ WARNING : fastas and multifastas **cannot** be in the same directory. If no fast
 # Full workflow
 ![alt text](images/Cecret_DAG.drawio.png)
 
+## Determining primer and amplicon bedfiles
+The default primer scheme of the 'Cecret' workflow is the 'V4' primer scheme developed by [artic network for SARS-CoV-2](https://artic.network/ncov-2019). Releases prior to and including '2.2.20211221' used the 'V3' primer scheme as the default. As many public health laboratories are still using 'V3', the 'V3' files are still in this repo, but now the 'V4' and 'V4.1' ('V4' with a spike-in of additional primers) are also included. The original primer and amplicon bedfiles can be found at [artic's github repo](https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019). The recommended method to use these primer sets is with the corresponding profile.
+
+```
+# using artic V3 primers
+nextflow run UPHL-BioNGS/Cecret -profile singularity,artic_V3
+
+# using artic V4 primers
+nextflow run UPHL-BioNGS/Cecret -profile singularity,artic_V4
+
+# using artic V4.1 primers
+nextflow run UPHL-BioNGS/Cecret -profile singularity,artic_V4_1
+```
+
+It is still possible to set 'params.primer_bed' and 'params.amplicon_bed' via the command line or in a config file with the path to the corresponding file.
+
 ## Determining CPU usage
 For the sake of simplicity, processes in this workflow are designated 1 CPU, a medium amount of CPUs (5), or the largest amount of CPUs (the number of CPUs of the environment launching the workflow if using the main [workflow](./Cecret.nf) and a simple config file or 8 if using profiles and the [config template](./configs/cecret_config_template.config)). The medium amount of CPUs can be adjusted by the **End User** by adjusting `'params.medcpus'`, the largest amount can be adjusted with `'params.maxcpus'`, or the cpus can be specified for each process individually in a config file.
 
@@ -96,6 +111,11 @@ The **End User** can adjust this by specifying the maximum cpus that one process
 nextflow run UPHL-BioNGS/Cecret -profile singularity --maxcpus <new value>
 ```
 It is important to remember that nextflow will attempt to utilize all CPUs available, and this value is restricted to one process. As a specific example, the prcoess 'bwa' will be allocated `'params.maxcpus'`. If there are 48 CPUs available and `'params.maxcpus = 8'`, then 6 samples can be run simultaneously.
+
+## Determining depth for base calls
+Sequencing has an intrinsic amount of error for every predicted base on a read. This error is reduced the more reads there are. As such, there is a minimum amount of depth that is required to call a base with ivar consensus, ivar variants, and bcftools variants. The main assumption of using this workflow is that the virus is clonal (i.e. only one infection represented in a sample) and created via pcr amplified libraries. The default depth for calling bases or finding variants is set with 'params.minimum_depth' with the default value being `'params.minimum_depth = 100'`. This parameter can be adjusted by the **END USER** in a config file or on the command line.
+
+A corresponding parameter is 'params.mpileup_depth' (default of `'params.mpileup_depth = 8000'`), which is the number of reads that samtools (used by ivar) or bcftools uses to put into memory for any given position. If the **END USER** is experiencing memory issues, this number may need to be decreased. 
 
 ## Optional toggles:
 
@@ -569,16 +589,11 @@ This file contains all of the configurable parameters with their default values.
 * params.reads = workflow.launchDir + '/reads'
 * params.single_reads = workflow.launchDir + '/single_reads'
 * params.fastas = workflow.launchDir + '/fastas'
+* params.multifastas = workflow.launchDir + '/multifastas'
 * params.outdir = workflow.launchDir + '/cecret'
 
-### reference files for SARS-CoV-2 with artic V3 primers (part of the github repository)
-* params.reference_genome = workflow.projectDir + "/configs/MN908947.3.fasta"
-* params.gff_file = workflow.projectDir + "/configs/MN908947.3.gff"
-* params.primer_bed = workflow.projectDir + "/configs/artic_V3_nCoV-2019.bed"
-* params.amplicon_bed = workflow.projectDir + "/configs/nCoV-2019.insert.bed"
-
 ### Other useful options
-* To "resume" a workflow that use `-resume` with the nextflow command
+* To "resume" a workflow, use `-resume` with the nextflow command
 * To create a report, use `-with-report` with the nextflow command
 * To use nextflow tower, use `-with-tower` with the nextflow command
 
@@ -605,6 +620,10 @@ The expected amount of time to run this workflow with 250 G RAM and 48 CPUs, 'pa
 
 ## What if I just want to annotate some SARS-CoV-2 fastas with pangolin, nextclade and vadr?
 ```
+# for a collection of fastas
+nextflow run UPHL-BioNGS/Cecret -profile singularity --fastas <directory with fastas>
+
+# for a collection of fastas and multifastas
 nextflow run UPHL-BioNGS/Cecret -profile singularity --fastas <directory with fastas> --multifastas <directory with multifastas>
 ```
 
@@ -613,7 +632,7 @@ The **End User** can run mafft, snpdists, and iqtree on a collection of fastas a
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas> --multifastas <directory with multifastas>
 ```
 
-The **End User** can also have paired-end, singled-end, and fastas that can all be put together into one analysis.
+The **End User** can have paired-end, singled-end, and fastas that can all be put together into one analysis.
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas> --multifastas <directory with multifastas> --reads <directory with paire-end reads> --single_reads <directory with single-end reads>
 ```
@@ -632,6 +651,11 @@ params {
   kraken2_db = '/Volumes/IDGenomics_NAS/Data/kraken2_db/h+v'
   vadr = false
 }
+```
+
+And then run with
+```
+nextflow run Cecret.nf -c <path to custom config file>/config.config
 ```
 
 ## Is there a way to determine if certain amplicons are failing?
@@ -673,19 +697,33 @@ To to get the vcf of variants from bcftools, set `params.bcftools_variants = tru
 The primer bedfile is the file with the start and stop of each **primer** sequence.
 
 ```
-$ head -n 3 artic_V3_nCoV-2019.bed 
+$ head configs/artic_V3_nCoV-2019.primer.bed
 MN908947.3	30	54	nCoV-2019_1_LEFT	nCoV-2019_1	+
 MN908947.3	385	410	nCoV-2019_1_RIGHT	nCoV-2019_1	-
 MN908947.3	320	342	nCoV-2019_2_LEFT	nCoV-2019_2	+
+MN908947.3	704	726	nCoV-2019_2_RIGHT	nCoV-2019_2	-
+MN908947.3	642	664	nCoV-2019_3_LEFT	nCoV-2019_1	+
+MN908947.3	1004	1028	nCoV-2019_3_RIGHT	nCoV-2019_1	-
+MN908947.3	943	965	nCoV-2019_4_LEFT	nCoV-2019_2	+
+MN908947.3	1312	1337	nCoV-2019_4_RIGHT	nCoV-2019_2	-
+MN908947.3	1242	1264	nCoV-2019_5_LEFT	nCoV-2019_1	+
+MN908947.3	1623	1651	nCoV-2019_5_RIGHT	nCoV-2019_1	-
 ```
 The amplicon bedfile is the file with the start and stop of each intended **amplicon**.
 ```
-$ head -n 3 nCoV-2019.insert.bed 
+$ head configs/artic_V3_nCoV-2019.insert.bed <==
 MN908947.3	54	385	1	1	+
 MN908947.3	342	704	2	2	+
 MN908947.3	664	1004	3	1	+
+MN908947.3	965	1312	4	2	+
+MN908947.3	1264	1623	5	1	+
+MN908947.3	1595	1942	6	2	+
+MN908947.3	1897	2242	7	1	+
+MN908947.3	2205	2568	8	2	+
+MN908947.3	2529	2880	9	1	+
+MN908947.3	2850	3183	10	2	+
 ```
-Due to the many varieties of primer bedfiles, I determined it was best if the user supplied this file for custom primer sequences.
+Due to the many varieties of primer bedfiles, it is best if the **End User** supplied this file for custom primer sequences.
 
 ## What if I am using an amplicon based library that is not SARS-CoV-2?
 

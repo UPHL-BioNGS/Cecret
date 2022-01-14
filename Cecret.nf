@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.2.2.20211220")
+println("Version: v.2.3.20220114")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -75,8 +75,24 @@ Channel
 // reference files for SARS-CoV-2 (part of the github repository)
 params.reference_genome = workflow.projectDir + "/configs/MN908947.3.fasta"
 params.gff_file = workflow.projectDir + "/configs/MN908947.3.gff"
-params.primer_bed = workflow.projectDir + "/configs/artic_V3_nCoV-2019.bed"
-params.amplicon_bed = workflow.projectDir + "/configs/nCoV-2019.insert.bed"
+params.primer_set = 'ncov_V4'
+if ( params.primer_set == 'ncov_V3' ) {
+  params.primer_bed   = workflow.projectDir + "/configs/artic_V3_nCoV-2019.primer.bed"
+  params.amplicon_bed = workflow.projectDir + "/configs/artic_V3_nCoV-2019.insert.bed"
+} else if ( params.primer_set == 'ncov_V4' ) {
+  params.primer_bed   = workflow.projectDir + "/configs/artic_V4_SARS-CoV-2.primer.bed"
+  params.amplicon_bed = workflow.projectDir + "/configs/artic_V4_SARS-CoV-2.insert.bed"
+} else if ( params.primer_set == 'ncov_V4.1' ) {
+  params.primer_bed   = workflow.projectDir + "/configs/artic_V4.1_SARS-CoV-2.primer.bed"
+  params.amplicon_bed = workflow.projectDir + "/configs/artic_V4.1_SARS-CoV-2.insert.bed"
+} else {
+  println("!{params.primer_set} has not been defined as an acceptable value for 'params.primer_set'.")
+  println("Current acceptable values are" )
+  println("SARS-CoV-2 artic primer V3 : 'params.primer_set' = 'ncov_V3'" )
+  println("SARS-CoV-2 artic primer V4 : 'params.primer_set' = 'ncov_V4'" )
+  println("SARS-CoV-2 artic primer V4.1 (Version 4 with spike in) : 'params.primer_set' = 'ncov_V4.1'" )
+  exit 1
+}
 
 params.trimmer = 'ivar'
 params.cleaner = 'seqyclean'
@@ -653,7 +669,7 @@ process ivar_consensus {
   file("consensus/${sample}.consensus.fa") into consensus_pangolin, consensus_vadr, consensus_nextclade, consensus_msa
   file("consensus/${sample}.consensus.qual.txt")
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
-  tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
+  tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total), env(first_line) into consensus_results
   tuple sample, env(ivar_version) into ivar_version
 
   shell:
@@ -675,14 +691,17 @@ process ivar_consensus {
       num_N=$(grep -v ">" consensus/!{sample}.consensus.fa | grep -o 'N' | wc -l )
       num_ACTG=$(grep -v ">" consensus/!{sample}.consensus.fa | grep -o -E "C|A|T|G" | wc -l )
       num_degenerate=$(grep -v ">" consensus/!{sample}.consensus.fa | grep -o -E "B|D|E|F|H|I|J|K|L|M|O|P|Q|R|S|U|V|W|X|Y|Z" | wc -l )
+      first_line=$(grep ">" consensus/!{sample}.consensus.fa | sed 's/>//g' )
 
       if [ -z "$num_N" ] ; then num_N="0" ; fi
       if [ -z "$num_ACTG" ] ; then num_ACTG="0" ; fi
       if [ -z "$num_degenerate" ] ; then num_degenerate="0" ; fi
+      if [ -z "$first_line" ] ; then first_line=!{sample} ; fi
     else
       num_N="0"
       num_ACTG="0"
       num_degenerate="0"
+      first_line=!{sample}
     fi
 
     if [ -z "$num_N" ] ; then num_N="0" ; fi
@@ -705,7 +724,7 @@ process fasta_prep {
   tuple val(sample), file(fasta) from fastas
 
   output:
-  tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into fastas_results
+  tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total), env(first_line) into fastas_results
   file("${task.process}/${fasta}") optional true into fastas_rename, fastas_pangolin, fastas_vadr, fastas_nextclade, fastas_msa
 
   shell:
@@ -722,11 +741,14 @@ process fasta_prep {
       num_N=$(grep -v ">" !{fasta} | grep -o 'N' | wc -l )
       num_ACTG=$(grep -v ">" !{fasta} | grep -o -E "C|A|T|G" | wc -l )
       num_degenerate=$(grep -v ">" !{fasta} | grep -o -E "B|D|E|F|H|I|J|K|L|M|O|P|Q|R|S|U|V|W|X|Y|Z" | wc -l )
+      first_line=$(grep ">" consensus/!{sample}.consensus.fa | sed 's/>//g' )
+      num_total=$(( $num_N + $num_degenerate + $num_ACTG ))
 
       if [ -z "$num_N" ] ; then num_N="0" ; fi
       if [ -z "$num_ACTG" ] ; then num_ACTG="0" ; fi
       if [ -z "$num_degenerate" ] ; then num_degenerate="0" ; fi
-      num_total=$(( $num_N + $num_degenerate + $num_ACTG ))
+      if [ -z "$first_line" ] ; then first_line=!{sample} ; fi
+      if [ -z "$num_total" ] ; then num_total=0 ; fi
     fi
   '''
 }
@@ -1335,7 +1357,6 @@ process vadr {
 
 consensus_results
   .concat(fastas_results)
-//tuple sample, env(num_N), env(num_ACTG), env(num_degenerate), env(num_total) into consensus_results
   .join(fastqc_1_results, remainder: true, by: 0)
   .join(fastqc_2_results, remainder: true, by: 0)
   .join(seqyclean_pairskept_results, remainder: true, by: 0)
@@ -1365,7 +1386,7 @@ process summary {
   container 'quay.io/biocontainers/pandas:1.1.5'
 
   input:
-  tuple val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total),
+  tuple val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total), val(first_line),
     val(raw_1),
     val(raw_2),
     val(pairskept),
@@ -1401,8 +1422,8 @@ process summary {
 
     sample_id=($(echo !{sample} | cut -f 1 -d "_" ))
 
-    header="sample_id,sample"
-    result="${sample_id},!{sample}"
+    header="sample_id,sample,fasta_line"
+    result="${sample_id},!{sample},!{first_line}"
 
     if [ "!{params.fastqc}" != "false" ]
     then
@@ -1523,7 +1544,7 @@ process combine_results {
       tail -n +2 $summary >> combined_summary.csv
     done
 
-    if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | tr -s '[:blank:]' ',' > vadr.csv ; fi
+    if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | grep -v "#-" | tr -s '[:blank:]' ',' > vadr.csv ; fi
 
     python !{combine_results}
     cat cecret_results.csv | tr ',' '\\t' > cecret_results.txt
