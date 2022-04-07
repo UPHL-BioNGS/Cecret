@@ -144,7 +144,7 @@ if ( params.maxcpus < 5 ) {
 
 // This is where the results will be
 println("The files and directory for results is " + params.outdir)
-println("A table summarizing results will be created: ${params.outdir}/summary.txt and ${workflow.launchDir}/cecret_run_results.txt\n")
+println("A table summarizing results will be created: ${params.outdir}/cecret_results.csv\n")
 
 Channel
   .fromPath(params.reference_genome, type:'file')
@@ -1377,6 +1377,7 @@ if (params.freyja) {
     tag "${sample}"
     cpus params.medcpus
     container 'staphb/freyja:latest'
+    errorStrategy 'ignore'
 
     input:
     tuple val(sample), file(bam), file(reference_genome) from trimmed_bams_freyja
@@ -1929,7 +1930,7 @@ if (params.nextclade || params.nextclade || params.nextclade) {
 } else {
   workflow.onComplete {
       println("Pipeline completed at: $workflow.complete")
-      println("A summary of results can be found in a comma-delimited file: ${params.outdir}/summary.csv")
+      println("A summary of results can be found in a comma-delimited file: ${params.outdir}/summary/combined_summary.csv")
       println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
   }
 }
