@@ -3,7 +3,7 @@
 println("Currently using the Cecret workflow for use with amplicon-based Illumina hybrid library prep on MiSeq\n")
 println("Author: Erin Young")
 println("email: eriny@utah.gov")
-println("Version: v.2.3.20220114")
+println("Version: v.2.4.20220407")
 println("")
 
 params.reads = workflow.launchDir + '/reads'
@@ -116,6 +116,8 @@ params.bamsnap = false // can be really slow
 params.rename = false
 params.filter = false
 params.vadr = true
+params.freyja = true
+params.multiqc = true
 
 // for optional contamination determination
 params.kraken2 = false
@@ -197,6 +199,7 @@ process fastqc {
 
   output:
   file("${task.process}/*.{html,zip}")
+  file("${task.process}/*_fastqc.zip") into fastqc_files
   tuple sample, env(raw_1) into fastqc_1_results
   tuple sample, env(raw_2) into fastqc_2_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
@@ -248,7 +251,7 @@ if ( params.cleaner == 'seqyclean' ) {
     tuple sample, file("${task.process}/${sample}_cln_SE.fastq.gz") optional true into single_files
     tuple sample, file("${task.process}/${sample}_clean_PE{1,2}.fastq.gz"), val(paired_single) optional true into paired_files_kraken2
     tuple sample, file("${task.process}/${sample}_cln_SE.fastq.gz"), val(paired_single) optional true into single_files_kraken2
-    file("${task.process}/${sample}_cl*n_SummaryStatistics.tsv") into seqyclean_files
+    file("${task.process}/${sample}_cl*n_SummaryStatistics.tsv") into seqyclean_files, seqyclean_files_collect
     file("${task.process}/${sample}_cl*n_SummaryStatistics.txt")
     file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
     tuple sample, env(perc_kept) into seqyclean_perc_kept_results
@@ -296,8 +299,9 @@ if ( params.cleaner == 'seqyclean' ) {
   }
 
   fastp_results=Channel.empty()
+  fastp_files=Channel.empty()
 
-  seqyclean_files
+  seqyclean_files_collect
     .collectFile(name: "Combined_SummaryStatistics.tsv",
       keepHeader: true,
       sort: true,
@@ -322,7 +326,8 @@ if ( params.cleaner == 'seqyclean' ) {
     tuple sample, file("${task.process}/${sample}_cln.fastq.gz") optional true into single_files
     tuple sample, file("${task.process}/${sample}_clean_PE{1,2}.fastq.gz"), val(paired_single) optional true into paired_files_kraken2
     tuple sample, file("${task.process}/${sample}_cln.fastq.gz"), val(paired_single) optional true into single_files_kraken2
-    file("${task.process}/${sample}_fastp.{html,json}")
+    file("${task.process}/${sample}_fastp.html")
+    file("${task.process}/${sample}_fastp.json") into fastp_files
     file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
     tuple sample, env(passed_reads) into fastp_results
     tuple sample, env(cleaner_version) into cleaner_version
@@ -363,6 +368,7 @@ if ( params.cleaner == 'seqyclean' ) {
   }
   seqyclean_perc_kept_results=Channel.empty()
   seqyclean_pairskept_results=Channel.empty()
+  seqyclean_files=Channel.empty()
 }
 
 if (params.aligner == 'bwa') {
@@ -517,6 +523,7 @@ if (params.trimmer == 'ivar' ) {
     tuple sample, file("${task.process}/${sample}.primertrim.sorted.bam") into trimmed_bams, trimmed_bams4, trimmed_bams5
     tuple sample, file("${task.process}/${sample}.primertrim.sorted.bam"), file("ivar_trim/${sample}.primertrim.sorted.bam.bai") into bam_bai
     file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
+    file("${task.process}/${sample}_ivar.log") into ivar_trim_files
     tuple sample, env(trimmer_version) into trimmer_version
 
     shell:
@@ -532,6 +539,8 @@ if (params.trimmer == 'ivar' ) {
 
       # trimming the reads
       ivar trim !{params.ivar_trim_options} -e -i !{bam} -b !{primer_bed} -p !{task.process}/!{sample}.primertrim 2>> $err_file >> $log_file
+
+      grep "Found" -A 10000 $log_file | grep -A 10000 "primers in BED file" > !{task.process}/!{sample}_ivar.log
 
       # sorting and indexing the trimmed bams
       samtools sort !{task.process}/!{sample}.primertrim.bam -o !{task.process}/!{sample}.primertrim.sorted.bam 2>> $err_file >> $log_file
@@ -575,9 +584,12 @@ if (params.trimmer == 'ivar' ) {
       samtools index !{task.process}/!{sample}.primertrim.sorted.bam 2>> $err_file >> $log_file
     '''
   }
+  ivar_trim_files=Channel.empty()
+
 } else if (params.trimmer == 'none') {
   trimmer_version=Channel.empty()
   trimmed_bams4=Channel.empty()
+  ivar_trim_files=Channel.empty()
   pre_trim_bams
     .into { trimmed_bams ; trimmed_bams5 }
   pre_trim_bams_bedtools
@@ -586,7 +598,7 @@ if (params.trimmer == 'ivar' ) {
 
 trimmed_bams
  .combine(reference_genome2)
- .into { trimmed_bams_genome ; trimmed_bams_ivar_consensus ; trimmed_bams_bcftools_variants }
+ .into { trimmed_bams_genome ; trimmed_bams_ivar_consensus ; trimmed_bams_bcftools_variants ; trimmed_bams_freyja  }
 
 params.minimum_depth = 100
 params.mpileup_depth = 8000
@@ -873,31 +885,31 @@ process samtools_stats {
   tuple val(sample), file(aligned), file(trimmed) from pre_post_bams
 
   output:
-  file("${task.process}/aligned/${sample}.stats.txt")
-  file("${task.process}/trimmed/${sample}.stats.trim.txt") optional true
+  file("${task.process}/${sample}.stats.{aligned,trimmed}.txt")
+  file("${task.process}/${sample}.stats.txt") optional true into samtools_stats_files
   tuple sample, env(insert_size_before_trimming) into samtools_stats_before_size_results
   tuple sample, env(insert_size_after_trimming) into samtools_stats_after_size_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p !{task.process}/aligned !{task.process}/trimmed logs/!{task.process}
+    mkdir -p !{task.process} logs/!{task.process}
     log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
     err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
 
-    samtools stats !{params.samtools_stats_options} !{aligned} 2>> $err_file > !{task.process}/aligned/!{sample}.stats.txt
+    samtools stats !{params.samtools_stats_options} !{aligned} 2>> $err_file | tee !{task.process}/!{sample}.stats.aligned.txt !{task.process}/!{sample}.stats.txt
+    insert_size_before_trimming=$(grep "insert size average" !{task.process}/!{sample}.stats.txt | cut -f 3)
 
     if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
     then
       insert_size_after_trimming="NA"
     else
-      samtools stats !{params.samtools_stats_options} !{trimmed} 2>> $err_file > !{task.process}/trimmed/!{sample}.stats.trim.txt
-      insert_size_after_trimming=$(grep "insert size average" !{task.process}/trimmed/!{sample}.stats.trim.txt | cut -f 3)
+      samtools stats !{params.samtools_stats_options} !{trimmed} 2>> $err_file | tee !{task.process}/!{sample}.stats.trimmed.txt !{task.process}/!{sample}.stats.txt
+      insert_size_after_trimming=$(grep "insert size average" !{task.process}/!{sample}.stats.trimmed.txt | cut -f 3)
     fi
-    insert_size_before_trimming=$(grep "insert size average" !{task.process}/aligned/!{sample}.stats.txt | cut -f 3)
 
     if [ -z "$insert_size_before_trimming" ] ; then insert_size_before_trimming=0 ; fi
     if [ -z "$insert_size_after_trimming" ] ; then insert_size_after_trimming=0 ; fi
@@ -918,32 +930,32 @@ process samtools_coverage {
   tuple val(sample), file(aligned), file(trimmed) from pre_post_bams2
 
   output:
-  file("${task.process}/{aligned,trimmed}/${sample}.cov.{txt,hist}") optional true
+  file("${task.process}/${sample}.cov.{aligned,trimmed}.{txt,hist}") optional true
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(coverage) into samtools_coverage_results
   tuple sample, env(depth) into samtools_covdepth_results
 
   shell:
   '''
-    mkdir -p !{task.process}/aligned !{task.process}/trimmed logs/!{task.process}
+    mkdir -p !{task.process} logs/!{task.process}
     log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
     err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
 
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
 
-    samtools coverage !{params.samtools_coverage_options} !{aligned} -m -o !{task.process}/aligned/!{sample}.cov.hist 2>> $err_file >> $log_file
-    samtools coverage !{params.samtools_coverage_options} !{aligned}    -o !{task.process}/aligned/!{sample}.cov.txt 2>> $err_file >> $log_file
+    samtools coverage !{params.samtools_coverage_options} !{aligned} -m -o !{task.process}/!{sample}.cov.aligned.hist 2>> $err_file >> $log_file
+    samtools coverage !{params.samtools_coverage_options} !{aligned}    -o !{task.process}/!{sample}.cov.aligned.txt  2>> $err_file >> $log_file
 
     if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
     then
-      coverage=$(cut -f 6 !{task.process}/aligned/!{sample}.cov.trim.txt | tail -n 1)
-      depth=$(cut -f 7 !{task.process}/aligned/!{sample}.cov.trim.txt | tail -n 1)
+      coverage=$(cut -f 6 !{task.process}/!{sample}.cov.aligned.txt | tail -n 1)
+      depth=$(cut    -f 7 !{task.process}/!{sample}.cov.aligned.txt | tail -n 1)
     else
-      samtools coverage !{params.samtools_coverage_options} !{trimmed} -m -o !{task.process}/trimmed/!{sample}.cov.trim.hist 2>> $err_file >> $log_file
-      samtools coverage !{params.samtools_coverage_options} !{trimmed}    -o !{task.process}/trimmed/!{sample}.cov.trim.txt 2>> $err_file >> $log_file
-      coverage=$(cut -f 6 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
-      depth=$(cut -f 7 !{task.process}/trimmed/!{sample}.cov.trim.txt | tail -n 1)
+      samtools coverage !{params.samtools_coverage_options} !{trimmed} -m -o !{task.process}/!{sample}.cov.trimmed.hist 2>> $err_file >> $log_file
+      samtools coverage !{params.samtools_coverage_options} !{trimmed}    -o !{task.process}/!{sample}.cov.trimmed.txt  2>> $err_file >> $log_file
+      coverage=$(cut -f 6 !{task.process}/!{sample}.cov.trimmed.txt | tail -n 1)
+      depth=$(cut    -f 7 !{task.process}/!{sample}.cov.trimmed.txt | tail -n 1)
     fi
 
     if [ -z "$coverage" ] ; then coverage="0" ; fi
@@ -965,12 +977,13 @@ process samtools_flagstat {
   params.samtools_flagstat
 
   output:
-  file("${task.process}/{aligned,trimmed}/${sample}.flagstat.txt") optional true
+  file("${task.process}/${sample}.flagstat.{aligned,trimmed}.txt") optional true
+  file("${task.process}/${sample}.flagstat.txt") optional true into samtools_flagstat_files
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p !{task.process}/aligned !{task.process}/trimmed logs/!{task.process}
+    mkdir -p !{task.process} logs/!{task.process}
     log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
     err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
 
@@ -979,7 +992,7 @@ process samtools_flagstat {
 
     samtools flagstat !{params.samtools_flagstat_options} \
       !{aligned} \
-      2>> $err_file > !{task.process}/aligned/!{sample}.flagstat.txt
+      2>> $err_file | tee !{task.process}/!{sample}.flagstat.aligned.txt !{task.process}/!{sample}.flagstat.txt
 
     if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
     then
@@ -987,7 +1000,7 @@ process samtools_flagstat {
     else
       samtools flagstat !{params.samtools_flagstat_options} \
         !{trimmed} \
-        2>> $err_file > !{task.process}/trimmed/!{sample}.flagstat.txt
+        2>> $err_file | tee !{task.process}/!{sample}.flagstat.trimmed.txt !{task.process}/!{sample}.flagstat.txt
     fi
   '''
 }
@@ -1006,13 +1019,13 @@ process samtools_depth {
   params.samtools_depth
 
   output:
-  file("${task.process}/{aligned,trimmed}/${sample}.depth.txt") optional true
+  file("${task.process}/${sample}.depth.{aligned,trimmed}.txt") optional true
   tuple sample, env(depth) into samtools_depth_results
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
 
   shell:
   '''
-    mkdir -p !{task.process}/aligned !{task.process}/trimmed logs/!{task.process}
+    mkdir -p !{task.process} logs/!{task.process}
     log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
     err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
 
@@ -1021,16 +1034,16 @@ process samtools_depth {
 
     samtools depth !{params.samtools_depth_options} \
       !{aligned} \
-      2>> $err_file > !{task.process}/aligned/!{sample}.depth.txt
+      2>> $err_file > !{task.process}/!{sample}.depth.aligned.txt
 
     if [ "!{trimmed}" == "null" ] || [[ "!{trimmed}" == *"input"* ]]
     then
-      depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/aligned/!{sample}.depth.txt | wc -l )
+      depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/!{sample}.depth.aligned.txt | wc -l )
     else
       samtools depth !{params.samtools_depth_options} \
         !{trimmed} \
-        2>> $err_file > !{task.process}/trimmed/!{sample}.depth.txt
-      depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/trimmed/!{sample}.depth.txt | wc -l )
+        2>> $err_file > !{task.process}/!{sample}.depth.trimmed.txt
+      depth=$(awk '{ if ($3 > !{params.minimum_depth} ) print $0 }' !{task.process}/!{sample}.depth.trimmed.txt | wc -l )
     fi
 
     if [ -z "$depth" ] ; then depth="0" ; fi
@@ -1051,7 +1064,7 @@ process kraken2 {
   tuple val(sample), file(clean), val(paired_single), path(kraken2_db) from paired_files_kraken2.concat(single_files_kraken2).combine(kraken2_db)
 
   output:
-  file("${task.process}/${sample}_kraken2_report.txt")
+  file("${task.process}/${sample}_kraken2_report.txt") into kraken2_files
   file("logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}")
   tuple sample, env(percentage_cov) into kraken2_sars_results
   tuple sample, env(percentage_human) into kraken2_human_results
@@ -1222,7 +1235,7 @@ process pangolin {
 
   output:
   file("${task.process}/*")
-  file("${task.process}/lineage_report.csv") into pangolin_file
+  file("${task.process}/lineage_report.csv") into pangolin_file, pangolin_files
   file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
 
   shell:
@@ -1353,6 +1366,99 @@ process vadr {
     cp ultimate_fasta.fasta !{task.process}/combined.fasta
     cp trimmed_ultimate_fasta.fasta !{task.process}/trimmed.fasta
   '''
+}
+
+if (params.freyja) {
+  params.freyja_variants_options=''
+  params.freyja_demix_options=''
+  params.freyja_boot_options='--nb 1000'
+  process freyja {
+    publishDir "${params.outdir}", mode: 'copy'
+    tag "${sample}"
+    cpus params.medcpus
+    container 'staphb/freyja:latest'
+
+    input:
+    tuple val(sample), file(bam), file(reference_genome) from trimmed_bams_freyja
+
+    output:
+    file("${task.process}/${sample}_demix.tsv") into freyja_demix
+    file("${task.process}/${sample}*")
+    file("logs/${task.process}/${sample}.${workflow.sessionId}.{err,log}")
+
+    shell:
+    '''
+      mkdir -p !{task.process} logs/!{task.process}
+      log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+      err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+
+      date | tee -a $log_file $err_file > /dev/null
+      # no version for 1.3.4
+
+      freyja variants !{params.freyja_variants_options} \
+        !{bam} \
+        --variants !{task.process}/!{sample}_variants.tsv \
+        --depths !{task.process}/!{sample}_depths.tsv \
+        --ref !{reference_genome} \
+        2>> $err_file >> $log_file
+
+      # freyja update 2>> $err_file >> $log_file
+
+      freyja demix \
+        !{params.freyja_demix_options} \
+        !{task.process}/!{sample}_variants.tsv \
+        !{task.process}/!{sample}_depths.tsv \
+        --output !{task.process}/!{sample}_demix.tsv \
+        2>> $err_file >> $log_file
+
+      freyja boot \
+        !{task.process}/!{sample}_variants.tsv \
+        !{task.process}/!{sample}_depths.tsv \
+        --nt !{task.cpus} \
+        --output_base !{task.process}/!{sample}_boot.tsv \
+        2>> $err_file >> $log_file
+    '''
+  }
+  params.freyja_aggregate_options=''
+  params.freyja_plot_options=''
+  params.freyja_plot_filetype='png'
+  process freyja_aggregate {
+    publishDir "${params.outdir}", mode: 'copy'
+    tag "Aggregating results from freyja"
+    cpus 1
+    container 'staphb/freyja:latest'
+
+    input:
+    file(demix) from freyja_demix.collect()
+
+    output:
+    file("freyja/aggregated*")
+    file("freyja/aggregated-freyja.tsv") into aggregated_freyja_file
+    file("logs/${task.process}/${task.process}.${workflow.sessionId}.{err,log}")
+
+    shell:
+    '''
+      mkdir -p freyja logs/!{task.process} tmp
+      log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+      err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
+
+      date | tee -a $log_file $err_file > /dev/null
+
+      mv !{demix} tmp/.
+
+      freyja aggregate !{params.freyja_aggregate_options} \
+        tmp/ \
+        --output freyja/aggregated-freyja.tsv \
+        2>> $err_file >> $log_file
+
+      freyja plot !{params.freyja_plot_options} \
+        freyja/aggregated-freyja.tsv \
+        --output freyja/aggregated-freyja.!{params.freyja_plot_filetype} \
+        2>> $err_file >> $log_file
+    '''
+  }
+} else {
+  aggregated_freyja_file = Channel.empty()
 }
 
 consensus_results
@@ -1523,6 +1629,7 @@ process combine_results {
   file(nextclade) from nextclade_file.ifEmpty([])
   file(pangolin) from pangolin_file.ifEmpty([])
   file(vadr) from vadr_file.ifEmpty([])
+  file(freyja) from aggregated_freyja_file.ifEmpty([])
   file(summary) from summary_file.collect()
   file(combine_results) from combine_results_script
 
@@ -1768,6 +1875,48 @@ if (params.rename) {
         2>> $err_file >> $log_file
     '''
   }
+}
+
+params.multiqc_options = ''
+process multiqc {
+  publishDir "${params.outdir}", mode: 'copy'
+  tag "multiqc"
+  cpus 1
+  container 'ewels/multiqc:latest'
+
+  when:
+  params.multiqc
+
+  input:
+  file(fastqc) from fastqc_files.collect().ifEmpty([])
+  file(fastp) from fastp_files.collect().ifEmpty([])
+  file(seqyclean) from seqyclean_files.collect().ifEmpty([])
+  file(kraken2) from kraken2_files.collect().ifEmpty([])
+  file(pangolin) from pangolin_files.collect().ifEmpty([])
+  file(ivar) from ivar_trim_files.collect().ifEmpty([])
+  file(samtools_stats) from samtools_stats_files.collect().ifEmpty([])
+  file(samtools_flagstat) from samtools_flagstat_files.collect().ifEmpty([])
+
+  output:
+  file("${task.process}/multiqc_report.html") optional true
+  file("${task.process}/multiqc_data/*") optional true
+  file("logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}")
+
+  shell:
+  '''
+    mkdir -p !{task.process} logs/!{task.process}
+    log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
+
+    # time stamp + capturing tool versions
+    date | tee -a $log_file $err_file > /dev/null
+    multiqc --version >> $log_file
+
+    multiqc !{params.multiqc_options} \
+      --outdir !{task.process} \
+      . \
+      2>> $err_file >> $log_file
+  '''
 }
 
 if (params.nextclade || params.nextclade || params.nextclade) {
