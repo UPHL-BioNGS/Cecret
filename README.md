@@ -8,7 +8,7 @@ Location: 40.570°N 111.622°W , 9,875 feet (3,010 m) elevation
 
 Cecret is a workflow developed by [@erinyoung](https://github.com/erinyoung) at the [Utah Public Health Laborotory](https://uphl.utah.gov/) for SARS-COV-2 sequencing with the [artic](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)/Illumina hybrid library prep workflow for MiSeq data with protocols [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bffyjjpw) and [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bfefjjbn). Built to work on linux-based operating systems. Additional config options are needed for cloud batch usage.
 
-It is possible to use this workflow to simply annotate fastas generated from any workflow with pangolin, nextclade, and vadr. Another utility is to find consensus fasta files from fastq files, and add in fasta files that were generated previously or downloaded from [GISAID](https://www.gisaid.org/) or [NCBI](https://www.ncbi.nlm.nih.gov/sars-cov-2/) for multiple sequence alignment (MSA) and phylogenetic tree creation. 
+It is possible to use this workflow to simply annotate fastas generated from any workflow with pangolin, nextclade, freyja, and vadr. Another utility is to find consensus fasta files from fastq files, and add in fasta files that were generated previously or downloaded from [GISAID](https://www.gisaid.org/) or [NCBI](https://www.ncbi.nlm.nih.gov/sars-cov-2/) for multiple sequence alignment (MSA) and phylogenetic tree creation.
 
 Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_toolkit).
 
@@ -40,10 +40,10 @@ nextflow run Cecret.nf -c configs/singularity.config
 nextflow run Cecret.nf -c configs/docker.config
 ```
 
-# Default file structure 
+# Default file structure
 (can be adjusted with 'params.reads', 'params.single_reads', and 'params.fastas')
 
-### Paired-end fastq.gz 
+### Paired-end fastq.gz
 Paired-end fastq.gz (ending with 'fastq', 'fastq.gz', 'fq', or 'fq.gz') reads as follows or designate directory with 'params.reads' or '--reads'
 ```
 directory
@@ -64,7 +64,7 @@ directory
 
 WARNING : single and paired-end reads **cannot** be in the same directory
 
-### Fasta files 
+### Fasta files
 Fasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.fastas' or '--fastas'
 ```
 directory
@@ -72,7 +72,7 @@ directory
      └── *fasta
 ```
 
-### MultiFasta files 
+### MultiFasta files
 MultiFasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.multifastas' or '--multifastas'
 ```
 directory
@@ -106,7 +106,7 @@ For the sake of simplicity, processes in this workflow are designated 1 CPU, a m
 
 The main [Cecret.nf](./Cecret.nf) file will attempt to determine how many cpus are available, and will set `params.maxcpus` to the number of cpus available. This option apparently caused havoc for running this workflow in the cloud and other resource management systems, so by default this is overridden when using a `-profile` to `'params.maxcpus = 8'` in [config template](./configs/cecret_config_template.config).
 
-The **End User** can adjust this by specifying the maximum cpus that one process can take in the config file `'params.maxcpus = <new value>'` or on the command line 
+The **End User** can adjust this by specifying the maximum cpus that one process can take in the config file `'params.maxcpus = <new value>'` or on the command line
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --maxcpus <new value>
 ```
@@ -115,7 +115,7 @@ It is important to remember that nextflow will attempt to utilize all CPUs avail
 ## Determining depth for base calls
 Sequencing has an intrinsic amount of error for every predicted base on a read. This error is reduced the more reads there are. As such, there is a minimum amount of depth that is required to call a base with ivar consensus, ivar variants, and bcftools variants. The main assumption of using this workflow is that the virus is clonal (i.e. only one infection represented in a sample) and created via pcr amplified libraries. The default depth for calling bases or finding variants is set with 'params.minimum_depth' with the default value being `'params.minimum_depth = 100'`. This parameter can be adjusted by the **END USER** in a config file or on the command line.
 
-A corresponding parameter is 'params.mpileup_depth' (default of `'params.mpileup_depth = 8000'`), which is the number of reads that samtools (used by ivar) or bcftools uses to put into memory for any given position. If the **END USER** is experiencing memory issues, this number may need to be decreased. 
+A corresponding parameter is 'params.mpileup_depth' (default of `'params.mpileup_depth = 8000'`), which is the number of reads that samtools (used by ivar) or bcftools uses to put into memory for any given position. If the **END USER** is experiencing memory issues, this number may need to be decreased.
 
 ## Optional toggles:
 
@@ -144,7 +144,7 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --aligner minimap2
 Or set `params.aligner = 'minimap2'` in a config file
 
 ## Determining relatedness
-To create a multiple sequence alignment and corresponding phylogenetic tree and SNP matrix, set `params.relatedness = true` or 
+To create a multiple sequence alignment and corresponding phylogenetic tree and SNP matrix, set `params.relatedness = true` or
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true
 ```
@@ -158,7 +158,7 @@ Or set `params.msa = 'nextalign'` and `params.relatedness = true` in a config fi
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --msa nextclade
 ```
-Or set `params.msa = 'nextclade'` and `params.relatedness = true` in a config file. 
+Or set `params.msa = 'nextclade'` and `params.relatedness = true` in a config file.
 
 WARNING : the aligned fasta from nextclade does not include a reference sequence. If this is desired for iqtree2, a fasta of the reference MUST be included with the input files and the outgroup CAN be specified with `params.iqtree2_options = '-ninit 2 -n 2 -me 0.05 -m GTR -o <YOUR OUTGROUP>'`. Specifying the outgroup via `'params.iqtree2_outgroup'` will not be used.
 
@@ -189,14 +189,16 @@ params.kraken2_organism = "Severe acute respiratory syndrome-related coronavirus
 - [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics
 - [bedtools](https://bedtools.readthedocs.io/en/latest/) - for depth estimation over amplicons
 - [kraken2](https://ccb.jhu.edu/software/kraken2/) - for read classification
-- [pangolin](https://github.com/cov-lineages/pangolin) - for lineage classification
-- [nextclade](https://clades.nextstrain.org/) - for clade classification
+- [pangolin](https://github.com/cov-lineages/pangolin) - for SARS-CoV-2 lineage classification
+- [freyja](https://github.com/andersen-lab/Freyja) - for multiple SARS-CoV-2 lineage classifications
+- [nextclade](https://clades.nextstrain.org/) - for SARS-CoV-2 clade classification
 - [vadr](https://github.com/ncbi/vadr) - for annotating fastas like NCBI
 - [mafft](https://mafft.cbrc.jp/alignment/software/) - for multiple sequence alignment (optional, relatedness must be set to "true")
 - [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
 - [iqtree2](http://www.iqtree.org/) - for phylogenetic tree generation (optional, relatedness must be set to "true")
 - [nextalign](https://github.com/neherlab/nextalign) - for phylogenetic tree generation (optional, relatedness must be set to "true", and msa must be set to "nextalign")
 - [bamsnap](https://github.com/parklab/bamsnap) - to create images of SNPs
+- [multiqc](https://multiqc.info/) - summary of results
 
 ### Turning off unneeded processes
 It came to my attention that some processes (like bcftools) do not work consistently. Also, they might take longer than wanted and might not even be needed for the end user. Here's the processes that can be turned off with their default values:
@@ -214,6 +216,7 @@ params.kraken2 = false                    # used to classify reads and needs a c
 params.bedtools_multicov = true           # bedtools multicov for coverage approximation of amplicons
 params.nextclade = true                   # SARS-CoV-2 clade determination
 params.pangolin = true                    # SARS-CoV-2 lineage determination
+params.freyja = true                      # multiple SARS-CoV-2 lineage determination
 params.vadr = false                       # NCBI fasta QC
 params.relatedness = false                # create multiple sequence alignments with input fastq and fasta files
 params.snpdists = true                    # creates snp matrix from mafft multiple sequence alignment
@@ -221,6 +224,7 @@ params.iqtree2 = true                     # creates phylogenetic tree from mafft
 params.bamsnap = false                    # can be really slow. Works best with bcftools variants. An example bamsnap image is below.
 params.rename = false                     # needs a corresponding sample file and will rename files for GISAID and NCBI submission
 params.filter = false                     # takes the aligned reads and turns them back into fastq.gz files
+params.multiqc = true                     # aggregates data into single report
 ```
 
 ### Add Genbank parsable header to consensus fasta
@@ -278,6 +282,15 @@ cecret                                # results from this workflow
 │   ├── SRR13957125.consensus.fa
 │   ├── SRR13957170.consensus.fa
 │   └── SRR13957177.consensus.fa
+├── dataset                           # generated by nextclade
+│   ├── genemap.gff
+│   ├── primers.csv
+│   ├── qc.json
+│   ├── reference.fasta
+│   ├── sequences.fasta
+│   ├── tag.json
+│   ├── tree.json
+│   └── virus_properties.json
 ├── fastp                             # optional tools for cleaning reads when 'params.cleaner = fastp'
 │   ├── SRR13957125_clean_PE1.fastq.gz
 │   ├── SRR13957125_clean_PE2.fastq.gz
@@ -314,16 +327,37 @@ cecret                                # results from this workflow
 │   ├── SRR13957177_filtered_R1.fastq.gz
 │   ├── SRR13957177_filtered_R2.fastq.gz
 │   └── SRR13957177_filtered_unpaired.fastq.gz
+├── freyja                          # finding co-lineages
+│   ├── aggregated-freyja.png
+│   ├── aggregated-freyja.tsv
+│   ├── SRR13957125_boot.tsv_lineages.csv
+│   ├── SRR13957125_boot.tsv_summarized.csv
+│   ├── SRR13957125_demix.tsv
+│   ├── SRR13957125_depths.tsv
+│   ├── SRR13957125_variants.tsv
+│   ├── SRR13957170_boot.tsv_lineages.csv
+│   ├── SRR13957170_boot.tsv_summarized.csv
+│   ├── SRR13957170_demix.tsv
+│   ├── SRR13957170_depths.tsv
+│   ├── SRR13957170_variants.tsv
+│   ├── SRR13957177_boot.tsv_lineages.csv
+│   ├── SRR13957177_boot.tsv_summarized.csv
+│   ├── SRR13957177_demix.tsv
+│   ├── SRR13957177_depths.tsv
+│   └── SRR13957177_variants.tsv
 ├── iqtree2                          # phylogenetic tree that is generated with 'params.relatedness = true'
 │   ├── iqtree2.iqtree
 │   ├── iqtree2.log
 │   ├── iqtree2.mldist
 │   └── iqtree2.treefile
 ├── ivar_trim                        # bam files after primers have been trimmed off the reads with ivar
+│   ├── SRR13957125_ivar.log
 │   ├── SRR13957125.primertrim.sorted.bam
 │   ├── SRR13957125.primertrim.sorted.bam.bai
+│   ├── SRR13957170_ivar.log
 │   ├── SRR13957170.primertrim.sorted.bam
 │   ├── SRR13957170.primertrim.sorted.bam.bai
+│   ├── SRR13957177_ivar.log
 │   ├── SRR13957177.primertrim.sorted.bam
 │   └── SRR13957177.primertrim.sorted.bam.bai
 ├── ivar_variants                    # tsv and vcf files of variants identified in sample
@@ -341,8 +375,22 @@ cecret                                # results from this workflow
 │   └── processes*
 │       ├── sample.run_id.err
 │       └── sample.run_id.log
-├── mafft                            # multiple sequence alignment created when 'params.relatedness = true' 
+├── mafft                            # multiple sequence alignment created when 'params.relatedness = true'
 │   └── mafft_aligned.fasta
+├── multiqc                          # aggregates data into single report
+│   ├── multiqc_data
+│   │   ├── multiqc_citations.txt
+│   │   ├── multiqc_data.json
+│   │   ├── multiqc_fastqc.txt
+│   │   ├── multiqc_general_stats.txt
+│   │   ├── multiqc_ivar_primers.txt
+│   │   ├── multiqc_ivar_summary.txt
+│   │   ├── multiqc.log
+│   │   ├── multiqc_samtools_flagstat.txt
+│   │   ├── multiqc_samtools_stats.txt
+│   │   ├── multiqc_seqyclean.txt
+│   │   └── multiqc_sources.txt
+│   └── multiqc_report.html
 ├── nextclade                        # nextclade reports
 │   ├── combined.fasta
 │   ├── nextclade.aligned.fasta
@@ -372,31 +420,35 @@ cecret                                # results from this workflow
 │   ├── SRR13957170_ampliconstats.txt
 │   └── SRR13957177_ampliconstats.txt
 ├── samtools_coverage                # coverage and metrics as determined by samtools
-│   └── aligned
-│       ├── SRR13957125.cov.hist
-│       ├── SRR13957125.cov.txt
-│       ├── SRR13957170.cov.hist
-│       ├── SRR13957170.cov.txt
-│       ├── SRR13957177.cov.hist
-│       └── SRR13957177.cov.txt
+│   ├── SRR13957125.cov.aligned.hist
+│   ├── SRR13957125.cov.aligned.txt
+│   ├── SRR13957125.cov.trimmed.hist
+│   ├── SRR13957125.cov.trimmed.txt
+│   ├── SRR13957170.cov.aligned.hist
+│   ├── SRR13957170.cov.aligned.txt
+│   ├── SRR13957170.cov.trimmed.hist
+│   ├── SRR13957170.cov.trimmed.txt
+│   ├── SRR13957177.cov.aligned.hist
+│   ├── SRR13957177.cov.aligned.txt
+│   ├── SRR13957177.cov.trimmed.hist
+│   └── SRR13957177.cov.trimmed.txt
 ├── samtools_depth                   # the number of reads
-│   ├── aligned
-│   │   ├── SRR13957125.depth.txt
-│   │   ├── SRR13957170.depth.txt
-│   │   └── SRR13957177.depth.txt
-│   └── trimmed
-│       ├── SRR13957125.depth.txt
-│       ├── SRR13957170.depth.txt
-│       └── SRR13957177.depth.txt
+│   ├── SRR13957125.depth.aligned.txt
+│   ├── SRR13957125.depth.trimmed.txt
+│   ├── SRR13957170.depth.aligned.txt
+│   ├── SRR13957170.depth.trimmed.txt
+│   ├── SRR13957177.depth.aligned.txt
+│   └── SRR13957177.depth.trimmed.txt
 ├── samtools_flagstat                # flag information
-│   ├── aligned
-│   │   ├── SRR13957125.flagstat.txt
-│   │   ├── SRR13957170.flagstat.txt
-│   │   └── SRR13957177.flagstat.txt
-│   └── trimmed
-│       ├── SRR13957125.flagstat.txt
-│       ├── SRR13957170.flagstat.txt
-│       └── SRR13957177.flagstat.txt
+│   ├── SRR13957125.flagstat.aligned.txt
+│   ├── SRR13957125.flagstat.trimmed.txt
+│   ├── SRR13957125.flagstat.txt
+│   ├── SRR13957170.flagstat.aligned.txt
+│   ├── SRR13957170.flagstat.trimmed.txt
+│   ├── SRR13957170.flagstat.txt
+│   ├── SRR13957177.flagstat.aligned.txt
+│   ├── SRR13957177.flagstat.trimmed.txt
+│   └── SRR13957177.flagstat.txt
 ├── samtools_plot_ampliconstats      # plots of the ampliconstats for troubleshooting purposes
 │   ├── SRR13957125
 │   ├── SRR13957125-combined-amp.gp
@@ -504,14 +556,15 @@ cecret                                # results from this workflow
 │   ├── SRR13957177-SRR13957177.primertrim.sorted-tsize.gp
 │   └── SRR13957177-SRR13957177.primertrim.sorted-tsize.png
 ├── samtools_stats                   # stats as determined by samtools
-│   ├── aligned
-│   │   ├── SRR13957125.stats.txt
-│   │   ├── SRR13957170.stats.txt
-│   │   └── SRR13957177.stats.txt
-│   └── trimmed
-│       ├── SRR13957125.stats.trim.txt
-│       ├── SRR13957170.stats.trim.txt
-│       └── SRR13957177.stats.trim.txt
+│   ├── SRR13957125.stats.aligned.txt
+│   ├── SRR13957125.stats.trimmed.txt
+│   ├── SRR13957125.stats.txt
+│   ├── SRR13957170.stats.aligned.txt
+│   ├── SRR13957170.stats.trimmed.txt
+│   ├── SRR13957170.stats.txt
+│   ├── SRR13957177.stats.aligned.txt
+│   ├── SRR13957177.stats.trimmed.txt
+│   └── SRR13957177.stats.txt
 ├── seqyclean                        # reads that have had PhiX and adapters removed
 │   ├── Combined_SummaryStatistics.tsv
 │   ├── SRR13957125_clean_PE1.fastq.gz
@@ -539,15 +592,12 @@ cecret                                # results from this workflow
 │   ├── UT-UPHL-2103929243.gisaid.fa
 │   ├── UT-UPHL-2103954304_filtered_R1.fastq.gz
 │   └── UT-UPHL-2103954304_filtered_R2.fastq.gz
-├── summary                          # summary files with condensed results
+├── summary                         # convenient summary files
+│   ├── combined_summary.csv
 │   ├── SRR13957125.summary.csv
-│   ├── SRR13957125.summary.txt
 │   ├── SRR13957170.summary.csv
-│   ├── SRR13957170.summary.txt
-│   ├── SRR13957177.summary.csv
-│   └── SRR13957177.summary.txt
-├── summary.csv
-└── vadr                             # QC that mimics NCBI's metrics
+│   └── SRR13957177.summary.csv
+└── vadr                            # consensus file QC
     ├── combined.fasta
     ├── trimmed.fasta
     ├── vadr.vadr.alc
@@ -580,7 +630,7 @@ work                                 # nextflow's working directories
 ```
 
 </details>
-   
+
 **A FILE THAT THE END USER CAN COPY AND EDIT IS FOUND AT [configs/cecret_config_template.config](configs/cecret_config_template.config)**
 
 This file contains all of the configurable parameters with their default values. Use `'-c'` to specify the edited config file. If the **End User** is using some sort of cloud or HPC setup, it is highly recommended that this file is copied and edited appropriately. A limited list of parameters is listed below:
@@ -605,11 +655,26 @@ This file contains all of the configurable parameters with their default values.
 * Email me
 * Send me a message on slack
 
-Be sure to include the command that was used, what config file was used, and what the **nextflow** error was. 
+Be sure to include the command that was used, what config file was used, and what the **nextflow** error was.
+
+## What is the MultiQC report?
+The multiqc report aggregates data across your samples into one file. Open the 'cecret/multiqc/multiqc_report.html' file with your favored browser. There tables and graphs are generated for 'General Statistics', 'Samtools stats', 'Samtools flagstats', 'FastQC', 'iVar', 'SeqyClean', 'Fastp', 'Pangolin', and 'Kraken2'.
+
+### Example fastqc graph
+![alt text](images/multiqc_fastqc.png)
+
+### Example kraken2 graph
+![alt text](images/multiqc_kraken2.png)
+
+### Example iVar graph
+![alt text](images/multiqc_ivar.png)
+
+### Example pangolin graph
+![alt text](images/multiqc_pangolin.png)
 
 ## What if I want to test the workflow?
 
-In the history of this repository, there actually was an attempt to store fastq files here that the **End User** could use to test out this workflow. This made the repository very large and difficult to download. 
+In the history of this repository, there actually was an attempt to store fastq files here that the **End User** could use to test out this workflow. This made the repository very large and difficult to download.
 
 Instead, it recommended that the **End User** uses the [SARS-CoV-2 datasets](https://github.com/CDCgov/datasets-sars-cov-2), an effort of the CDC to provide a benchmark dataset for validating bioinformatic workflows. Fastq files from the [nonviovoc](https://github.com/CDCgov/datasets-sars-cov-2/blob/master/datasets/sars-cov-2-nonvoivoc.tsv), [voivoc](https://github.com/CDCgov/datasets-sars-cov-2/blob/master/datasets/sars-cov-2-voivoc.tsv), and [failed](https://github.com/CDCgov/datasets-sars-cov-2/blob/master/datasets/sars-cov-2-failedQC.tsv) projects were downloaded from the SRA and put through this workflow. The summary files are included in the data directory under the following filenames for comparison:
 - [data/default_datasets_summary.csv](./data/default_datasets_summary.csv) : Using the default options
@@ -618,7 +683,7 @@ Instead, it recommended that the **End User** uses the [SARS-CoV-2 datasets](htt
 
 The expected amount of time to run this workflow with 250 G RAM and 48 CPUs, 'params.maxcpus = 8', and 'params.medcpus = 4' is ~42 minutes. This corresponded with 25.8 CPU hours.
 
-## What if I just want to annotate some SARS-CoV-2 fastas with pangolin, nextclade and vadr?
+## What if I just want to annotate some SARS-CoV-2 fastas with pangolin, freyja, nextclade and vadr?
 ```
 # for a collection of fastas
 nextflow run UPHL-BioNGS/Cecret -profile singularity --fastas <directory with fastas>
@@ -640,7 +705,7 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas
 ## Where is an example config file?
 The **End User** is more than welcome to look at an example [here](./configs/cecret_config_template.config). Just remove the comments for the parameters that need to be adjusted and specify with `-c`.
 
-At UPHL, our config file is small enough to be put as a profile option, but the text of the config file would be as follows: 
+At UPHL, our config file is small enough to be put as a profile option, but the text of the config file would be as follows:
 
 ```
 singularity.enabled = true
@@ -660,9 +725,9 @@ nextflow run Cecret.nf -c <path to custom config file>/config.config
 
 ## Is there a way to determine if certain amplicons are failing?
 
-There are two ways to do this. 
+There are two ways to do this.
 
-### With bedtools multicov : 
+### With bedtools multicov :
 `cecret/bedtools_multicov` has a file for each sample.
 This is standard bedtools multicov output, so it doesn't have a header.
 
@@ -679,7 +744,7 @@ Row number 126 (FDEPTH) has a column for each amplicon (also without a header). 
 
 ```
 grep "^FDEPTH" cecret/samtools_ampliconstats/* > samtools_ampliconstats_all.tsv
-``` 
+```
 
 There are corresponding images in `cecret/samtools_plot_ampliconstats` for each sample.
 
@@ -690,7 +755,7 @@ There are corresponding images in `cecret/samtools_plot_ampliconstats` for each 
 
 There's nothing wrong with the bcftools process, and the vcf created by bcftools is rather handy for additional analyses. The `'staphb/bcftools:latest'` container is really popular, and has issues downloading during high traffic times. The maintainers of this repository don't have the time to handle issues of users not understanding why the container did not download. /Sorry
 
-To to get the vcf of variants from bcftools, set `params.bcftools_variants = true` 
+To to get the vcf of variants from bcftools, set `params.bcftools_variants = true`
 
 ## What is the difference between `params.amplicon_bed` and `params.primer_bed`?
 
@@ -725,7 +790,9 @@ MN908947.3	2850	3183	10	2	+
 ```
 Due to the many varieties of primer bedfiles, it is best if the **End User** supplied this file for custom primer sequences.
 
-## What if I am using an amplicon based library that is not SARS-CoV-2?
+## What if I am using an amplicon-based library that is not SARS-CoV-2?
+
+First of all, this is a great thing! [Let me know](https://github.com/UPHL-BioNGS/Cecret/issues) if tools specific for your organism should be added to this workflow.
 
 In a config file, change the following relevant parameters:
 ```
@@ -736,17 +803,18 @@ params.gff_file or set params.ivar_variants = false
 ```
 And set
 ```
-params.pangolin = false 
+params.pangolin = false
+params.freyja = false
 params.nextclade = false or adjust nexclade_prep_options from '--name sars-cov-2' to the name of the relevent dataset
 params.vadr = false or configure the vadr container appropriately and params.vadr_reference
 ```
 ## What if I need to filter out human reads or I only want reads that map to my reference?
 
-Although not perfect, if `'params.filter = true'`, then only the reads that were mapped to the reference are returned. This _should_ eliminate all human contamination (as long as human is not part of the supplied reference). 
+Although not perfect, if `'params.filter = true'`, then only the reads that were mapped to the reference are returned. This _should_ eliminate all human contamination (as long as human is not part of the supplied reference).
 
 ## This workflow has too many bells and whistles. I really only care about generating a consensus fasta. How do I get rid of all the extras?
 
-Change the parameters in a config file and set most of them to false. 
+Change the parameters in a config file and set most of them to false.
 
 ```
 params.fastqc = false
@@ -760,6 +828,7 @@ params.samtools_ampliconstats = false
 params.samtools_plot_ampliconstats = false
 params.bedtools_multicov = false
 params.pangolin = false
+params.freyja = false
 params.nextclade = false
 params.vadr = false
 ```
@@ -767,11 +836,16 @@ And, yes, this means I added some bells and whistles so the **End User** could t
 
 ## Can I get images of my SNPs and indels?
 
-Yes. Set `params.bamsnap = true`. This is false by default because of how long it takes. It will work with variants called by `ivar_variants` and `bcftools_variants`, although it is **MUCH** faster with the vcf created by bcftools. 
+Yes. Set `params.bamsnap = true`. This is false by default because of how long it takes. It will work with variants called by `ivar_variants` and `bcftools_variants`, although it is **MUCH** faster with the vcf created by bcftools.
 
-Warning : will not work on all variants. This is due to how bamsnap runs. It is even less likely to work on indels. 
+Warning : will not work on all variants. This is due to how bamsnap runs. It is even less likely to work on indels.
 
 ### Sample bamsnap plot
 ![alt text](images/sample_bamsnap.png)
+
+
+## What is in the works to get added to 'Cecret'? (These are waiting for either versions to stablize or a docker container to be available.)
+- https://github.com/chrisruis/bammix
+- https://github.com/lenaschimmel/sc2rf
 
 ![alt text](https://uphl.utah.gov/wp-content/uploads/New-UPHL-Logo.png)

@@ -6,6 +6,7 @@ from os.path import exists
 pangolin_file='lineage_report.csv'
 nextclade_file='nextclade.csv'
 vadr_file='vadr.csv'
+freyja_file='aggregated-freyja.tsv'
 summary_file='combined_summary.csv'
 
 summary_df = pd.read_csv(summary_file, dtype = str)
@@ -41,7 +42,7 @@ if exists(nextclade_file) :
     columns = ['nextclade_clade'] + columns + nextclade_columns
 
 if exists(pangolin_file) :
-    pangolin_df = pd.read_csv(pangolin_file, dtype = str, usecols = ['taxon', 'lineage', 'status', 'scorpio_call', 'version', 'pangolin_version', 'pango_version', 'pangoLEARN_version'])
+    pangolin_df = pd.read_csv(pangolin_file, dtype = str)
     pangolin_df=pangolin_df.add_prefix('pangolin_')
     pangolin_columns = list(pangolin_df.columns)
     pangolin_columns.remove('pangolin_taxon')
@@ -52,5 +53,18 @@ if exists(pangolin_file) :
     summary_df['fasta_line'].fillna(summary_df['pangolin_taxon'], inplace=True)
     summary_df.drop('pangolin_taxon', axis=1, inplace=True)
     columns = ['pangolin_lineage'] + columns + pangolin_columns
+
+if exists(freyja_file) :
+    freyja_df = pd.read_table(freyja_file, dtype = str, sep="\t")
+    freyja_df = freyja_df.add_prefix('freyja_')
+    freyja_df['freyja_Unnamed: 0'] = freyja_df['freyja_Unnamed: 0'].str.replace("_variants.tsv", "")
+    freyja_columns = list(freyja_df.columns)
+    freyja_columns.remove('freyja_Unnamed: 0')
+
+    summary_df = pd.merge(summary_df, freyja_df, left_on = 'sample_id', right_on = 'freyja_Unnamed: 0', how = 'outer')
+    summary_df['sample_id'].fillna(summary_df['freyja_Unnamed: 0'], inplace=True)
+    summary_df['fasta_line'].fillna(summary_df['freyja_Unnamed: 0'], inplace=True)
+    summary_df.drop('freyja_Unnamed: 0', axis=1, inplace=True)
+    columns = columns + freyja_columns
 
 summary_df.to_csv('cecret_results.csv', columns = ['sample_id','sample'] + columns, index=False)
