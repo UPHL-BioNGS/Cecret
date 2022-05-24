@@ -9,8 +9,8 @@ process vadr {
   file(fasta)
 
   output:
-  path "${task.process}/*",             optional: true,                         emit: vadr_files
-  path "${task.process}/vadr.vadr.sqa", optional: true,                         emit: vadr_file
+  path "vadr/*",                                                                emit: vadr_files
+  path "vadr/vadr.vadr.sqa",                                                    emit: vadr_file
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}",  emit: log
 
   shell:
