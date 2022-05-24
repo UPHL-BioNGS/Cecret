@@ -291,14 +291,6 @@ paired_reads
   .set { reads }
 
 workflow {
-//  reads
-//  fastas
-//  multifastas
-//  reference_genome
-//  primer_bed
-//  amplicon_bed
-//  gff_file
-//  kraken2_db
 //  combine_results_script
     fasta_prep(fastas)
 
@@ -315,56 +307,56 @@ workflow {
 
     annotation(fasta_prep.out.fastas.concat(multifastas).concat(cecret.out.consensus))
 
-    cecret.out.seqyclean_files
-      .collectFile(name: "Combined_SummaryStatistics.tsv",
-        keepHeader: true,
-        sort: true,
-        storeDir: "${params.outdir}/seqyclean")
-      .set { seqyclean_file }
-
     if ( params.relatedness ) { msa(fasta_prep.out.fastas.concat(multifastas).concat(cecret.out.consensus), reference_genome, annotation.out.dataset) }
 
-    // multiqc(qc.out.fastqc_files.collect().ifEmpty([]),
-    //   cecret.out.fastp_files.collect().ifEmpty([]),
-    //   cecret.out.seqyclean_files.collect().ifEmpty([]),
-    //   qc.out.kraken2.collect().ifEmpty([]),
-    //   annotate.out.pangolin.collect().ifEmpty([]),
-    //   cecret.out.ivar_files.collect().ifEmpty([]),
-    //   qc.out.samtools_stats.collect().ifEmpty([]),
-    //   qc.out.samtools_flagstat.collect().ifEmpty([]))
+    //multiqc(qc.out.fastqc_files, cecret.out.fastp_files)
+    // , cecret.out.seqyclean_files.collect(),
+    //   qc.out.kraken2_files.collect(),
+    //   annotation.out.pangolin.collect(),
+    //   cecret.out.ivar_files.collect(),
+    //   qc.out.samtools_stats_files.collect(),
+    //   qc.out.samtools_flagstat_files.collect())
 
+    cecret.out.consensus_results
+      .mix(fasta_prep.out.fastas_results)
+      // cecret subworkflow
+      .join(cecret.out.cleaner_version,             remainder: true, by: 0 )
+      .join(cecret.out.aligner_version,             remainder: true, by: 0 )
+      .join(cecret.out.trimmer_version,             remainder: true, by: 0 )
+      .join(cecret.out.ivar_version,                remainder: true, by: 0 )
+      .join(cecret.out.fastp_results,               remainder: true, by: 0 )
+      // qc subworkflow
+      .join(qc.out.fastqc_1_results,                remainder: true, by: 0 )
+      .join(qc.out.fastqc_2_results,                remainder: true, by: 0 )
+      .join(qc.out.kraken2_target_results,          remainder: true, by: 0 )
+      .join(qc.out.kraken2_human_results,           remainder: true, by: 0 )
+      .join(qc.out.ivar_variants_results,           remainder: true, by: 0 )
+      .join(qc.out.bcftools_variants_results,       remainder: true, by: 0 )
+      .join(qc.out.insert_size_after_trimming,      remainder: true, by: 0 )
+      .join(qc.out.samtools_coverage_results,       remainder: true, by: 0 )
+      .join(qc.out.samtools_covdepth_results,       remainder: true, by: 0)
+      .join(qc.out.samtools_depth_results,          remainder: true, by: 0 )
+      .join(qc.out.samtools_ampliconstats_results,  remainder: true, by: 0 )
+      .join(qc.out.bedtools_results,                remainder: true, by: 0 )
+      // seqyclean and anything from the annotation subworkflow will be added by pandas
+      .set { results }
 
+      summary(results)
 
-  //        consensus_results
-  //          .concat(fastas_results)
-  //          .join(fastqc_1_results, remainder: true, by: 0)
-  //          .join(fastqc_2_results, remainder: true, by: 0)
-  //          .join(fastp_results, remainder: true, by: 0)
-  //          .join(ivar_variants_results, remainder: true, by: 0)
-  //          .join(bcftools_variants_results, remainder: true, by:0)
-  //          .join(samtools_coverage_results, remainder: true, by: 0)
-  //          .join(samtools_covdepth_results, remainder: true, by: 0)
-  //          .join(samtools_depth_results, remainder: true, by: 0)
-  //          .join(samtools_stats_before_size_results, remainder: true, by: 0)
-  //          .join(samtools_stats_after_size_results, remainder: true, by: 0)
-  //          .join(kraken2_human_results, remainder: true, by: 0)
-  //          .join(kraken2_sars_results, remainder: true, by: 0)
-  //          .join(bedtools_results, remainder: true, by: 0)
-  //          .join(samtools_ampliconstats_results, remainder: true, by: 0)
-  //          .join(aligner_version, remainder: true, by: 0)
-  //          .join(trimmer_version, remainder: true, by: 0)
-  //          .join(cleaner_version, remainder: true, by: 0)
-  //          .join(ivar_version, remainder: true, by: 0)
-  //          .set { results }
-  //
-  //          summary
-  //            .collectFile(name: "combined_summary.csv",
-  //              keepHeader: true,
-  //              sort: true,
-  //              skip: 1,
-  //              storeDir: "${params.outdir}/summary")
-  //
-  //
+      cecret.out.seqyclean_files
+        .collectFile(name: "Combined_SummaryStatistics.tsv",
+          keepHeader: true,
+          sort: true,
+          storeDir: "${params.outdir}/seqyclean")
+        .set { seqyclean_file }
+
+      combine_results(annotation.out.nextclade_file.ifEmpty([]),
+        annotation.out.pangolin_file.ifEmpty([]),
+        annotation.out.vadr_file.ifEmpty([]),
+        qc.out.freyja_file.ifEmpty([]),
+        seqyclean_file.ifEmpty([]),
+        summary.out.summary_file.collect().ifEmpty([]),
+        combine_results_script)
 }
 
 workflow.onComplete {
