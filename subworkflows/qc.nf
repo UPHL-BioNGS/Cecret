@@ -24,7 +24,12 @@ workflow qc {
 
   main:
   fastqc(reads)
-  kraken2(clean_reads.combine(kraken2_db))
+  if ( kraken2_db ) {
+    kraken2(clean_reads.combine(kraken2_db))
+    kraken2_files = kraken2.out.kraken2_files
+  } else {
+    kraken2_files = Channel.empty()
+  }
   samtools_flagstat(bam)
   samtools_depth(bam)
   samtools_coverage(bam)
@@ -44,7 +49,7 @@ workflow qc {
   // for multiqc
   fastqc_files                    = fastqc.out.fastqc_files
   samtools_stats_files            = samtools_stats.out.samtools_stats_files
-  kraken2_files                   = kraken2.out.kraken2_files
+  kraken2_files                   = kraken2_files
   samtools_flagstat_files         = samtools_flagstat.out.samtools_flagstat_files
 
   // for summary file
@@ -60,4 +65,5 @@ workflow qc {
   samtools_depth_results          = samtools_depth.out.samtools_depth_results
   samtools_ampliconstats_results  = samtools_ampliconstats.out.samtools_ampliconstats_results
   bedtools_results                = bedtools_multicov.out.bedtools_results
+  freyja_file                     = freyja_aggregate.out.aggregated_freyja_file
 }
