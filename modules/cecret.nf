@@ -38,29 +38,28 @@ process summary {
 
   input:
   tuple val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total), val(first_line),
+    // cecret workflow
+    val(trimmer_version),
+    val(aligner_version),
+    val(cleaner_version),
+    val(ivar_version),
+    val(reads_passed),
+    // qc subworkflow
     val(raw_1),
     val(raw_2),
-    val(pairskept),
-    val(perc_kept),
-    val(reads_passed),
+    val(percentage_cov),
+    val(percentage_human),
     val(ivar_variants),
     val(bcftools_variants),
+    val(samtools_stats_after_size_results),
     val(coverage),
     val(covdepth),
     val(depth),
-    val(samtools_stats_before_size_results),
-    val(samtools_stats_after_size_results),
-    val(percentage_human),
-    val(percentage_cov),
-    val(bedtools_num_failed_amplicons),
     val(samtools_num_failed_amplicons),
-    val(aligner_version),
-    val(trimmer_version),
-    val(cleaner_version),
-    val(ivar_version) from results
+    val(bedtools_num_failed_amplicons)
 
   output:
-  path "summary/${sample}.summary.csv", emit: summary_file
+  path "summary/${sample}.summary.csv",                                  emit: summary_file
   path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}", emit: logs
 
   shell:
@@ -102,8 +101,8 @@ process summary {
 
     if [ "!{params.samtools_stats}" != "false" ]
     then
-      header="$header,insert_size_before_trimming,insert_size_after_trimming"
-      result="$result,!{samtools_stats_before_size_results},!{samtools_stats_after_size_results}"
+      header="$header,insert_size_after_trimming"
+      result="$result,!{samtools_stats_after_size_results}"
     fi
 
     if [ "!{params.kraken2}" != "false" ]
@@ -152,10 +151,17 @@ process combine_results {
   tag "Combining Results"
 
   input:
-  file(nextclade), file(pangolin), file(vadr), file(freyja), file(summary), file(combine_results)
+  file(nextclade)
+    file(pangolin)
+    file(vadr)
+    file(freyja)
+    file(seqyclean)
+    file(summary)
+    file(combine_results)
 
   output:
   path "cecret_results.{csv,txt}", emit: final_file
+  path "combined_summary.csv"
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}", emit: log
 
   shell:
@@ -169,8 +175,10 @@ process combine_results {
     cat !{summary} | head -n 1 > combined_summary.csv
     for summary in !{summary}
     do
-      tail -n +2 $summary >> combined_summary.csv
+      tail -n +2 $summary >> combined_summary.csv.tmp
     done
+
+    sort combined_summary.csv.tmp | uniq >> combined_summary.csv
 
     if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | grep -v "#-" | tr -s '[:blank:]' ',' > vadr.csv ; fi
 
