@@ -73,10 +73,10 @@ workflow cecret {
   ivar_files        = ivar_trim.out.ivar_trim_files
 
   // for summary file
-  fastp_results     = fastp_results
+  consensus_results = ivar.out.consensus_results
   cleaner_version   = cleaner_version
   aligner_version   = aligner_version
   trimmer_version   = trimmer_version
   ivar_version      = ivar.out.ivar_version
-  consensus_results = ivar.out.consensus_results
+  fastp_results     = fastp_results
 }
