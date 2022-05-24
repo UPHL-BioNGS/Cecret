@@ -5,10 +5,10 @@ process multiqc {
   params.multiqc
 
   input:
-  file(fastqc)
+  file(fastqc).ifEmpty([])
   file(fastp)
   file(seqyclean)
-  file(kraken2)
+  file(kraken2).ifEmpty([])
   file(pangolin)
   file(ivar)
   file(samtools_stats)
