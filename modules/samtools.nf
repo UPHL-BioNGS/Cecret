@@ -158,7 +158,7 @@ process samtools_ampliconstats {
 
 process samtools_plot_ampliconstats {
   tag "${sample}"
-//  errorStrategy 'ignore'
+  errorStrategy 'ignore'
 
   when:
   params.samtools_plot_ampliconstats
