@@ -197,13 +197,13 @@ params.kraken2_organism = "Severe acute respiratory syndrome-related coronavirus
 - [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
 - [iqtree2](http://www.iqtree.org/) - for phylogenetic tree generation (optional, relatedness must be set to "true")
 - [nextalign](https://github.com/neherlab/nextalign) - for phylogenetic tree generation (optional, relatedness must be set to "true", and msa must be set to "nextalign")
-- [bamsnap](https://github.com/parklab/bamsnap) - to create images of SNPs
+- [bamsnap](https://github.com/parklab/bamsnap) - <no longer supported>
 - [multiqc](https://multiqc.info/) - summary of results
 
 ### Turning off unneeded processes
 It came to my attention that some processes (like bcftools) do not work consistently. Also, they might take longer than wanted and might not even be needed for the end user. Here's the processes that can be turned off with their default values:
 ```
-params.bcftools_variants = false          # the container gets a lot of traffic which can error when attempting to download
+params.bcftools_variants = true           # vcf of variants
 params.fastqc = true                      # qc on the sequencing reads
 params.ivar_variants = true               # itemize the variants identified by ivar
 params.samtools_stats = true              # stats about the bam files
@@ -221,36 +221,11 @@ params.vadr = false                       # NCBI fasta QC
 params.relatedness = false                # create multiple sequence alignments with input fastq and fasta files
 params.snpdists = true                    # creates snp matrix from mafft multiple sequence alignment
 params.iqtree2 = true                     # creates phylogenetic tree from mafft multiple sequence alignement
-params.bamsnap = false                    # can be really slow. Works best with bcftools variants. An example bamsnap image is below.
+params.bamsnap = false                    # has been removed
 params.rename = false                     # needs a corresponding sample file and will rename files for GISAID and NCBI submission
 params.filter = false                     # takes the aligned reads and turns them back into fastq.gz files
 params.multiqc = true                     # aggregates data into single report
 ```
-
-### Add Genbank parsable header to consensus fasta
-
-This requires a comma-delimted file set with `params.sample_file` file with a row for each sample and a comma-delimited column for each item to add to the GenBank submission header. Additionally, adjust `params.rename = true`.
-
-The following headers are required
-- Sample_id          (required, must match sample_id*.fa*)
-- Submission_id      (if file needs renaming)
-- Collection_Date
-
-Example covid_samples.csv file contents:
-```
-Sample_id,Submission_ID,Collection_Date,SRR
-12345,UT-UPHL-12345,2020-08-22,SRR1
-67890,UT-UPHL-67890,2020-08-22,SRR2
-23456,UT-UPHL-23456,2020-08-22,SRR3
-78901,UT-UPHL-78901,2020-08-18,SRR4
-```
-Where the files named `12345-UT-M03999-200822_S9_L001_R1_001.fastq.gz`, `12345-UT-M03999-200822_S9_L001_R2_001.fastq.gz` will be renamed `UT-UPHL-12345.R1.fastq.gz` and `UT-UPHL-12345.R2.fastq.gz`. A GISAID and GenBank friendly multifasta files ready for submission are also generated. The GenBank multifasta uses the input file to create fasta headers like
-```
->12345 [Collection_Date=2020-08-22][organism=Severe acute respiratory syndrome coronavirus 2][host=human][country=USA][isolate=SARS-CoV-2/human/USA/12345/2020][SRR=SRR1]
-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
-```
-
-Sometimes sequencing fails, so there are parameters for how many non-ambiguous bases a fasta needs in order to get incorporated into the final file. This can be set with `params.gisaid_threshold` (Default is '`params.gisaid_threshold = '25000'`') and params.genbank_threshold (Default is '`params.genbank_threshold = '15000'`').
 
 ## Final file structure
 <details>
@@ -751,12 +726,6 @@ There are corresponding images in `cecret/samtools_plot_ampliconstats` for each 
 ### Sample samtools plot ampliconstats depth graph
 ![alt text](images/example-combined-depth.png)
 
-## Why is bcftools set to 'false' by default?
-
-There's nothing wrong with the bcftools process, and the vcf created by bcftools is rather handy for additional analyses. The `'staphb/bcftools:latest'` container is really popular, and has issues downloading during high traffic times. The maintainers of this repository don't have the time to handle issues of users not understanding why the container did not download. /Sorry
-
-To to get the vcf of variants from bcftools, set `params.bcftools_variants = true`
-
 ## What is the difference between `params.amplicon_bed` and `params.primer_bed`?
 
 The primer bedfile is the file with the start and stop of each **primer** sequence.
@@ -831,20 +800,15 @@ params.pangolin = false
 params.freyja = false
 params.nextclade = false
 params.vadr = false
+params.multiqc = false
 ```
 And, yes, this means I added some bells and whistles so the **End User** could turn off the bells and whistles. /irony
 
 ## Can I get images of my SNPs and indels?
 
-Yes. Set `params.bamsnap = true`. This is false by default because of how long it takes. It will work with variants called by `ivar_variants` and `bcftools_variants`, although it is **MUCH** faster with the vcf created by bcftools.
+No. Prior versions supported a tool called bamsnap, which had the potential to be great. Due to time constraints, this feature is no longer suppored.
 
-Warning : will not work on all variants. This is due to how bamsnap runs. It is even less likely to work on indels.
-
-### Sample bamsnap plot
-![alt text](images/sample_bamsnap.png)
-
-
-## What is in the works to get added to 'Cecret'? (These are waiting for either versions to stablize or a docker container to be available.)
+## What is in the works to get added to 'Cecret'? (These are waiting for either versions to stabilize or a docker container to be available.)
 - https://github.com/chrisruis/bammix
 - https://github.com/lenaschimmel/sc2rf
 
