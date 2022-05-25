@@ -8,6 +8,7 @@ nextclade_file='nextclade.csv'
 vadr_file='vadr.csv'
 freyja_file='aggregated-freyja.tsv'
 seqyclean_file='Combined_SummaryStatistics.tsv'
+seqycln_file='Combined_seqyclean_SummaryStatistics.tsv'
 summary_file='combined_summary.csv'
 
 summary_df = pd.read_csv(summary_file, dtype = str)
@@ -87,6 +88,21 @@ if exists(seqyclean_file) :
     summary_df['fasta_line'].fillna(summary_df['seqyclean_OutputPrefix'], inplace=True)
     summary_df.drop('seqyclean_OutputPrefix', axis=1, inplace=True)
     columns = columns + seqyclean_columns
+
+if exists(seqycln_file) :
+    print("Getting results from seqyclean file " + seqycln_file)
+    seqycln_df = pd.read_table(seqycln_file, dtype = str, sep="\t", usecols = ['OutputPrefix', 'SEReadsKept', 'Perc_Kept'])
+    seqycln_df = seqycln_df.add_prefix('seqycln_')
+    seqycln_df['seqycln_OutputPrefix'] = seqycln_df['seqycln_OutputPrefix'].str.replace("seqyclean/", "")
+    seqycln_df['seqycln_OutputPrefix'] = seqycln_df['seqycln_OutputPrefix'].str.replace("_clean", "")
+    seqycln_columns = list(seqycln_df.columns)
+    seqycln_columns.remove('seqycln_OutputPrefix')
+
+    summary_df = pd.merge(summary_df, seqycln_df, left_on = 'sample_id', right_on = 'seqycln_OutputPrefix', how = 'outer')
+    summary_df['sample_id'].fillna(summary_df['seqycln_OutputPrefix'], inplace=True)
+    summary_df['fasta_line'].fillna(summary_df['seqycln_OutputPrefix'], inplace=True)
+    summary_df.drop('seqycln_OutputPrefix', axis=1, inplace=True)
+    columns = columns + seqycln_columns
 
 #summary_df.dropna(axis=1, how='all', inplace=True)
 summary_df.replace([" ", ",", "\t", "\n"], [" ", " ", " ", " "], regex=True, inplace=True)
