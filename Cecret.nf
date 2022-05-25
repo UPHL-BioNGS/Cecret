@@ -298,6 +298,7 @@ workflow {
     qc(reads,
       cecret.out.clean_type,
       kraken2_db,
+      cecret.out.sam,
       cecret.out.bam,
       cecret.out.bam_bai,
       reference_genome,
@@ -343,18 +344,26 @@ workflow {
 
       summary(results)
 
-      cecret.out.seqyclean_files
+      cecret.out.seqyclean_files1
         .collectFile(name: "Combined_SummaryStatistics.tsv",
           keepHeader: true,
           sort: true,
           storeDir: "${params.outdir}/seqyclean")
-        .set { seqyclean_file }
+        .set { seqyclean_file1 }
+
+      cecret.out.seqyclean_files2
+        .collectFile(name: "Combined_seqyclean_SummaryStatistics.tsv",
+          keepHeader: true,
+          sort: true,
+          storeDir: "${params.outdir}/seqyclean")
+        .set { seqyclean_file2 }
 
       combine_results(annotation.out.nextclade_file.ifEmpty([]),
         annotation.out.pangolin_file.ifEmpty([]),
         annotation.out.vadr_file.ifEmpty([]),
         qc.out.freyja_file.ifEmpty([]),
-        seqyclean_file.ifEmpty([]),
+        seqyclean_file1.ifEmpty([]),
+        seqyclean_file2.ifEmpty([]),
         summary.out.summary_file.collect().ifEmpty([]),
         combine_results_script)
 }
