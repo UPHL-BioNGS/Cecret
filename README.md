@@ -232,7 +232,6 @@ params.multiqc = true                     # aggregates data into single report
    <summary>Final File Tree after running cecret.nf</summary>
 
 ```
-covid_samples.csv                     # only if supplied initially - used to rename files for submission
 cecret                                # results from this workflow
 ├── aligned                           # aligned (with aligner) but untrimmed bam files with indexes
 │   ├── SRR13957125.sorted.bam
@@ -241,18 +240,17 @@ cecret                                # results from this workflow
 │   ├── SRR13957170.sorted.bam.bai
 │   ├── SRR13957177.sorted.bam
 │   └── SRR13957177.sorted.bam.bai
-├── bamsnap                           # images for variants (if it works, default is 'false' for a reason)
-│   └── sample
 ├── bcftools_variants                 # set to false by default; VCF files of variants identified
 │   ├── SRR13957125.vcf
 │   ├── SRR13957170.vcf
 │   └── SRR13957177.vcf
-├── bedtools_multicov                 # coverage for each amplicon
-│   ├── SRR13957125.multicov.txt
-│   ├── SRR13957170.multicov.txt
-│   └── SRR13957177.multicov.txt
+├── bwa
+│   ├── SRR13957125.sam
+│   ├── SRR13957170.sam
+│   └── SRR13957177.sam
 ├── cecret_results.csv                # comma-delimeted summary of results
 ├── cecret_results.txt                # tab-delimited summary of results
+├── combined_summary.csv              # csv file of summary process
 ├── consensus                         # the likely reason you are running this workflow
 │   ├── SRR13957125.consensus.fa
 │   ├── SRR13957170.consensus.fa
@@ -266,6 +264,10 @@ cecret                                # results from this workflow
 │   ├── tag.json
 │   ├── tree.json
 │   └── virus_properties.json
+├── fasta_prep                        # optional for inputted fastas
+│   ├── SRR13957125.test.fa
+│   ├── SRR13957170.test.fa
+│   └── SRR13957177.test.fa
 ├── fastp                             # optional tools for cleaning reads when 'params.cleaner = fastp'
 │   ├── SRR13957125_clean_PE1.fastq.gz
 │   ├── SRR13957125_clean_PE2.fastq.gz
@@ -352,6 +354,10 @@ cecret                                # results from this workflow
 │       └── sample.run_id.log
 ├── mafft                            # multiple sequence alignment created when 'params.relatedness = true'
 │   └── mafft_aligned.fasta
+├── multicov                         # bedtools multicov over the amplicons
+│   ├── SRR13957125.multicov.txt
+│   ├── SRR13957170.multicov.txt
+│   └── SRR13957177.multicov.txt
 ├── multiqc                          # aggregates data into single report
 │   ├── multiqc_data
 │   │   ├── multiqc_citations.txt
@@ -601,7 +607,6 @@ single_reads                         # user supplied fastq files for analysis
 fastas                               # user supplied fasta files for analysis
 multifastas                          # user supplied multifasta files for analysis
 work                                 # nextflow's working directories
-
 ```
 
 </details>
