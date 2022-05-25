@@ -156,6 +156,7 @@ process combine_results {
     file(vadr)
     file(freyja)
     file(seqyclean)
+    file(seqyclean_single)
     file(summary)
     file(combine_results)
 
