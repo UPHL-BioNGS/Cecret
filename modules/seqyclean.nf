@@ -11,7 +11,8 @@ process seqyclean {
   tuple val(sample), file("seqyclean/${sample}_clean_PE{1,2}.fastq.gz"),                                    optional: true, emit: paired_reads
   tuple val(sample), file("seqyclean/${sample}_cln_SE.fastq.gz"),                                           optional: true, emit: single_reads
   tuple val(sample), file("seqyclean/${sample}_{cln_SE,clean_PE1,clean_PE2}.fastq.gz"), val(paired_single), optional: true, emit: clean_reads
-  path "seqyclean/${sample}_cl*n_SummaryStatistics.tsv",                                                                    emit: seqyclean_files_collect
+  path "seqyclean/${sample}_clean_SummaryStatistics.tsv",                                                   optional: true, emit: seqyclean_files_collect_paired
+  path "seqyclean/${sample}_cln_SummaryStatistics.tsv",                                                     optional: true, emit: seqyclean_files_collect_single
   path "seqyclean/${sample}_cl*n_SummaryStatistics.txt",                                                                    emit: txt
   path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}",                                                    emit: log
   tuple val(sample), env(cleaner_version),                                                                                  emit: cleaner_version
