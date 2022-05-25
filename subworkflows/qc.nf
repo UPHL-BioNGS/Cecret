@@ -3,6 +3,7 @@ include { ivar_variants }                                       from '../modules
 include { bedtools_multicov }                                   from '../modules/bedtools'  addParams(bedtools_multicov_options: params.bedtools_multicov_options)
 include { fastqc }                                              from '../modules/fastqc'    addParams(fastqc_options: params.fastqc_options )
 include { kraken2 }                                             from '../modules/kraken2'   addParams(kraken2_options: params.kraken2_options, kraken2_organism: params.kraken2_organism)
+include { samtools_stats as samtools_intial_stats }             from '../modules/samtools'  addParams(samtools_stats: params.samtools_stats, samtools_stats_options: params.samtools_stats_options)
 include { samtools_stats }                                      from '../modules/samtools'  addParams(samtools_stats: params.samtools_stats, samtools_stats_options: params.samtools_stats_options)
 include { samtools_depth }                                      from '../modules/samtools'  addParams(samtools_depth: params.samtools_depth, samtools_depth_options: params.samtools_depth_options)
 include { samtools_coverage }                                   from '../modules/samtools'  addParams(samtools_coverage: params.samtools_coverage, samtools_coverage_options: params.samtools_coverage_options)
@@ -15,6 +16,7 @@ workflow qc {
   reads
   clean_reads
   kraken2_db
+  sam
   bam
   bam_bai
   reference_genome
@@ -34,6 +36,7 @@ workflow qc {
   samtools_depth(bam)
   samtools_coverage(bam)
   samtools_stats(bam)
+  samtools_intial_stats(sam)
   samtools_ampliconstats(bam.combine(primer_bed))
 
   samtools_plot_ampliconstats(samtools_ampliconstats.out.samtools_ampliconstats_files)
@@ -48,7 +51,7 @@ workflow qc {
   emit:
   // for multiqc
   fastqc_files                    = fastqc.out.fastqc_files
-  samtools_stats_files            = samtools_stats.out.samtools_stats_files
+  samtools_stats_files            = samtools_intial_stats.out.samtools_stats_files
   kraken2_files                   = kraken2_files
   samtools_flagstat_files         = samtools_flagstat.out.samtools_flagstat_files
 

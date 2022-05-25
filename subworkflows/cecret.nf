@@ -16,7 +16,8 @@ workflow cecret {
     seqyclean(reads)
     clean_reads       = seqyclean.out.single_reads.mix(seqyclean.out.paired_reads)
     cleaner_version   = seqyclean.out.cleaner_version
-    seqyclean_files   = seqyclean.out.seqyclean_files_collect
+    seqyclean_files1  = seqyclean.out.seqyclean_files_collect_paired
+    seqyclean_files2  = seqyclean.out.seqyclean_files_collect_single
     clean_type        = seqyclean.out.clean_reads
     fastp_results     = Channel.empty()
     fastp_files       = Channel.empty()
@@ -27,7 +28,8 @@ workflow cecret {
     cleaner_version   = fastp.out.cleaner_version
     fastp_results     = fastp.out.fastp_results
     fastp_files       = fastp.out.fastp_files
-    seqyclean_files   = Channel.empty()
+    seqyclean_files1  = Channel.empty()
+    seqyclean_files2  = Channel.empty()
   }
 
   if ( params.aligner == 'bwa' ) {
@@ -66,9 +68,11 @@ workflow cecret {
   bam               = trimmed_bam
   bam_bai           = bam_bai
   clean_type        = clean_type
+  sam               = sam
 
   // for multiqc
-  seqyclean_files   = seqyclean_files
+  seqyclean_files1  = seqyclean_files1
+  seqyclean_files2  = seqyclean_files2
   fastp_files       = fastp_files
   ivar_files        = ivar_trim.out.ivar_trim_files
 
