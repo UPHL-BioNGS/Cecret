@@ -1,14 +1,15 @@
-process multiqc {
+process multiqc_combine {
   tag "multiqc"
 
   when:
   params.multiqc
 
   input:
-  file(fastqc).ifEmpty([])
+  file(fastqc)
   file(fastp)
   file(seqyclean)
-  file(kraken2).ifEmpty([])
+  file(seqyclean2)
+  file(kraken2)
   file(pangolin)
   file(ivar)
   file(samtools_stats)

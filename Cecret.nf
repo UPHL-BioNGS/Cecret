@@ -202,7 +202,7 @@ include { msa }                                   from './subworkflows/msa'     
                                                                                             iqtree2_outgroup: params.iqtree2_outgroup,
                                                                                             snpdists: params.snpdists,
                                                                                             snpdists_options: params.snpdists_options)
-include { multiqc }                               from './modules/multiqc'        addParams(multiqc: params.multiqc,
+include { multiqc_combine }                               from './modules/multiqc'        addParams(multiqc: params.multiqc,
                                                                                             multiqc_options: params.multiqc_options)
 
 //# getting input files
@@ -310,13 +310,15 @@ workflow {
 
     if ( params.relatedness ) { msa(fasta_prep.out.fastas.concat(multifastas).concat(cecret.out.consensus), reference_genome, annotation.out.dataset) }
 
-    //multiqc(qc.out.fastqc_files, cecret.out.fastp_files)
-    // , cecret.out.seqyclean_files.collect(),
-    //   qc.out.kraken2_files.collect(),
-    //   annotation.out.pangolin.collect(),
-    //   cecret.out.ivar_files.collect(),
-    //   qc.out.samtools_stats_files.collect(),
-    //   qc.out.samtools_flagstat_files.collect())
+    multiqc_combine(qc.out.fastqc_files.collect().ifEmpty([]),
+      cecret.out.fastp_files.collect().ifEmpty([]),
+      cecret.out.seqyclean_files1.collect().ifEmpty([]),
+      cecret.out.seqyclean_files2.collect().ifEmpty([]),
+      qc.out.kraken2_files.collect().ifEmpty([]),
+      annotation.out.pangolin_file.collect().ifEmpty([]),
+      cecret.out.ivar_files.collect().ifEmpty([]),
+      qc.out.samtools_stats_files.collect().ifEmpty([]),
+      qc.out.samtools_flagstat_files.collect().ifEmpty([]))
 
     cecret.out.consensus_results
       .mix(fasta_prep.out.fastas_results)
