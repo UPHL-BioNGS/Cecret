@@ -1,7 +1,8 @@
 process freyja {
   tag "${sample}"
   label "medcpus"
-  
+  errorStrategy 'ignore'
+
   when:
   params.freyja
 
