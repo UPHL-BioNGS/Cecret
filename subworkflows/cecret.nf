@@ -23,8 +23,8 @@ workflow cecret {
     fastp_files       = Channel.empty()
   } else if ( params.cleaner == 'fastp' ) {
     fastp(reads)
-    clean_reads       = fastp.out.reads
-    clean_type        = fastp.out.clean_type
+    clean_reads       = fastp.out.paired_files.mix(fastp.out.single_files)
+    clean_type        = fastp.out.clean_reads
     cleaner_version   = fastp.out.cleaner_version
     fastp_results     = fastp.out.fastp_results
     fastp_files       = fastp.out.fastp_files
@@ -37,7 +37,7 @@ workflow cecret {
     sam               = bwa.out.sam
     aligner_version   = bwa.out.aligner_version
   } else if ( params.aligner = 'minimap2' ) {
-    minimap2(clean_reads, reference)
+    minimap2(clean_reads.combine(reference))
     sam               = minimap2.out.sam
     aligner_version   = minimap2.out.aligner_version
   }
@@ -48,15 +48,18 @@ workflow cecret {
     trimmed_bam       = ivar_trim.out.trimmed_bam
     trimmer_version   = ivar_trim.out.trimmer_version
     bam_bai           = ivar_trim.out.bam_bai
+    ivar_files        = ivar_trim.out.ivar_trim_files
   } else if ( params.trimmer == 'samtools' ) {
     ampliconclip(sort.out.bam.combine(primer_bed))
     trimmed_bam       = ampliconclip.out.trimmed_bam
     bam_bai           = ampliconclip.out.bam_bai
     trimmer_version   = ampliconclip.out.trimmer_version
+    ivar_files        = Channel.empty()
   } else if ( params.trimmer == 'none' ) {
     trimmed_bam       = sort.out.bam
     trimmer_version   = 'none'
     bam_bai           = sort.out.bam_bai
+    ivar_files        = Channel.empty()
   }
 
   ivar(trimmed_bam.combine(reference))
@@ -74,7 +77,7 @@ workflow cecret {
   seqyclean_files1  = seqyclean_files1
   seqyclean_files2  = seqyclean_files2
   fastp_files       = fastp_files
-  ivar_files        = ivar_trim.out.ivar_trim_files
+  ivar_files        = ivar_files
 
   // for summary file
   consensus_results = ivar.out.consensus_results
