@@ -10,10 +10,10 @@ workflow msa {
   dataset
   main:
   if ( params.msa == 'nextalign' ) {
-    nextalign(fasta.collect().combine(dataset))
+    nextalign(fasta.collect(), dataset)
     msa = nextalign.out.msa
   } else if ( params.msa == 'mafft' ) {
-    mafft(fasta.collect().combine(reference_genome))
+    mafft(fasta.collect(), reference_genome)
     msa = mafft.out.msa
   }
   iqtree2(msa)
