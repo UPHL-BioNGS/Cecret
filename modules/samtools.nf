@@ -255,10 +255,10 @@ process samtools_ampliconclip {
   tuple val(sample), file(bam), file(primer_bed)
 
   output:
-  tuple val(sample), file("${task.process}/${sample}.primertrim.sorted.bam"),                                                              emit: trimmed_bam
-  tuple val(sample), file("${task.process}/${sample}.primertrim.sorted.bam"), file("${task.process}/${sample}.primertrim.sorted.bam.bai"), emit: bam_bai
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}",                                                                   emit: log
-  tuple val(sample), env(trimmer_version),                                                                                                 emit: trimmer_version
+  tuple val(sample), file("ampliconclip/${sample}.primertrim.sorted.bam"),                                                           emit: trimmed_bam
+  tuple val(sample), file("ampliconclip/${sample}.primertrim.sorted.bam"), file("ampliconclip/${sample}.primertrim.sorted.bam.bai"), emit: bam_bai
+  path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}",                                                             emit: log
+  tuple val(sample), env(trimmer_version),                                                                                           emit: trimmer_version
 
   shell:
   '''
