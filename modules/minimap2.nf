@@ -12,7 +12,7 @@ process minimap2 {
 
   shell:
   '''
-    mkdir -p minimap2 logs/!{task.process}
+    mkdir -p aligned logs/!{task.process}
     log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
     err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
 

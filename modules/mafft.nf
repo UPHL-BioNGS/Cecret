@@ -5,7 +5,8 @@ process mafft {
   maxRetries 2
 
   input:
-  tuple file(fasta), file(reference_genome)
+  file(fasta)
+  file(reference_genome)
 
   output:
   path "mafft/mafft_aligned.fasta",                                   emit: msa

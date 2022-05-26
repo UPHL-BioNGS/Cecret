@@ -3,7 +3,8 @@ process nextalign {
   label "maxcpus"
 
   input:
-  file(consensus), path(dataset)
+  file(consensus)
+  path(dataset)
 
   output:
   path "nextalign/nextalign.aligned.fasta",                                     emit: msa
@@ -22,7 +23,7 @@ process nextalign {
 
     for fasta in !{consensus}
     do
-      cat $fasta >> !{task.process}/ultimate.fasta
+      cat $fasta >> nextalign/ultimate.fasta
     done
 
     nextalign !{params.nextalign_options} \

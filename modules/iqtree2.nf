@@ -9,7 +9,7 @@ process iqtree2 {
   file(msa)
 
   output:
-  path "${task.process}/${task.process}.{iqtree,treefile,mldist,log}",         emit: files
+  path "iqtree2/iqtree2.{iqtree,treefile,mldist,log}",                 emit: files
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}", emit: log
 
   shell:
