@@ -1,5 +1,6 @@
 process bcftools_variants {
   tag "${sample}"
+  errorStrategy 'ignore'
 
   when:
   params.bcftools_variants
