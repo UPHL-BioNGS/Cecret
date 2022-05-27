@@ -19,13 +19,11 @@ then
       -with-tower
 
     # removed test for bamsnap and rename because of lack of interest
-    # attempted bcftools and filter
     nextflow ~/sandbox/Cecret/Cecret.nf \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir all_on_$option \
       -with-tower \
-      --bcftools_variants true \
       --filter true \
       -resume
 
