@@ -19,20 +19,19 @@ process nextalign {
 
     date | tee -a $log_file $err_file > /dev/null
     echo "nextalign version:" >> $log_file
-    nextalign --version-detailed 2>&1 >> $log_file
+    nextalign --version >> $log_file
 
     for fasta in !{consensus}
     do
       cat $fasta >> nextalign/ultimate.fasta
     done
 
-    nextalign !{params.nextalign_options} \
-      --sequences nextalign/ultimate.fasta \
-      --reference !{dataset}/reference.fasta \
-      --genemap !{dataset}/genemap.gff \
+    nextalign run !{params.nextalign_options} \
+      --input-ref=!{dataset}/reference.fasta \
+      --genemap=!{dataset}/genemap.gff \
       --jobs !{task.cpus} \
-      --output-dir nextalign \
-      --output-basename nextalign \
+      --output-all=nextalign/ \
+      nextalign/ultimate.fasta \
       >> $log_file 2>> $err_file
   '''
 }
