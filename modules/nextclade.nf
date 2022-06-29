@@ -32,15 +32,10 @@ process nextclade {
       cat $fasta >> ultimate_fasta.fasta
     done
 
-    nextclade !{params.nextclade_options} \
-      --input-fasta=ultimate_fasta.fasta \
+    nextclade run !{params.nextclade_options} \
       --input-dataset dataset \
-      --output-json=nextclade/nextclade.json \
-      --output-csv=nextclade/nextclade.csv \
-      --output-tsv=nextclade/nextclade.tsv \
-      --output-tree=nextclade/nextclade.auspice.json \
-      --output-dir=nextclade \
-      --output-basename=nextclade \
+      --output-all=nextclade/ \
+      ultimate_fasta.fasta \
       2>> $err_file >> $log_file
     cp ultimate_fasta.fasta nextclade/combined.fasta
   '''
