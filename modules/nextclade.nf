@@ -35,6 +35,7 @@ process nextclade {
     nextclade run !{params.nextclade_options} \
       --input-dataset dataset \
       --output-all=nextclade/ \
+      --jobs !{task.cpus} \
       ultimate_fasta.fasta \
       2>> $err_file >> $log_file
     cp ultimate_fasta.fasta nextclade/combined.fasta
