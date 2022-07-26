@@ -237,6 +237,13 @@ include { mpx }                                   from './subworkflows/mpx'     
                                                                                             vadr_mdir: params.vadr_mdir,
                                                                                             nextclade: params.nextclade,
                                                                                             nextclade_options: params.nextclade_options,
+                                                                                            nextclade_dataset: params.nextclade_dataset)                                 
+include { mpx as other }                          from './subworkflows/mpx'       addParams(vadr: params.vadr,
+                                                                                            vadr_options: params.vadr_options,
+                                                                                            vadr_reference: params.vadr_reference,
+                                                                                            vadr_mdir: params.vadr_mdir,
+                                                                                            nextclade: params.nextclade,
+                                                                                            nextclade_options: params.nextclade_options,
                                                                                             nextclade_dataset: params.nextclade_dataset)
 include { sarscov2 }                              from './subworkflows/sarscov2'  addParams(vadr: params.vadr,
                                                                                             vadr_options: params.vadr_options,
@@ -307,27 +314,30 @@ gff_file = params.ivar_variants
   ? Channel.fromPath(params.gff_file, type:'file').view { "GFF file for Reference Genome : $it"}.set { gff_file }
   : Channel.empty()
 
-Channel
-  .fromPath(params.primer_bed, type:'file')
-  .ifEmpty{
-    println("A bedfile for primers is required. Set with 'params.primer_bed'.")
-    exit 1
-  }
-  .view { "Primer BedFile : $it"}
-  .set { primer_bed }
+if ( params.trimmer != 'none' ) {
+  Channel
+    .fromPath(params.primer_bed, type:'file')
+    .ifEmpty{
+      println("A bedfile for primers is required. Set with 'params.primer_bed'.")
+      exit 1
+    }
+    .view { "Primer BedFile : $it"}
+    .set { primer_bed }
 
-amplicon_bed = params.bedtools_multicov
-  ? Channel.fromPath(params.amplicon_bed, type:'file').view { "Amplicon BedFile : $it"}
-  : Channel.empty()
+  amplicon_bed = params.bedtools_multicov
+    ? Channel.fromPath(params.amplicon_bed, type:'file').view { "Amplicon BedFile : $it"}
+    : Channel.empty()
+} else {
+  primer_bed = Channel.empty()
+  amplicon_bed = Channel.empty()
+}
 
 kraken2_db = params.kraken2_db
   ? Channel.fromPath(params.kraken2_db, type:'dir').view { "Kraken2 database : $it" }
   : Channel.empty()
 
 //# getting scripts
-Channel
-  .fromPath("${workflow.projectDir}/bin/combine_results.py", type:'file')
-  .set { combine_results_script }
+combine_results_script = Channel.fromPath("${workflow.projectDir}/bin/combine_results.py", type:'file')
 
 // This is where the results will be
 println('The files and directory for results is ' + params.outdir)
@@ -368,6 +378,13 @@ workflow {
     //   nextclade_file  = mpx.out.nextclade_file
     //   vadr_file       = mpx.out.vadr_file
     //   dataset         = mpx.out.dataset
+    // } else if ( params.preset == 'other') {
+    //   other(fasta_prep.out.fastas.concat(multifastas).concat(cecret.out.consensus))
+    //   pangolin_file   = Channel.empty()
+    //   freyja_file     = Channel.empty()
+    //   nextclade_file  = other.out.nextclade_file
+    //   vadr_file       = other.out.vadr_file
+    //   dataset         = other.out.dataset
     // } else {
     //   pangolin_file   = Channel.empty()
     //   freyja_file     = Channel.empty()
