@@ -63,7 +63,9 @@ process ivar_variants {
   params.ivar_variants
 
   input:
-  tuple val(sample), file(bam), file(reference_genome), file(gff_file)
+  tuple val(sample), file(bam)
+  file(reference_genome)
+  file(gff_file)
 
   output:
   tuple val(sample), file("ivar_variants/${sample}.variants.tsv"),        emit: variant_tsv
