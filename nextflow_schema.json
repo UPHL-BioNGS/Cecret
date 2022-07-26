@@ -213,7 +213,8 @@
         },
         "preset": { 
             "type": "string", 
-            "description": "specifies SARS-CoV-2 or MPX options"
+            "description": "specifies SARS-CoV-2 or MPX options",
+            "enum": ["other", "mpx", "sarscov2"]
         },
         "primer_bed": { 
             "type": "string", 
