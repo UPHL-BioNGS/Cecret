@@ -57,7 +57,7 @@ workflow cecret {
     ivar_files        = Channel.empty()
   } else if ( params.trimmer == 'none' ) {
     trimmed_bam       = sort.out.bam
-    trimmer_version   = 'none'
+    trimmer_version   = reads.map { reads -> tuple(reads[0],'none') }
     bam_bai           = sort.out.bam_bai
     ivar_files        = Channel.empty()
   }
