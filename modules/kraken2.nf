@@ -32,8 +32,8 @@ process kraken2 {
       --report kraken2/!{sample}_kraken2_report.txt \
       2>> $err_file >> $log_file
 
-    percentage_human=$(grep "Homo sapiens" kraken2/!{sample}_kraken2_report.txt | awk '{print $1}')
-    percentage_cov=$(grep "!{params.kraken2_organism}" kraken2/!{sample}_kraken2_report.txt | awk '{print $1}')
+    percentage_human=$(grep "Homo sapiens" kraken2/!{sample}_kraken2_report.txt | awk '{if ($4 == "S") print $1}' | head -n 1)
+    percentage_cov=$(grep "!{params.kraken2_organism}" kraken2/!{sample}_kraken2_report.txt | awk '{if ($4 == "S") print $1}' | head -n 1)
 
     if [ -z "$percentage_human" ] ; then percentage_human="0" ; fi
     if [ -z "$percentage_cov" ] ; then percentage_cov="0" ; fi
