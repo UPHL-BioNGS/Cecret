@@ -211,7 +211,7 @@
             "type": "string", 
             "description": "Options for process"
         },
-        "preset": { 
+        "specifies": { 
             "type": "string", 
             "description": "specifies SARS-CoV-2 or MPX options",
             "enum": ["other", "mpx", "sarscov2"]
