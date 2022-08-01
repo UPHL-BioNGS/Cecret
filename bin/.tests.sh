@@ -1,5 +1,7 @@
 #/bin/bash
 #nextflow ~/sandbox/Cecret/main.nf -profile singularity --reads /home/eriny/sandbox/test_files/cecret/reads --outdir tests -with-tower -resume
+# nextflow ~/sandbox/Cecret/main.nf -profile singularity,mpx --reads /home/eriny/sandbox/test_files/cecret/mpx --outdir tests --cleaner 'fastp' -with-tower -resume
+
 
 test=$1
 
@@ -100,6 +102,44 @@ else
     --cleaner 'fastp' \
     --trimmer 'samtools' \
     --aligner 'minimap2' \
+    --relatedness true \
+    --msa 'nextalign' \
+    -with-tower \
+    -resume
+
+  # MPX
+  nextflow ~/sandbox/Cecret/main.nf \
+    -profile singularity,mpx \
+    --reads /home/eriny/sandbox/test_files/cecret/mpx \
+    --outdir mpx \
+    --cleaner 'fastp' \
+    --relatedness true \
+    --msa 'nextalign' \
+    -with-tower \
+    -resume
+
+  # other
+  nextflow ~/sandbox/Cecret/main.nf \
+    -profile singularity \
+    --reads /home/eriny/sandbox/test_files/cecret/mpx \
+    --outdir mpx \
+    --cleaner 'fastp' \
+    --trimmer 'none' \
+    --species 'other' \
+    --nextclade_dataset  'hMPXV' \
+    --vadr_options '--split --glsearch -s -r --nomisc --r_lowsimok --r_lowsimxd 100 --r_lowsimxl 2000 --alt_pass discontn,dupregin' \
+    --vadr_reference 'mpxv' \
+    --vadr_trim_options '--minlen 50 --maxlen 210000' \
+    --kraken2_organism 'Monkeypox virus' \
+    -with-tower \
+    -resume
+
+  # MPX with kraken
+  nextflow ~/sandbox/Cecret/main.nf \
+    -profile uphl,mpx \
+    --reads /home/eriny/sandbox/test_files/cecret/mpx \
+    --outdir uphl_mpx \
+    --cleaner 'fastp' \
     --relatedness true \
     --msa 'nextalign' \
     -with-tower \
