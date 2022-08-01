@@ -41,7 +41,7 @@ workflow qc {
   samtools_plot_ampliconstats(samtools_ampliconstats.out.samtools_ampliconstats_files)
 
   bcftools_variants(bam.combine(reference_genome))
-  ivar_variants(bam, reference_genome, gff_file)
+  ivar_variants(bam.combine(reference_genome).combine(gff_file))
   bedtools_multicov(bam_bai.combine(amplicon_bed))
 
   emit:
