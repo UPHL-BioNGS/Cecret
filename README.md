@@ -107,7 +107,7 @@ Sequencing has an intrinsic amount of error for every predicted base on a read. 
 A corresponding parameter is 'params.mpileup_depth' (default of `'params.mpileup_depth = 8000'`), which is the number of reads that samtools (used by ivar) or bcftools uses to put into memory for any given position. If the **END USER** is experiencing memory issues, this number may need to be decreased.
 
 ## Determining if duplicates should be taken into account
-For amplifications of library prepation with baits followed by PCR amplification, it is recommended to remove duplicate reads. This is done by setting the `'params.markdup'` to true. This removes duplicate reads from the aligned sam file, which is before the primer trimming and after the filter processes. This will likely require adjusting the minimum depth parameter for variant calling (default is 100).
+For library preparation methods with baits followed by PCR amplification, it is recommended to remove duplicate reads. For most other methods, removing deplicates will not hurt. To remove duplicates, set the `'params.markdup'` to true. This removes duplicate reads from the aligned sam file, which is before the primer trimming and after the filter processes. This will likely require adjusting the minimum depth parameter for variant calling (default is 100).
 
 On the command line:
 ```
