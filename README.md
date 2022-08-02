@@ -195,6 +195,9 @@ Or set `params.msa = 'nextclade'` and `params.relatedness = true` in a config fi
 
 WARNING : the aligned fasta from nextclade does not include a reference sequence. If this is desired for iqtree2, a fasta of the reference MUST be included with the input files and the outgroup CAN be specified with `params.iqtree2_options = '-ninit 2 -n 2 -me 0.05 -m GTR -o <YOUR OUTGROUP>'`. Specifying the outgroup via `'params.iqtree2_outgroup'` will not be used.
 
+And then you get trees like this which can visualized with [itol](https://itol.embl.de/) or [ggtree](https://github.com/YuLab-SMU/ggtree).
+![alt text](images/w5IMLiHfkMm3fS3kgJVpRg.png)
+
 ### Classify reads with kraken2
 To classify reads with kraken2 to identify reads from human or the organism of choice
 #### Step 1. Get a kraken2 database
