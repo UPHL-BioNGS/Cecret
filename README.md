@@ -145,7 +145,7 @@ params.amplicon_bed = '<bedfile of the end user>'
 # If using baits followed by a PCR amplification step, it is likely beneficial to take duplicates into account
 params.markdup = true
 ```
-## Updating Cecet
+## Updating Cecret
 ```
 nextflow pull UPHL-BioNGS/Cecret
 ```
