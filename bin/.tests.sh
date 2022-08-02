@@ -1,5 +1,7 @@
 #/bin/bash
-#nextflow ~/sandbox/Cecret/Cecret.nf -profile singularity --reads /home/eriny/sandbox/test_files/cecret/reads --outdir tests -with-tower -resume
+#nextflow ~/sandbox/Cecret/main.nf -profile singularity --reads /home/eriny/sandbox/test_files/cecret/reads --outdir tests -with-tower -resume
+# nextflow ~/sandbox/Cecret/main.nf -profile singularity,mpx --reads /home/eriny/sandbox/test_files/cecret/mpx --outdir tests --cleaner 'fastp' -with-tower -resume
+
 
 test=$1
 
@@ -12,14 +14,14 @@ then
   for option in ${options[@]}
   do
     # defaults
-    nextflow ~/sandbox/Cecret/Cecret.nf \
+    nextflow ~/sandbox/Cecret/main.nf \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir singularity_defaults_$option \
       -with-tower
 
     # removed test for bamsnap and rename because of lack of interest
-    nextflow ~/sandbox/Cecret/Cecret.nf \
+    nextflow ~/sandbox/Cecret/main.nf \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir all_on_$option \
@@ -28,7 +30,7 @@ then
       -resume
 
     # removing primer trimming
-    nextflow ~/sandbox/Cecret/Cecret.nf \
+    nextflow ~/sandbox/Cecret/main.nf \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir nontrimmed_$option \
@@ -37,7 +39,7 @@ then
       -resume
 
     # changing the cleaner, aligner, and trimmer
-    nextflow ~/sandbox/Cecret/Cecret.nf \
+    nextflow ~/sandbox/Cecret/main.nf \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir toggled_$option \
@@ -48,7 +50,7 @@ then
       -resume
 
     # with UPHL's config
-    nextflow ~/sandbox/Cecret/Cecret.nf \
+    nextflow ~/sandbox/Cecret/main.nf \
       -profile uphl,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir uphl_$option \
@@ -57,7 +59,7 @@ then
   done
 
   # multifasta
-  nextflow ~/sandbox/Cecret/Cecret.nf \
+  nextflow ~/sandbox/Cecret/main.nf \
     -profile singularity,artic_V3 \
     --reads /home/eriny/sandbox/test_files/cecret/reads \
     --single-reads /home/eriny/sandbox/test_files/cecret/single-reads \
@@ -67,7 +69,7 @@ then
     -with-tower
 
   # empty
-  nextflow ~/sandbox/Cecret/Cecret.nf \
+  nextflow ~/sandbox/Cecret/main.nf \
     -profile singularity,artic_V3 \
     --reads doesntexit \
     --single-reads willnotexist \
@@ -77,14 +79,14 @@ then
 
 else
   # CDC's test data with relatedness
-  nextflow ~/sandbox/Cecret/Cecret.nf \
+  nextflow ~/sandbox/Cecret/main.nf \
     -profile singularity,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir default_datasets \
     --relatedness true  \
     -with-tower
 
-  nextflow ~/sandbox/Cecret/Cecret.nf \
+  nextflow ~/sandbox/Cecret/main.nf \
     -profile uphl,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir uphl_datasets \
@@ -93,13 +95,51 @@ else
     --relatedness true
 
   # CDC's test data with relatedness using nextalign
-  nextflow ~/sandbox/Cecret/Cecret.nf \
+  nextflow ~/sandbox/Cecret/main.nf \
     -profile singularity,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir toggled_datasets \
     --cleaner 'fastp' \
     --trimmer 'samtools' \
     --aligner 'minimap2' \
+    --relatedness true \
+    --msa 'nextalign' \
+    -with-tower \
+    -resume
+
+  # MPX
+  nextflow ~/sandbox/Cecret/main.nf \
+    -profile singularity,mpx \
+    --reads /home/eriny/sandbox/test_files/cecret/mpx \
+    --outdir mpx \
+    --cleaner 'fastp' \
+    --relatedness true \
+    --msa 'nextalign' \
+    -with-tower \
+    -resume
+
+  # other
+  nextflow ~/sandbox/Cecret/main.nf \
+    -profile singularity \
+    --reads /home/eriny/sandbox/test_files/cecret/mpx \
+    --outdir mpx \
+    --cleaner 'fastp' \
+    --trimmer 'none' \
+    --species 'other' \
+    --nextclade_dataset  'hMPXV' \
+    --vadr_options '--split --glsearch -s -r --nomisc --r_lowsimok --r_lowsimxd 100 --r_lowsimxl 2000 --alt_pass discontn,dupregin' \
+    --vadr_reference 'mpxv' \
+    --vadr_trim_options '--minlen 50 --maxlen 210000' \
+    --kraken2_organism 'Monkeypox virus' \
+    -with-tower \
+    -resume
+
+  # MPX with kraken
+  nextflow ~/sandbox/Cecret/main.nf \
+    -profile uphl,mpx \
+    --reads /home/eriny/sandbox/test_files/cecret/mpx \
+    --outdir uphl_mpx \
+    --cleaner 'fastp' \
     --relatedness true \
     --msa 'nextalign' \
     -with-tower \

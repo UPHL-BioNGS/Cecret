@@ -127,7 +127,7 @@ process samtools_ampliconstats {
   tag "${sample}"
 
  when:
- params.samtools_ampliconstats
+ params.samtools_ampliconstats && ( params.trimmer != 'none' )
 
   input:
   tuple val(sample), file(bam), file(primer_bed)

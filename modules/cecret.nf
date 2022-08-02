@@ -39,15 +39,15 @@ process summary {
   input:
   tuple val(sample), val(num_N), val(num_ACTG), val(num_degenerate), val(num_total), val(first_line),
     // cecret workflow
-    val(trimmer_version),
-    val(aligner_version),
     val(cleaner_version),
+    val(aligner_version),
+    val(trimmer_version),
     val(ivar_version),
     val(reads_passed),
     // qc subworkflow
     val(raw_1),
     val(raw_2),
-    val(percentage_cov),
+    val(percentage_spec),
     val(percentage_human),
     val(ivar_variants),
     val(bcftools_variants),
@@ -109,7 +109,7 @@ process summary {
     then
       organism=$(echo "!{params.kraken2_organism}" | sed 's/ /_/g')
       header="$header,%_human_reads,percent_${organism}_reads"
-      result="$result,!{percentage_human},!{percentage_cov}"
+      result="$result,!{percentage_human},!{percentage_spec}"
     fi
 
     if [ "!{params.ivar_variants}" != "false" ]
@@ -124,13 +124,13 @@ process summary {
       result="$result,!{bcftools_variants}"
     fi
 
-    if [ "!{params.bedtools_multicov}" != "false" ]
+    if [ "!{params.bedtools_multicov}" != "false" ] && [ "!{params.trimmer}" != "none" ]
     then
       header="$header,bedtools_num_failed_amplicons"
       result="$result,!{bedtools_num_failed_amplicons}"
     fi
 
-    if [ "!{params.samtools_ampliconstats}" != "false" ]
+    if [ "!{params.samtools_ampliconstats}" != "false" ] && [ "!{params.trimmer}" != "none" ]
     then
       header="$header,samtools_num_failed_amplicons"
       result="$result,!{samtools_num_failed_amplicons}"
