@@ -143,6 +143,10 @@
             "type": "string", 
             "description": "organism of interest"
         },
+        "markdup": {
+            "type": "boolean",
+            "description": "Deduplication toggle"
+        },
         "mafft_options": { 
             "type": "string", 
             "description": "Options for process"
@@ -274,6 +278,14 @@
             "description": "Specifies if process should be used"
         },
         "samtools_plot_ampliconstats_options": { 
+            "type": "string", 
+            "description": "Options for process"
+        },
+        "samtools_markdup_options": { 
+            "type": "string", 
+            "description": "Options for process"
+        },
+        "samtools_fixmate_options": { 
             "type": "string", 
             "description": "Options for process"
         },

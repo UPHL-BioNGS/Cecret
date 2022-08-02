@@ -46,6 +46,7 @@ then
       --cleaner 'fastp' \
       --trimmer 'samtools' \
       --aligner 'minimap2' \
+      --markdup true \
       -with-tower \
       -resume
 
@@ -102,6 +103,7 @@ else
     --cleaner 'fastp' \
     --trimmer 'samtools' \
     --aligner 'minimap2' \
+    --markdup true \
     --relatedness true \
     --msa 'nextalign' \
     -with-tower \

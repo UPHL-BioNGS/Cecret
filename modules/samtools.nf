@@ -23,7 +23,7 @@ process samtools_stats {
 
     samtools stats !{params.samtools_stats_options} !{bam} 2>> $err_file > samtools_stats/!{sample}.stats.txt
 
-    insert_size_after_trimming=$(grep "insert size average" !{task.process}/!{sample}.stats.txt | cut -f 3)
+    insert_size_after_trimming=$(grep "insert size average" samtools_stats/!{sample}.stats.txt | cut -f 3)
     if [ -z "$insert_size_after_trimming" ] ; then insert_size_after_trimming=0 ; fi
   '''
 }
@@ -278,4 +278,52 @@ process samtools_ampliconclip {
 
     samtools index ampliconclip/!{sample}.primertrim.sorted.bam 2>> $err_file >> $log_file
   '''
+}
+
+process samtools_markdup {
+  tag "${sample}"
+
+  input:
+  tuple val(sample), val(type), file(sam) 
+
+  output:
+  tuple val(sample), file("markdup/${sample}.markdup.sorted.bam"),                                                    emit: bam
+  tuple val(sample), file("markdup/${sample}.markdup.sorted.bam"), file("markdup/${sample}.markdup.sorted.bam.bai"),  emit: bam_bai
+  path "markdup/${sample}_markdupstats.txt",                                                                          emit: stats
+  path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}",                                              emit: log
+  
+  shell:
+  if ( type == 'single' ) {
+  '''
+    mkdir -p markdup logs/!{task.process}
+    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+
+    # time stamp + capturing tool versions
+    date | tee -a $log_file $err_file > /dev/null
+    samtools --version >> $log_file
+
+    samtools sort -n !{sam} 2>> $err_file | \
+      samtools markdup !{params.samtools_markdup_options} -@ !{task.cpus} -s -f markdup/!{sample}_markdupstats.txt - markdup/!{sample}.markdup.sorted.bam 2>> $err_file >> $log_file
+
+    samtools index markdup/!{sample}.markdup.sorted.bam 2>> $err_file >> $log_file
+  '''
+  } else if (type == 'paired') {
+  '''
+    mkdir -p markdup logs/!{task.process}
+    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+
+    # time stamp + capturing tool versions
+    date | tee -a $log_file $err_file > /dev/null
+    samtools --version >> $log_file
+
+    samtools sort -n !{sam} 2>> $err_file | \
+      samtools fixmate !{params.samtools_fixmate_options} -m -@ !{task.cpus} - - 2>> $err_file | \
+      samtools sort 2>> $err_file | \
+      samtools markdup !{params.samtools_markdup_options} -@ !{task.cpus} -s -f markdup/!{sample}_markdupstats.txt - markdup/!{sample}.markdup.sorted.bam 2>> $err_file >> $log_file
+
+    samtools index markdup/!{sample}.markdup.sorted.bam 2>> $err_file >> $log_file
+  '''
+  }
 }

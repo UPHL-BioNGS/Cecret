@@ -98,6 +98,7 @@ params.samtools_depth                       = true
 params.samtools_flagstat                    = true
 params.samtools_ampliconstats               = true
 params.samtools_plot_ampliconstats          = true
+params.markdup                              = false
 params.bedtools_multicov                    = true
 params.kraken2                              = false
 params.filter                               = false
@@ -130,6 +131,8 @@ params.samtools_depth_options               = ''
 params.samtools_stats_options               = ''
 params.samtools_ampliconstats_options       = ''
 params.samtools_plot_ampliconstats_options  = '-size 1200,900 -size2 1200,900 -size3 1200,900'
+params.samtools_markdup_options             = ''
+params.samtools_fixmate_options             = ''
 params.mafft_options                        = '--maxambiguous 0.5'
 params.snpdists_options                     = '-c'
 params.iqtree2_options                      = '-ninit 2 -n 2 -me 0.05 -m GTR'
@@ -201,6 +204,8 @@ include { cecret }                                from './subworkflows/cecret.nf
                                                                                             samtools_ampliconclip_options: params.samtools_ampliconclip_options,
                                                                                             minimum_depth: params.minimum_depth,
                                                                                             mpileup_depth: params.mpileup_depth,
+                                                                                            samtools_fixmate_options: params.samtools_fixmate_options,
+                                                                                            samtools_markdup_options: params.samtools_markdup_options,
                                                                                             ivar_consensus_options: params.ivar_consensus_options)
 include { qc }                                    from './subworkflows/qc'        addParams(trimmer: params.trimmer,
                                                                                             fastqc: params.fastqc,
