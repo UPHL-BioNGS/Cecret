@@ -145,6 +145,10 @@ params.amplicon_bed = '<bedfile of the end user>'
 # If using baits followed by a PCR amplification step, it is likely beneficial to take duplicates into account
 params.markdup = true
 ```
+## Updating Cecet
+```
+nextflow pull UPHL-BioNGS/Cecret
+```
 
 ## Optional toggles:
 
@@ -650,9 +654,22 @@ work                                 # nextflow's working directories
 
 </details>
 
+## Config files
+
 **A FILE THAT THE END USER CAN COPY AND EDIT IS FOUND AT [configs/cecret_config_template.config](configs/cecret_config_template.config)**
 
-This file contains all of the configurable parameters with their default values. Use `'-c'` to specify the edited config file. If the **End User** is using some sort of cloud or HPC setup, it is highly recommended that this file is copied and edited appropriately. A limited list of parameters is listed below:
+To get a copy of the config file, the **End User** can use the following command. This creates an `edit_me.config` file in the current directory.
+```
+nextflow run UPHL-BioNGS/Cecret --config_file true
+```
+
+This file contains all of the configurable parameters with their default values. Use `'-c'` to specify the edited config file. 
+
+```
+nextflow run Cecret.nf -c <path to custom config file>
+```
+
+If the **End User** is using some sort of cloud or HPC setup, it is highly recommended that this file is copied and edited appropriately. A limited list of parameters is listed below:
 
 ### input and output directories
 * params.reads = workflow.launchDir + '/reads'
@@ -727,6 +744,11 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas
 ## Where is an example config file?
 The **End User** is more than welcome to look at an example [here](./configs/cecret_config_template.config). Just remove the comments for the parameters that need to be adjusted and specify with `-c`.
 
+To get a copy of the config file, the **End User** can use the following command. This created edit_me.config in the current directory.
+```
+nextflow run UPHL-BioNGS/Cecret --config_file true
+```
+
 At UPHL, our config file is small enough to be put as a profile option, but the text of the config file would be as follows:
 
 ```
@@ -742,7 +764,7 @@ params {
 
 And then run with
 ```
-nextflow run Cecret.nf -c <path to custom config file>/config.config
+nextflow run Cecret.nf -c <path to custom config file>
 ```
 
 ## Is there a way to determine if certain amplicons are failing?
