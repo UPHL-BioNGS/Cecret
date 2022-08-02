@@ -1,9 +1,9 @@
-include { seqyclean }                                                                                 from '../modules/seqyclean' addParams(seqyclean_options: params.seqyclean_options )
-include { fastp }                                                                                     from '../modules/fastp'     addParams(fastp_options: params.fastp_options)
-include { bwa }                                                                                       from '../modules/bwa'       addParams()
-include { minimap2 }                                                                                  from '../modules/minimap2'  addParams(minimap2_options: params.minimap2_options )
-include { ivar_trim ; ivar_consensus as ivar }                                                        from '../modules/ivar'      addParams(ivar_trim_options: params.ivar_trim_options)
-include { samtools_sort as sort; samtools_ampliconclip as ampliconclip; samtools_filter as filter }   from '../modules/samtools'  addParams(samtools_ampliconclip_options: params.samtools_ampliconclip_options )
+include { seqyclean }                                                                                                             from '../modules/seqyclean' addParams(seqyclean_options: params.seqyclean_options )
+include { fastp }                                                                                                                 from '../modules/fastp'     addParams(fastp_options: params.fastp_options)
+include { bwa }                                                                                                                   from '../modules/bwa'       addParams()
+include { minimap2 }                                                                                                              from '../modules/minimap2'  addParams(minimap2_options: params.minimap2_options )
+include { ivar_trim ; ivar_consensus as ivar }                                                                                    from '../modules/ivar'      addParams(ivar_trim_options: params.ivar_trim_options)
+include { samtools_sort as sort; samtools_ampliconclip as ampliconclip; samtools_filter as filter; samtools_markdup as markdup }  from '../modules/samtools'  addParams(samtools_ampliconclip_options: params.samtools_ampliconclip_options, samtools_fixmate_options: params.samtools_fixmate_options, samtools_markdup_options: params.samtools_markdup_options )
 
 workflow cecret {
   take:
@@ -41,24 +41,33 @@ workflow cecret {
     sam               = minimap2.out.sam
     aligner_version   = minimap2.out.aligner_version
   }
-  sort(sam)
+
+  if ( params.markdup ) {
+    markdup(reads.join(sam).map { reads -> tuple(reads[0], reads[2], reads[3])} )
+    bam = markdup.out.bam
+    bam_bai = markdup.out.bam_bai
+  } else {
+    sort(sam)
+    bam = sort.out.bam
+    bam_bai = sort.out.bam_bai
+  }
 
   if ( params.trimmer == 'ivar' ) {
-    ivar_trim(sort.out.bam.combine(primer_bed))
+    ivar_trim(bam.combine(primer_bed))
     trimmed_bam       = ivar_trim.out.trimmed_bam
     trimmer_version   = ivar_trim.out.trimmer_version
     bam_bai           = ivar_trim.out.bam_bai
     ivar_files        = ivar_trim.out.ivar_trim_files
   } else if ( params.trimmer == 'samtools' ) {
-    ampliconclip(sort.out.bam.combine(primer_bed))
+    ampliconclip(bam.combine(primer_bed))
     trimmed_bam       = ampliconclip.out.trimmed_bam
     bam_bai           = ampliconclip.out.bam_bai
     trimmer_version   = ampliconclip.out.trimmer_version
     ivar_files        = Channel.empty()
   } else if ( params.trimmer == 'none' ) {
-    trimmed_bam       = sort.out.bam
+    trimmed_bam       = bam
     trimmer_version   = reads.map { reads -> tuple(reads[0],'none') }
-    bam_bai           = sort.out.bam_bai
+    bam_bai           = bam_bai
     ivar_files        = Channel.empty()
   }
 
