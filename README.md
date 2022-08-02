@@ -8,19 +8,19 @@ Location: 40.570°N 111.622°W , 9,875 feet (3,010 m) elevation
 
 Cecret is a workflow developed by [@erinyoung](https://github.com/erinyoung) at the [Utah Public Health Laborotory](https://uphl.utah.gov/) for SARS-COV-2 sequencing with the [artic](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)/Illumina hybrid library prep workflow for MiSeq data with protocols [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bffyjjpw) and [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bfefjjbn). Built to work on linux-based operating systems. Additional config options are needed for cloud batch usage.
 
+Although the initial purpose was SARS-CoV-2 sequencing, the core components of Cecret can be used for other organisms with a _good_ reference, such as Monkeypox. The defaults put in place for SARS-CoV-2 sequencing, however, are likely not the defaults for other species. The library preparation method greatly impacts which bioinformatic tools are recommended. For example, amplicon-based library prepation methods will required primer trimming and an elevated minimum depth for base-calling. Some bait-derived library prepation methods have a PCR amplification step, and PCR duplicates will need to be removed. This has added complexity and several (admittedly confusing) options to this workflow. Please submit an [issue](https://github.com/UPHL-BioNGS/Cecret/issues) if/when you run into issues.
+
 It is possible to use this workflow to simply annotate fastas generated from any workflow with pangolin, nextclade, freyja, and vadr. Another utility is to find consensus fasta files from fastq files, and add in fasta files that were generated previously or downloaded from [GISAID](https://www.gisaid.org/) or [NCBI](https://www.ncbi.nlm.nih.gov/sars-cov-2/) for multiple sequence alignment (MSA) and phylogenetic tree creation.
 
 Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_toolkit).
 
-# Dependencies
+## Dependencies
 
 - [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html)
 - [Singularity](https://singularity.lbl.gov/install-linux) or [Docker](https://docs.docker.com/get-docker/) - set the profile as singularity or docker during runtime
 - [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 
-# Usage
-
-## Option 1. Running from this github repository
+## Usage
 
 ```
 # using singularity
@@ -29,18 +29,7 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity
 nextflow run UPHL-BioNGS/Cecret -profile docker
 ```
 
-## Option 2. Downloading this repository with git and specifying a config file
-
-```
-git clone https://github.com/UPHL-BioNGS/Cecret.git
-
-# using singularity
-nextflow run Cecret.nf -c configs/singularity.config
-# using docker
-nextflow run Cecret.nf -c configs/docker.config
-```
-
-# Default file structure
+## Default file structure
 (can be adjusted with 'params.reads', 'params.single_reads', and 'params.fastas')
 
 ### Paired-end fastq.gz
@@ -80,10 +69,10 @@ directory
      └── *fasta
 ```
 
-WARNING : fastas and multifastas **cannot** be in the same directory. If no fasta preprocessing is necessary, just put the single fastas in the multifastas directory.
+WARNING : fastas and multifastas **cannot** be in the same directory. If no fasta preprocessing is necessary, put the single fastas in the multifastas directory.
 
-# Full workflow
-![alt text](images/Cecret_DAG.drawio.png)
+## Full workflow
+![alt text](images/Cecret.png)
 
 ## Determining primer and amplicon bedfiles
 The default primer scheme of the 'Cecret' workflow is the 'V4' primer scheme developed by [artic network for SARS-CoV-2](https://artic.network/ncov-2019). Releases prior to and including '2.2.20211221' used the 'V3' primer scheme as the default. As many public health laboratories are still using 'V3', the 'V3' files are still in this repo, but now the 'V4' and 'V4.1' ('V4' with a spike-in of additional primers) are also included. The original primer and amplicon bedfiles can be found at [artic's github repo](https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019). The recommended method to use these primer sets is with the corresponding profile.
@@ -104,7 +93,7 @@ It is still possible to set 'params.primer_bed' and 'params.amplicon_bed' via th
 ## Determining CPU usage
 For the sake of simplicity, processes in this workflow are designated 1 CPU, a medium amount of CPUs (5), or the largest amount of CPUs (the number of CPUs of the environment launching the workflow if using the main [workflow](./Cecret.nf) and a simple config file or 8 if using profiles and the [config template](./configs/cecret_config_template.config)). The medium amount of CPUs can be adjusted by the **End User** by adjusting `'params.medcpus'`, the largest amount can be adjusted with `'params.maxcpus'`, or the cpus can be specified for each process individually in a config file.
 
-The main [Cecret.nf](./Cecret.nf) file will attempt to determine how many cpus are available, and will set `params.maxcpus` to the number of cpus available. This option apparently caused havoc for running this workflow in the cloud and other resource management systems, so by default this is overridden when using a `-profile` to `'params.maxcpus = 8'` in [config template](./configs/cecret_config_template.config).
+The main [Cecret.nf](./main.nf) file will attempt to determine how many cpus are available, and will set `params.maxcpus` to the number of cpus available. This option apparently caused havoc for running this workflow in the cloud and other resource management systems, so by default this is overridden when using a `-profile` to `'params.maxcpus = 8'` in [config template](./configs/cecret_config_template.config).
 
 The **End User** can adjust this by specifying the maximum cpus that one process can take in the config file `'params.maxcpus = <new value>'` or on the command line
 ```
@@ -116,6 +105,46 @@ It is important to remember that nextflow will attempt to utilize all CPUs avail
 Sequencing has an intrinsic amount of error for every predicted base on a read. This error is reduced the more reads there are. As such, there is a minimum amount of depth that is required to call a base with ivar consensus, ivar variants, and bcftools variants. The main assumption of using this workflow is that the virus is clonal (i.e. only one infection represented in a sample) and created via pcr amplified libraries. The default depth for calling bases or finding variants is set with 'params.minimum_depth' with the default value being `'params.minimum_depth = 100'`. This parameter can be adjusted by the **END USER** in a config file or on the command line.
 
 A corresponding parameter is 'params.mpileup_depth' (default of `'params.mpileup_depth = 8000'`), which is the number of reads that samtools (used by ivar) or bcftools uses to put into memory for any given position. If the **END USER** is experiencing memory issues, this number may need to be decreased.
+
+## Determining if duplicates should be taken into account
+For amplifications of library prepation with baits followed by PCR amplification, it is recommended to remove duplicate reads. This is done by setting the `'params.markdup'` to true. This removes duplicate reads from the aligned sam file, which is before the primer trimming and after the filter processes. This will likely require adjusting the minimum depth parameter for variant calling (default is 100).
+
+On the command line:
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity --markdup true --minimum_depth 10
+```
+
+In a config file:
+```
+params.markdup = true
+params.minimum_depth = 10
+```
+
+## Monkeypox
+The defaults for Cecret continue to be for SARS-CoV-2, but there are growing demands for a workflow for monkeypox. As such, there are a few parameters that might benefit the **End User**.
+
+### Using the Monkeypox profile
+At UPHL, we have sequenced monkeypox using a metagenomic method. This method seems to be fairly popular, although 99+% of the reads are human. 
+
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx
+```
+
+
+There are also some amplicon based methods, bait, and amplicon bait hybrid methods which increases the monkeypox portion of reads. Parameters that are significant to those pursuing monkeypox sequencing:
+```
+# The default reference genome, gff file, Kraken2 species, vadr, nextclade options for Monkeypox
+params.species = 'mpx'
+# If not using amplicon-based library prep, it is highly recommended to lower the minimum depth for variant calling
+params.minimum_depth  = 10
+# If not using amplicon-based library prep, set the 'trimmer' to 'none'
+params.trimmer = 'none'
+# If using a amplicon approach for mpx, the end user will need to supply the primer and amplicon bedfiles as there are no mpx default bedfiles.
+params.params.primer_bed = '<bedfile of the end user>'
+params.amplicon_bed = '<bedfile of the end user>'
+# If using baits followed by a PCR amplification step, it is likely beneficial to take duplicates into account
+params.markdup = true
+```
 
 ## Optional toggles:
 
@@ -185,7 +214,7 @@ params.kraken2_organism = "Severe acute respiratory syndrome-related coronavirus
 - [bwa](http://bio-bwa.sourceforge.net/) - for aligning reads to the reference
 - [minimap2](https://github.com/lh3/minimap2) - an alternative to bwa
 - [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - calling variants and creating a consensus fasta; optional primer trimmer
-- [samtools](http://www.htslib.org/) - for QC metrics and sorting; optional primer trimmer; optional converting bam to fastq files
+- [samtools](http://www.htslib.org/) - for QC metrics and sorting; optional primer trimmer; optional converting bam to fastq files; optional duplication marking
 - [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics
 - [bedtools](https://bedtools.readthedocs.io/en/latest/) - for depth estimation over amplicons
 - [kraken2](https://ccb.jhu.edu/software/kraken2/) - for read classification
@@ -197,7 +226,7 @@ params.kraken2_organism = "Severe acute respiratory syndrome-related coronavirus
 - [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
 - [iqtree2](http://www.iqtree.org/) - for phylogenetic tree generation (optional, relatedness must be set to "true")
 - [nextalign](https://github.com/neherlab/nextalign) - for phylogenetic tree generation (optional, relatedness must be set to "true", and msa must be set to "nextalign")
-- [bamsnap](https://github.com/parklab/bamsnap) - <no longer supported>
+- [bamsnap](https://github.com/parklab/bamsnap) - no longer supported
 - [multiqc](https://multiqc.info/) - summary of results
 
 ### Turning off unneeded processes
@@ -354,6 +383,16 @@ cecret                                # results from this workflow
 │       └── sample.run_id.log
 ├── mafft                            # multiple sequence alignment created when 'params.relatedness = true'
 │   └── mafft_aligned.fasta
+├── markdup
+│   ├── SRR13957125.markdup.sorted.bam
+│   ├── SRR13957125.markdup.sorted.bam.bai
+│   ├── SRR13957125_markdupstats.txt
+│   ├── SRR13957170.markdup.sorted.bam
+│   ├── SRR13957170.markdup.sorted.bam.bai
+│   ├── SRR13957170_markdupstats.txt
+│   ├── SRR13957177.markdup.sorted.bam
+│   ├── SRR13957177.markdup.sorted.bam.bai
+│   └── SRR13957177_markdupstats.txt
 ├── multicov                         # bedtools multicov over the amplicons
 │   ├── SRR13957125.multicov.txt
 │   ├── SRR13957170.multicov.txt
@@ -663,6 +702,9 @@ Instead, it recommended that the **End User** uses the [SARS-CoV-2 datasets](htt
 
 The expected amount of time to run this workflow with 250 G RAM and 48 CPUs, 'params.maxcpus = 8', and 'params.medcpus = 4' is ~42 minutes. This corresponded with 25.8 CPU hours.
 
+There is also a sample mpx dataset file that was using the mpx profile for ERR9810266, ERR9912327, SRR19536726, and SRR19536727
+- [data/mpx_summary.csv](./data/mpx_summary.csv)
+
 ## What if I just want to annotate some SARS-CoV-2 fastas with pangolin, freyja, nextclade and vadr?
 ```
 # for a collection of fastas
@@ -772,15 +814,16 @@ In a config file, change the following relevant parameters:
 ```
 params.reference_genome
 params.primer_bed
-params.amplicon_bed or set params.bedtools_multicov = false
-params.gff_file or set params.ivar_variants = false
+params.amplicon_bed #or set params.bedtools_multicov = false
+params.gff_file #or set params.ivar_variants = false
 ```
 And set
 ```
+params.species = 'other'
 params.pangolin = false
 params.freyja = false
-params.nextclade = false or adjust nexclade_prep_options from '--name sars-cov-2' to the name of the relevent dataset
-params.vadr = false or configure the vadr container appropriately and params.vadr_reference
+params.nextclade = false #or adjust nexclade_prep_options from '--name sars-cov-2' to the name of the relevent dataset
+params.vadr = false #or configure the vadr container appropriately and params.vadr_reference
 ```
 ## What if I need to filter out human reads or I only want reads that map to my reference?
 
@@ -791,6 +834,7 @@ Although not perfect, if `'params.filter = true'`, then only the reads that were
 Change the parameters in a config file and set most of them to false.
 
 ```
+params.species = 'none'
 params.fastqc = false
 params.ivar_variants = false
 params.samtools_stats = false
@@ -817,4 +861,3 @@ No. Prior versions supported a tool called bamsnap, which had the potential to b
 - https://github.com/chrisruis/bammix
 - https://github.com/lenaschimmel/sc2rf
 
-![alt text](https://uphl.utah.gov/wp-content/uploads/New-UPHL-Logo.png)
