@@ -303,7 +303,7 @@ process samtools_markdup {
     date | tee -a $log_file $err_file > /dev/null
     samtools --version >> $log_file
 
-    samtools sort -n !{sam} 2>> $err_file | \
+    samtools sort !{sam} 2>> $err_file | \
       samtools markdup !{params.samtools_markdup_options} -@ !{task.cpus} -s -f markdup/!{sample}_markdupstats.txt - markdup/!{sample}.markdup.sorted.bam 2>> $err_file >> $log_file
 
     samtools index markdup/!{sample}.markdup.sorted.bam 2>> $err_file >> $log_file
