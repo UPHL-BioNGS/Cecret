@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 
-version = 'v.3.3.20220810'
+version = 'v.3.3.20220831'
 
 println('Currently using the Cecret workflow for use with amplicon Illumina library prep on MiSeq with a corresponding reference genome.\n')
 println('Author: Erin Young')
@@ -56,7 +56,7 @@ if (params.species        == 'sarscov2' ) {
   println("Using the subworkflow for SARS-CoV-2")
 } else if (params.species == 'mpx') {
   params.reference_genome                   = workflow.projectDir + '/configs/NC_063383.1.fasta'
-  params.gff                                = workflow.projectDir + '/configs/NC_063383.1.gff'
+  params.gff                                = workflow.projectDir + '/configs/NC_063383.1.gff3'
   println("Using the subworkflow for Monkeypox Virus")
 } else {
   params.reference_genome                   = ''
