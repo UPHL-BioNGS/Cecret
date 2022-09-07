@@ -320,7 +320,7 @@
             "description": "Options for process"
         },
         "trimmer": { 
-            "type": , 
+            "type": "string", 
             "description": "Specifies which tool to use to trim primers from primerbedfile",
             "enum": ["samtools", "ivar", "none"]
         },
