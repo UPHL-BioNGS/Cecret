@@ -35,8 +35,9 @@
             "description": "Options for process"
         },
         "cleaner": { 
-            "type": , "description": ,
-            "enum": ["bwa", "minimap2"]
+            "type": "string", 
+            "description": "Specifies what tool to use to remove low quality reads",
+            "enum": ["seqyclean", "fastp"]
         },
         "fastas": { 
             "type": "string", 
@@ -173,7 +174,8 @@
         },
         "msa": { 
             "type": "string", 
-            "description": "Specifies what tool to use for multiple sequence alignment. Current options are nextalign and mafft."
+            "description": "Specifies what tool to use for multiple sequence alignment. Current options are nextalign and mafft.",
+            "enum": ["nextalign", "mafft"]
         },
         "multifastas": { 
             "type": "string", 
@@ -215,7 +217,7 @@
             "type": "string", 
             "description": "Options for process"
         },
-        "specifies": { 
+        "species": { 
             "type": "string", 
             "description": "specifies SARS-CoV-2 or MPX options",
             "enum": ["other", "mpx", "sarscov2"]
@@ -299,7 +301,7 @@
         },
         "seqyclean_contaminant_file": { 
             "type": "string", 
-            "description": "Specifies contaminat file in seqyclean container"
+            "description": "Specifies contaminant file in seqyclean container"
         },
         "seqyclean_options": { 
             "type": "string", 
