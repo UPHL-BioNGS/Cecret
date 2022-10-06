@@ -55,8 +55,8 @@ if (params.species        == 'sarscov2' ) {
   params.gff                                = workflow.projectDir + '/configs/MN908947.3.gff'
   println("Using the subworkflow for SARS-CoV-2")
 } else if (params.species == 'mpx') {
-  params.reference_genome                   = workflow.projectDir + '/configs/NC_063383.1.fasta'
-  params.gff                                = workflow.projectDir + '/configs/NC_063383.1.gff3'
+  params.reference_genome                   = workflow.projectDir + '/configs/ON568298.1.fasta'
+  params.gff                                = workflow.projectDir + '/configs/ON568298.1.gff3'
   println("Using the subworkflow for Monkeypox Virus")
 } else {
   params.reference_genome                   = ''
@@ -175,7 +175,7 @@ if ( params.species == 'sarscov2' ) {
   params.vadr_reference                     = 'mpxv'
   params.vadr_trim_options                  = '--minlen 50 --maxlen 210000'
   params.kraken2_organism                   = 'Monkeypox virus'
-  params.iqtree2_outgroup                   = 'NC_063383'
+  params.iqtree2_outgroup                   = 'ON568298'
 } else {
   params.nextclade_dataset                  = ''
   params.vadr_options                       = ''
