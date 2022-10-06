@@ -1,0 +1,4 @@
+##sequence-region ON568298.1 1 197378
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=10244
+ON568298.1	Genbank	region	1	197378	.	+	.	ID=ON568298.1:1..197378;Dbxref=taxon:10244;collection-date=2022-05-19;country=Germany;gbkey=Src;genome=genomic;isolate=MPXV-BY-IMB25241;isolation-source=skin swab;mol_type=genomic DNA;nat-host=Homo sapiens%3B male
+
