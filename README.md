@@ -125,7 +125,6 @@ The defaults for Cecret continue to be for SARS-CoV-2, but there are growing dem
 
 ### Using the Monkeypox profile
 At UPHL, we have sequenced monkeypox using a metagenomic method. This method seems to be fairly popular, although 99+% of the reads are human. 
-
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx
 ```
