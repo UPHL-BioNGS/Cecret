@@ -134,9 +134,9 @@ params.minimum_depth  = 10
 # If not using amplicon-based library prep, set the 'trimmer' to 'none'
 params.trimmer = 'none'
 ```
-At UPHL, we have also sequenced monkeypox using an amplicon method. The default primer scheme of the 'Cecret' workflow for monkeypox was developed by IDT (https://www.idtdna.com/). The recommended method to use this primer set is with the corresponding profiles.   
+At UPHL, we have also sequenced monkeypox using an amplicon method. The default primer scheme of the 'Cecret' workflow for monkeypox was developed by IDT (https://www.idtdna.com/). The recommended method to use this primer set is with the corresponding profile.   
 ```
-nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx,idt_mpx
+nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_idt
 ```
 There are also some amplicon based methods, bait, and amplicon bait hybrid methods which increases the monkeypox portion of reads. Parameters that are significant to those pursuing monkeypox sequencing:
 ```
