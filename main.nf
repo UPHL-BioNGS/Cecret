@@ -55,8 +55,8 @@ if (params.species        == 'sarscov2' ) {
   params.gff                                = workflow.projectDir + '/configs/MN908947.3.gff'
   println("Using the subworkflow for SARS-CoV-2")
 } else if (params.species == 'mpx') {
-  params.reference_genome                   = workflow.projectDir + '/configs/ON568298.1.fasta'
-  params.gff                                = workflow.projectDir + '/configs/ON568298.1.gff3'
+  params.reference_genome                   = workflow.projectDir + '/configs/NC_063383.1.fasta'
+  params.gff                                = workflow.projectDir + '/configs/NC_063383.1.gff3'
   println("Using the subworkflow for Monkeypox Virus")
 } else {
   params.reference_genome                   = ''
@@ -73,15 +73,15 @@ if ( params.primer_set        == 'ncov_V3' ) {
 } else if ( params.primer_set == 'ncov_V4.1' ) {
   params.primer_bed                         = workflow.projectDir + '/configs/artic_V4.1_SARS-CoV-2.primer.bed'
   params.amplicon_bed                       = workflow.projectDir + '/configs/artic_V4.1_SARS-CoV-2.insert.bed'
-} else if ( params.primer_set == 'mpxv' ) {
-  params.primer_bed                         = workflow.projectDir + '/configs/mpxv_primer.bed'
+} else if ( params.primer_set == 'mpx_idt' ) {
+  params.primer_bed                         = workflow.projectDir + '/configs/mpx_idt_primer.bed'
 } else {
   println("!{params.primer_set} has not been defined as an acceptable value for 'params.primer_set'.")
   println('Current acceptable values are' )
   println("SARS-CoV-2 artic primer V3 : 'params.primer_set' = 'ncov_V3'" )
   println("SARS-CoV-2 artic primer V4 : 'params.primer_set' = 'ncov_V4'" )
   println("SARS-CoV-2 artic primer V4.1 (Version 4 with spike in) : 'params.primer_set' = 'ncov_V4.1'" )
-  println("Monkeypox IDT primer : 'params.primer_set' = 'mpxv'" )
+  println("Monkeypox IDT primer : 'params.primer_set' = 'mpx_idt'" )
   exit 1
 }
 
@@ -175,7 +175,7 @@ if ( params.species == 'sarscov2' ) {
   params.vadr_reference                     = 'mpxv'
   params.vadr_trim_options                  = '--minlen 50 --maxlen 210000'
   params.kraken2_organism                   = 'Monkeypox virus'
-  params.iqtree2_outgroup                   = 'ON568298'
+  params.iqtree2_outgroup                   = 'NC_063383'
 } else {
   params.nextclade_dataset                  = ''
   params.vadr_options                       = ''
