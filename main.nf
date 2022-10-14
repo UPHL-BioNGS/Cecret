@@ -75,6 +75,7 @@ if ( params.primer_set        == 'ncov_V3' ) {
   params.amplicon_bed                       = workflow.projectDir + '/configs/artic_V4.1_SARS-CoV-2.insert.bed'
 } else if ( params.primer_set == 'mpx_idt' ) {
   params.primer_bed                         = workflow.projectDir + '/configs/mpx_idt_primer.bed'
+  params.amplicon_bed                       = workflow.projectDir + '/configs/mpx_idt_insert.bed'
 } else {
   println("!{params.primer_set} has not been defined as an acceptable value for 'params.primer_set'.")
   println('Current acceptable values are' )
