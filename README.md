@@ -125,23 +125,23 @@ The defaults for Cecret continue to be for SARS-CoV-2, but there are growing dem
 
 ### Using the Monkeypox profile
 At UPHL, we have sequenced monkeypox using a metagenomic method. This method seems to be fairly popular, although 99+% of the reads are human. 
-
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx
 ```
-
-
-There are also some amplicon based methods, bait, and amplicon bait hybrid methods which increases the monkeypox portion of reads. Parameters that are significant to those pursuing monkeypox sequencing:
 ```
-# The default reference genome, gff file, Kraken2 species, vadr, nextclade options for Monkeypox
-params.species = 'mpx'
 # If not using amplicon-based library prep, it is highly recommended to lower the minimum depth for variant calling
 params.minimum_depth  = 10
 # If not using amplicon-based library prep, set the 'trimmer' to 'none'
 params.trimmer = 'none'
-# If using a amplicon approach for mpx, the end user will need to supply the primer and amplicon bedfiles as there are no mpx default bedfiles.
-params.params.primer_bed = '<bedfile of the end user>'
-params.amplicon_bed = '<bedfile of the end user>'
+```
+At UPHL, we have also sequenced monkeypox using an amplicon method. The default primer scheme of the 'Cecret' workflow for monkeypox was developed by IDT (https://www.idtdna.com/). The recommended method to use this primer set is with the corresponding profile.   
+```
+nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_idt
+```
+There are also some amplicon based methods, bait, and amplicon bait hybrid methods which increases the monkeypox portion of reads. Parameters that are significant to those pursuing monkeypox sequencing:
+```
+# The default reference genome, gff file, Kraken2 species, vadr, nextclade options for Monkeypox
+params.species = 'mpx'
 # If using baits followed by a PCR amplification step, it is likely beneficial to take duplicates into account
 params.markdup = true
 ```
