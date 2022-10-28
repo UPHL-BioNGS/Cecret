@@ -120,6 +120,17 @@ else
     -with-tower \
     -resume
 
+  # MPX with idt primers
+  nextflow ~/sandbox/Cecret/main.nf \
+    -profile singularity,mpx_idt \
+    --reads /home/eriny/sandbox/test_files/cecret/mpx_idt \
+    --outdir mpx_idt \
+    --cleaner 'fastp' \
+    --relatedness true \
+    --msa 'nextalign' \
+    -with-tower \
+    -resume
+
   # other
   nextflow ~/sandbox/Cecret/main.nf \
     -profile singularity \

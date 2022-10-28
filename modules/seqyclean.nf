@@ -14,19 +14,18 @@ process seqyclean {
   path "seqyclean/${sample}_clean_SummaryStatistics.tsv",                                                   optional: true, emit: seqyclean_files_collect_paired
   path "seqyclean/${sample}_cln_SummaryStatistics.tsv",                                                     optional: true, emit: seqyclean_files_collect_single
   path "seqyclean/${sample}_cl*n_SummaryStatistics.txt",                                                                    emit: txt
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}",                                                    emit: log
+  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
   tuple val(sample), env(cleaner_version),                                                                                  emit: cleaner_version
 
   shell:
   if ( paired_single == "single" ) {
   '''
     mkdir -p seqyclean logs/!{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
     # time stamp + capturing tool versions
-    date | tee -a $log_file $err_file > /dev/null
-    echo "seqyclean version: $(seqyclean -h | grep Version)" >> $log_file
+    date > $log
+    echo "seqyclean version: $(seqyclean -h | grep Version)" >> $log
     cleaner_version="seqyclean : $(seqyclean -h | grep Version)"
 
     seqyclean !{params.seqyclean_options} \
@@ -34,17 +33,16 @@ process seqyclean {
       -U !{reads} \
       -o seqyclean/!{sample}_cln \
       -gz \
-      2>> $err_file >> $log_file
+      | tee -a $log
   '''
   } else if ( paired_single == 'paired' ) {
   '''
     mkdir -p seqyclean logs/!{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
     # time stamp + capturing tool versions
-    date | tee -a $log_file $err_file > /dev/null
-    echo "seqyclean version: $(seqyclean -h | grep Version)" >> $log_file
+    date > $log
+    echo "seqyclean version: $(seqyclean -h | grep Version)" >> $log
     cleaner_version="seqyclean : $(seqyclean -h | grep Version)"
 
     seqyclean !{params.seqyclean_options} \
@@ -52,7 +50,7 @@ process seqyclean {
       -1 !{reads[0]} -2 !{reads[1]} \
       -o seqyclean/!{sample}_clean \
       -gz \
-      2>> $err_file >> $log_file
+      | tee -a $log
   '''
   }
 }

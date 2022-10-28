@@ -7,23 +7,23 @@ process minimap2 {
 
   output:
   tuple val(sample), file("aligned/${sample}.sam"),                       emit: sam
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}",  emit: log
+  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
   tuple val(sample), env(minimap2_version),                               emit: aligner_version
 
   shell:
   '''
     mkdir -p aligned logs/!{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
     # time stamp + capturing tool versions
-    date | tee -a $log_file $err_file > /dev/null
-    minimap2 --version >> $log_file
+    date > $log
+    minimap2 --version >> $log
     minimap2_version=$(echo "minimap2 : "$(minimap2 --version))
 
     minimap2 !{params.minimap2_options} \
       -ax sr -t !{task.cpus} \
       -o aligned/!{sample}.sam \
-      !{reference_genome} !{reads} 2>> $err_file >> $log_file
+      !{reference_genome} !{reads} \
+      | tee -a $log
   '''
 }

@@ -18,21 +18,20 @@ process multiqc_combine {
   output:
   path "multiqc/multiqc_report.html",  optional: true,                         emit: html
   path "multiqc/multiqc_data/*",       optional: true,                         emit: files
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}", emit: log
+  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
   '''
     mkdir -p multiqc logs/!{task.process}
-    log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
+    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
     # time stamp + capturing tool versions
-    date | tee -a $log_file $err_file > /dev/null
-    multiqc --version >> $log_file
+    date > $log
+    multiqc --version >> $log
 
     multiqc !{params.multiqc_options} \
       --outdir multiqc \
       . \
-      2>> $err_file >> $log_file
+      | tee -a $log
   '''
 }

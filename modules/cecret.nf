@@ -59,16 +59,11 @@ process summary {
     val(bedtools_num_failed_amplicons)
 
   output:
-  path "summary/${sample}.summary.csv",                                  emit: summary_file
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}", emit: logs
+  path "summary/${sample}.summary.csv", emit: summary_file
 
   shell:
   '''
-    mkdir -p summary logs/!{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
-
-    date | tee -a $log_file $err_file > /dev/null
+    mkdir -p summary
 
     sample_id=($(echo !{sample} | cut -f 1 -d "_" ))
 
@@ -163,15 +158,10 @@ process combine_results {
   output:
   path "cecret_results.{csv,txt}", emit: final_file
   path "combined_summary.csv"
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}", emit: log
 
   shell:
   '''
-    mkdir -p summary logs/!{task.process}
-    log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
-
-    date | tee -a $log_file $err_file > /dev/null
+    mkdir -p summary
 
     cat !{summary} | head -n 1 > combined_summary.csv
     for summary in !{summary}

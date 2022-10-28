@@ -1,11 +1,9 @@
 #!/usr/bin/env nextflow
 
-version = 'v.3.3.20220831'
-
 println('Currently using the Cecret workflow for use with amplicon Illumina library prep on MiSeq with a corresponding reference genome.\n')
 println('Author: Erin Young')
 println('email: eriny@utah.gov')
-println('Version: ' + version)
+println("Version: ${workflow.manifest.version}")
 println('')
 
 params.config_file                          = false

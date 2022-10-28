@@ -10,23 +10,22 @@ process ivar_consensus {
   output:
   path "consensus/${sample}.consensus.fa",                                                            emit: consensus
   path "consensus/${sample}.consensus.qual.txt",                                                      emit: qual
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}",                              emit: log
+  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
   tuple val(sample), env(num_N), env(num_ACTG), env(num_degenerate), env(num_total), env(first_line), emit: consensus_results
   tuple val(sample), env(ivar_version),                                                               emit: ivar_version
 
   shell:
   '''
     mkdir -p consensus logs/!{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
-    date | tee -a $log_file $err_file > /dev/null
-    samtools --version >> $log_file
-    ivar version >> $log_file
+    date > $log
+    samtools --version >> $log
+    ivar version >> $log
     ivar_version=$(ivar version | grep "version")
 
-    samtools mpileup -A -d !{params.mpileup_depth} -B -Q 0 --reference !{reference_genome} !{bam} 2>> $err_file | \
-      ivar consensus !{params.ivar_consensus_options} -m !{params.minimum_depth} -p consensus/!{sample}.consensus 2>> $err_file >> $log_file
+    samtools mpileup -A -d !{params.mpileup_depth} -B -Q 0 --reference !{reference_genome} !{bam} | \
+      ivar consensus !{params.ivar_consensus_options} -m !{params.minimum_depth} -p consensus/!{sample}.consensus | tee -a $log
 
     if [ -f "consensus/!{sample}.consensus.fa" ]
     then
@@ -68,22 +67,21 @@ process ivar_variants {
   output:
   tuple val(sample), file("ivar_variants/${sample}.variants.tsv"),        emit: variant_tsv
   tuple val(sample), file("ivar_variants/${sample}.ivar_variants.vcf"),   emit: ivar_variant_file
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}",  emit: log
+  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
   tuple val(sample), env(variants_num),                                   emit: ivar_variants_results
 
   shell:
   '''
     mkdir -p ivar_variants logs/!{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
     # time stamp + capturing tool versions
-    date | tee -a $log_file $err_file > /dev/null
-    samtools --version >> $log_file
-    ivar version >> $log_file
+    date > $log
+    samtools --version >> $log
+    ivar version >> $log
 
-    samtools mpileup -A -d !{params.mpileup_depth} -B -Q 0 --reference !{reference_genome} !{bam} 2>> $err_file | \
-      ivar variants -p ivar_variants/!{sample}.variants !{params.ivar_variants_options} -m !{params.minimum_depth} -r !{reference_genome} -g !{gff_file} 2>> $err_file >> $log_file
+    samtools mpileup -A -d !{params.mpileup_depth} -B -Q 0 --reference !{reference_genome} !{bam} | \
+      ivar variants -p ivar_variants/!{sample}.variants !{params.ivar_variants_options} -m !{params.minimum_depth} -r !{reference_genome} -g !{gff_file} | tee -a $log
 
     variants_num=$(grep "TRUE" ivar_variants/!{sample}.variants.tsv | wc -l)
 
@@ -118,28 +116,27 @@ process ivar_trim {
   output:
   tuple val(sample), file("ivar_trim/${sample}.primertrim.sorted.bam"),                                                         emit: trimmed_bam
   tuple val(sample), file("ivar_trim/${sample}.primertrim.sorted.bam"), file("ivar_trim/${sample}.primertrim.sorted.bam.bai"),  emit: bam_bai
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}",                                                        emit: log
+  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
   path "ivar_trim/${sample}_ivar.log",                                                                                          emit: ivar_trim_files
   tuple val(sample), env(trimmer_version),                                                                                      emit: trimmer_version
 
   shell:
   '''
     mkdir -p ivar_trim logs/!{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
     # time stamp + capturing tool versions
-    date | tee -a $log_file $err_file > /dev/null
-    ivar version >> $log_file
+    date > $log
+    ivar version >> $log
     trimmer_version="ivar : $(ivar version | grep version)"
 
     # trimming the reads
-    ivar trim !{params.ivar_trim_options} -e -i !{bam} -b !{primer_bed} -p ivar_trim/!{sample}.primertrim 2>> $err_file >> $log_file
+    ivar trim !{params.ivar_trim_options} -e -i !{bam} -b !{primer_bed} -p ivar_trim/!{sample}.primertrim | tee -a $log
 
-    grep "Found" -A 10000 $log_file | grep -A 10000 "primers in BED file" > ivar_trim/!{sample}_ivar.log
+    grep "Found" -A 10000 $log | grep -A 10000 "primers in BED file" > ivar_trim/!{sample}_ivar.log
 
     # sorting and indexing the trimmed bams
-    samtools sort ivar_trim/!{sample}.primertrim.bam -o ivar_trim/!{sample}.primertrim.sorted.bam 2>> $err_file >> $log_file
-    samtools index ivar_trim/!{sample}.primertrim.sorted.bam 2>> $err_file >> $log_file
+    samtools sort ivar_trim/!{sample}.primertrim.bam -o ivar_trim/!{sample}.primertrim.sorted.bam | tee -a $log
+    samtools index ivar_trim/!{sample}.primertrim.sorted.bam | tee -a $log
   '''
 }

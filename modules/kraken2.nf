@@ -10,7 +10,7 @@ process kraken2 {
 
   output:
   path "kraken2/${sample}_kraken2_report.txt",                            emit: kraken2_files
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}",  emit: log
+  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
   tuple val(sample), env(percentage_cov),                                 emit: kraken2_target_results
   tuple val(sample), env(percentage_human),                               emit: kraken2_human_results
 
@@ -18,11 +18,10 @@ process kraken2 {
   if ( paired_single == 'single' ) {
   '''
     mkdir -p kraken2 logs/!{task.process}
-    log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
-    date | tee -a $log_file $err_file > /dev/null
-    kraken2 --version >> $log_file
+    date > $log
+    kraken2 --version >> $log
 
     kraken2 !{params.kraken2_options} \
       --classified-out cseqs#.fq \
@@ -30,7 +29,7 @@ process kraken2 {
       --db !{kraken2_db} \
       !{clean} \
       --report kraken2/!{sample}_kraken2_report.txt \
-      2>> $err_file >> $log_file
+      | tee -a $log
 
     percentage_human=$(grep "Homo sapiens" kraken2/!{sample}_kraken2_report.txt | awk '{if ($4 == "S") print $1}' | head -n 1)
     percentage_cov=$(grep "!{params.kraken2_organism}" kraken2/!{sample}_kraken2_report.txt | awk '{if ($4 == "S") print $1}' | head -n 1)
@@ -41,11 +40,10 @@ process kraken2 {
   } else if (paired_single == 'paired') {
     '''
       mkdir -p kraken2 logs/!{task.process}
-      log_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
-      err_file=logs/!{task.process}/!{sample}.!{workflow.sessionId}.err
+      log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
-      date | tee -a $log_file $err_file > /dev/null
-      kraken2 --version >> $log_file
+      date > $log
+      kraken2 --version >> $log
 
       kraken2 !{params.kraken2_options} \
         --paired \
@@ -54,7 +52,7 @@ process kraken2 {
         --db !{kraken2_db} \
         !{clean} \
         --report kraken2/!{sample}_kraken2_report.txt \
-        2>> $err_file >> $log_file
+        | tee -a $log
 
       percentage_human=$(grep "Homo sapiens" kraken2/!{sample}_kraken2_report.txt | awk '{if ($4 == "S") print $1}' | head -n 1)
       percentage_cov=$(grep "!{params.kraken2_organism}" kraken2/!{sample}_kraken2_report.txt | awk '{if ($4 == "S") print $1}' | head -n 1)
