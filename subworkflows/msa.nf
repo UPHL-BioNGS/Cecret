@@ -8,6 +8,7 @@ workflow msa {
   fasta
   reference_genome
   dataset
+  
   main:
   if ( params.msa == 'nextalign' ) {
     nextalign(fasta.collect(), dataset)
@@ -18,4 +19,9 @@ workflow msa {
   }
   iqtree2(msa)
   snpdists(msa)
+
+  emit:
+  tree   = iqtree2.out.tree
+  matrix = snpdists.out.matrix
+  msa    = msa
 }
