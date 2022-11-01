@@ -292,9 +292,9 @@ multifastas = Channel.fromPath("${params.multifastas}/*{.fa,.fasta,.fna}", type:
 
 //# Checking for input files and giving an explanatory message if none are found
 paired_reads
-  .concat(single_reads)
-  .concat(fastas)
-  .concat(multifastas)
+  .mix(single_reads)
+  .mix(fastas)
+  .mix(multifastas)
   .ifEmpty{
     println('FATAL : No input files were found!')
     println("No paired-end fastq files were found at ${params.reads}. Set 'params.reads' to directory with paired-end reads")
@@ -374,21 +374,21 @@ workflow {
     primer_bed)
 
   if ( params.species == 'sarscov2' ) {
-    sarscov2(fasta_prep.out.fastas.concat(multifastas).concat(cecret.out.consensus), cecret.out.bam, reference_genome)
+    sarscov2(fasta_prep.out.fastas.mix(multifastas).mix(cecret.out.consensus), cecret.out.bam, reference_genome)
     pangolin_file   = sarscov2.out.pangolin_file
     nextclade_file  = sarscov2.out.nextclade_file
     vadr_file       = sarscov2.out.vadr_file
     freyja_file     = sarscov2.out.freyja_file
     dataset         = sarscov2.out.dataset 
   } else if ( params.species == 'mpx') {
-    mpx(fasta_prep.out.fastas.concat(multifastas).concat(cecret.out.consensus))
+    mpx(fasta_prep.out.fastas.mix(multifastas).mix(cecret.out.consensus))
     pangolin_file   = Channel.empty()
     freyja_file     = Channel.empty()
     nextclade_file  = mpx.out.nextclade_file
     vadr_file       = mpx.out.vadr_file
     dataset         = mpx.out.dataset
   } else if ( params.species == 'other') {
-    other(fasta_prep.out.fastas.concat(multifastas).concat(cecret.out.consensus))
+    other(fasta_prep.out.fastas.concat(multifastas).mix(cecret.out.consensus))
     pangolin_file   = Channel.empty()
     freyja_file     = Channel.empty()
     nextclade_file  = other.out.nextclade_file
@@ -402,7 +402,17 @@ workflow {
     dataset         = Channel.empty()
   }
 
-  if ( params.relatedness ) { msa(fasta_prep.out.fastas.concat(multifastas).concat(cecret.out.consensus), reference_genome, dataset) }
+  if ( params.relatedness ) { 
+    msa(fasta_prep.out.fastas.concat(multifastas).concat(cecret.out.consensus), reference_genome, dataset) 
+
+    tree      = msa.out.tree
+    alignment = msa.out.msa
+    matrix    = msa.out.matrix
+  } else {
+    tree      = Channel.empty()
+    alignment = Channel.empty()
+    matrix    = Channel.empty()
+  }
 
   multiqc_combine(qc.out.fastqc_files.collect().ifEmpty([]),
     cecret.out.fastp_files.collect().ifEmpty([]),
@@ -461,6 +471,13 @@ workflow {
     seqyclean_file2.ifEmpty([]),
     summary.out.summary_file.collect().ifEmpty([]),
     combine_results_script)
+
+  emit:
+  bam       = cecret.out.bam_bai
+  consensus = fasta_prep.out.fastas.mix(multifastas).mix(cecret.out.consensus)
+  tree      = tree
+  alignment = alignment
+  matrix    = matrix
 }
 
 workflow.onComplete {
