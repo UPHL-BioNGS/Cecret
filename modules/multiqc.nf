@@ -23,7 +23,7 @@ process multiqc_combine {
   shell:
   '''
     mkdir -p multiqc logs/!{task.process}
-    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
     # time stamp + capturing tool versions
     date > $log

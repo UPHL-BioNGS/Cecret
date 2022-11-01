@@ -10,12 +10,12 @@ process mafft {
 
   output:
   path "mafft/mafft_aligned.fasta",                                   emit: msa
-  path "logs/${task.process}/mafft.${workflow.sessionId}.log"
+  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
   '''
     mkdir -p mafft logs/!{task.process}
-    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
     date > $log
     echo "mafft version:" >> $log

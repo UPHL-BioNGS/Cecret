@@ -18,7 +18,7 @@ process nextclade {
   shell:
   '''
     mkdir -p nextclade dataset logs/!{task.process}
-    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
     date > $log
     nextclade --version >> $log

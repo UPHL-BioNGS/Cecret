@@ -16,7 +16,7 @@ process pangolin {
   shell:
   '''
     mkdir -p pangolin logs/!{task.process}
-    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
     date > $log
     pangolin --all-versions >> $log

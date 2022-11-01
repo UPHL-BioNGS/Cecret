@@ -16,10 +16,9 @@ process vadr {
   shell:
   '''
     mkdir -p logs/!{task.process}
-    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
     date > $log
-    echo "no version" | tee -a $log
     vadr --version | tee -a $log
     v-annotate.pl -h | tee -a $log
 

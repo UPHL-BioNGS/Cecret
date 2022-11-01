@@ -14,7 +14,7 @@ process nextalign {
   shell:
   '''
     mkdir -p nextalign logs/!{task.process}
-    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
     date > $log
     echo "nextalign version:" >> $log

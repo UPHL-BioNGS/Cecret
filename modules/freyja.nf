@@ -20,8 +20,7 @@ process freyja {
     log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
     date > $log
-    # no version for 1.3.4
-    freyja --version
+    freyja --version >> $log
 
     freyja variants !{params.freyja_variants_options} \
       !{bam} \

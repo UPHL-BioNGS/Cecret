@@ -9,13 +9,13 @@ process iqtree2 {
   file(msa)
 
   output:
-  path "iqtree2/iqtree2.{iqtree,treefile,mldist,log}", emit: files
+  path "iqtree2/iqtree2.{iqtree,treefile,mldist,log}", emit: tree
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
   '''
     mkdir -p iqtree2 logs/!{task.process}
-    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
     date > $log
     iqtree2 --version >> $log

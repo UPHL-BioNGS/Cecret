@@ -8,13 +8,13 @@ process snpdists {
   file(msa)
 
   output:
-  path "snp-dists/snp-dists.txt", emit: files
-  path "logs/${task.process}/snp-dists.${workflow.sessionId}.log"
+  path "snp-dists/snp-dists.txt", emit: matrix
+  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
   '''
     mkdir -p snp-dists logs/!{task.process}
-    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
     date > $log
     snp-dists -v >> $log
