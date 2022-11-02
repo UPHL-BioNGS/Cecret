@@ -275,6 +275,7 @@ include { sarscov2 }                              from './subworkflows/sarscov2'
 Channel
   .fromFilePairs(["${params.reads}/*_R{1,2}*.{fastq,fastq.gz,fq,fq.gz}",
                   "${params.reads}/*{1,2}*.{fastq,fastq.gz,fq,fq.gz}"], size: 2 )
+  .unique()
   .map { reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], "paired" ) }
   .set { paired_reads }
 
@@ -349,6 +350,7 @@ println("A table summarizing results will be created: ${params.outdir}/cecret_re
 
 paired_reads
   .mix(single_reads)
+  .unique()
   .set { reads }
 
 workflow {
