@@ -6,9 +6,11 @@ Named after the beautiful [Cecret lake](https://en.wikipedia.org/wiki/Cecret_Lak
 
 Location: 40.570°N 111.622°W , 9,875 feet (3,010 m) elevation
 
-Cecret is a workflow developed by [@erinyoung](https://github.com/erinyoung) at the [Utah Public Health Laborotory](https://uphl.utah.gov/) for SARS-COV-2 sequencing with the [artic](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)/Illumina hybrid library prep workflow for MiSeq data with protocols [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bffyjjpw) and [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bfefjjbn). Built to work on linux-based operating systems. Additional config options are needed for cloud batch usage.
+Cecret was originally developed by [@erinyoung](https://github.com/erinyoung) at the [Utah Public Health Laborotory](https://uphl.utah.gov/) for SARS-COV-2 sequencing with the [artic](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html)/Illumina hybrid library prep workflow for MiSeq data with protocols [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bffyjjpw) and [here](https://www.protocols.io/view/sars-cov-2-sequencing-on-illumina-miseq-using-arti-bfefjjbn). This nextflow workflow, however, is flexible for many additional organisms and primer schemes as long as the reference genome is "_small_" and "_good enough_." In 2022, [@tives82](https://github.com/tives82) added in contributions for Monkeypox virus, including converting IDT's primer scheme to NC_063383.1 coordinates. We are grateful to everyone that has contributed to this repo.
 
-Although the initial purpose was SARS-CoV-2 sequencing, the core components of Cecret can be used for other organisms with a _good_ reference, such as Monkeypox. The defaults put in place for SARS-CoV-2 sequencing, however, are likely not the defaults for other species. The library preparation method greatly impacts which bioinformatic tools are recommended. For example, amplicon-based library prepation methods will required primer trimming and an elevated minimum depth for base-calling. Some bait-derived library prepation methods have a PCR amplification step, and PCR duplicates will need to be removed. This has added complexity and several (admittedly confusing) options to this workflow. Please submit an [issue](https://github.com/UPHL-BioNGS/Cecret/issues) if/when you run into issues.
+The nextflow workflow was built to work on linux-based operating systems. Additional config options are needed for cloud batch usage.
+
+The library preparation method greatly impacts which bioinformatic tools are recommended for creating a consensus sequence. For example, amplicon-based library prepation methods will required primer trimming and an elevated minimum depth for base-calling. Some bait-derived library prepation methods have a PCR amplification step, and PCR duplicates will need to be removed. This has added complexity and several (admittedly confusing) options to this workflow. Please submit an [issue](https://github.com/UPHL-BioNGS/Cecret/issues) if/when you run into issues.
 
 It is possible to use this workflow to simply annotate fastas generated from any workflow with pangolin, nextclade, freyja, and vadr. Another utility is to find consensus fasta files from fastq files, and add in fasta files that were generated previously or downloaded from [GISAID](https://www.gisaid.org/) or [NCBI](https://www.ncbi.nlm.nih.gov/sars-cov-2/) for multiple sequence alignment (MSA) and phylogenetic tree creation.
 
@@ -93,8 +95,6 @@ It is still possible to set 'params.primer_bed' and 'params.amplicon_bed' via th
 ## Determining CPU usage
 For the sake of simplicity, processes in this workflow are designated 1 CPU, a medium amount of CPUs (5), or the largest amount of CPUs (the number of CPUs of the environment launching the workflow if using the main [workflow](./Cecret.nf) and a simple config file or 8 if using profiles and the [config template](./configs/cecret_config_template.config)). The medium amount of CPUs can be adjusted by the **End User** by adjusting `'params.medcpus'`, the largest amount can be adjusted with `'params.maxcpus'`, or the cpus can be specified for each process individually in a config file.
 
-The main [Cecret.nf](./main.nf) file will attempt to determine how many cpus are available, and will set `params.maxcpus` to the number of cpus available. This option apparently caused havoc for running this workflow in the cloud and other resource management systems, so by default this is overridden when using a `-profile` to `'params.maxcpus = 8'` in [config template](./configs/cecret_config_template.config).
-
 The **End User** can adjust this by specifying the maximum cpus that one process can take in the config file `'params.maxcpus = <new value>'` or on the command line
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --maxcpus <new value>
@@ -107,7 +107,7 @@ Sequencing has an intrinsic amount of error for every predicted base on a read. 
 A corresponding parameter is 'params.mpileup_depth' (default of `'params.mpileup_depth = 8000'`), which is the number of reads that samtools (used by ivar) or bcftools uses to put into memory for any given position. If the **END USER** is experiencing memory issues, this number may need to be decreased.
 
 ## Determining if duplicates should be taken into account
-For library preparation methods with baits followed by PCR amplification, it is recommended to remove duplicate reads. For most other methods, removing deplicates will not hurt. To remove duplicates, set the `'params.markdup'` to true. This removes duplicate reads from the aligned sam file, which is before the primer trimming and after the filter processes. This will likely require adjusting the minimum depth parameter for variant calling (default is 100).
+For library preparation methods with baits followed by PCR amplification, it is recommended to remove duplicate reads. For most other methods, removing deplicates will not hurt. To remove duplicates, set the `'params.markdup'` to true. This removes duplicate reads from the aligned sam file, which is before the primer trimming and after the filter processes. This will likely enable a lower minimum depth for variant calling (default is 100).
 
 On the command line:
 ```
@@ -121,30 +121,23 @@ params.minimum_depth = 10
 ```
 
 ## Monkeypox
-The defaults for Cecret continue to be for SARS-CoV-2, but there are growing demands for a workflow for monkeypox. As such, there are a few parameters that might benefit the **End User**.
+The defaults for Cecret continue to be for SARS-CoV-2, but there are growing demands for a workflow for Monkeypox Virus. As such, there are a few parameters that might benefit the **End User**.
 
 ### Using the Monkeypox profile
-At UPHL, we have sequenced monkeypox using a metagenomic method. This method seems to be fairly popular, although 99+% of the reads are human. 
+There are two profiles for Monkeypox Virus sequencing : `mpx` and `mpx_idt`. The `mpx` profile has some defaults for a metagenomic-type sequencing, while mpx_idt is for libraries prepped with [IDT](https://www.idtdna.com/)'s primers.
+
 ```
+# metagenomic
 nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx
-```
-```
-# If not using amplicon-based library prep, it is highly recommended to lower the minimum depth for variant calling
-params.minimum_depth  = 10
-# If not using amplicon-based library prep, set the 'trimmer' to 'none'
-params.trimmer = 'none'
-```
-At UPHL, we have also sequenced monkeypox using an amplicon method. The default primer scheme of the 'Cecret' workflow for monkeypox was developed by IDT (https://www.idtdna.com/). The recommended method to use this primer set is with the corresponding profile.   
-```
+
+# using IDT's primers
 nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_idt
 ```
-There are also some amplicon based methods, bait, and amplicon bait hybrid methods which increases the monkeypox portion of reads. Parameters that are significant to those pursuing monkeypox sequencing:
-```
-# The default reference genome, gff file, Kraken2 species, vadr, nextclade options for Monkeypox
-params.species = 'mpx'
-# If using baits followed by a PCR amplification step, it is likely beneficial to take duplicates into account
-params.markdup = true
-```
+
+### Other library prep methods
+
+There are amplicon-based methods, bait, and amplicon-bait hybrid library preparation methods which increases the portion of reads for a relevant organism. If there is a common preparation for the **End User**, please submit an [issue](https://github.com/UPHL-BioNGS/Cecret/issues), and I can create a profile for you. Remember that the bedfiles for the primer schemes and amplicons MUST match the reference. 
+
 ## Updating Cecret
 ```
 nextflow pull UPHL-BioNGS/Cecret
@@ -280,10 +273,6 @@ cecret                                # results from this workflow
 │   ├── SRR13957125.vcf
 │   ├── SRR13957170.vcf
 │   └── SRR13957177.vcf
-├── bwa
-│   ├── SRR13957125.sam
-│   ├── SRR13957170.sam
-│   └── SRR13957177.sam
 ├── cecret_results.csv                # comma-delimeted summary of results
 ├── cecret_results.txt                # tab-delimited summary of results
 ├── combined_summary.csv              # csv file of summary process
@@ -852,7 +841,7 @@ params.vadr = false #or configure the vadr container appropriately and params.va
 ```
 ## What if I need to filter out human reads or I only want reads that map to my reference?
 
-Although not perfect, if `'params.filter = true'`, then only the reads that were mapped to the reference are returned. This _should_ eliminate all human contamination (as long as human is not part of the supplied reference).
+Although not perfect, if `'params.filter = true'`, then only the reads that were mapped to the reference are returned. This _should_ eliminate all human contamination (as long as human is not part of the supplied reference) and all "problematic" incidental findings.
 
 ## This workflow has too many bells and whistles. I really only care about generating a consensus fasta. How do I get rid of all the extras?
 
@@ -880,9 +869,18 @@ And, yes, this means I added some bells and whistles so the **End User** could t
 
 ## Can I get images of my SNPs and indels?
 
-No. Prior versions supported a tool called bamsnap, which had the potential to be great. Due to time constraints, this feature is no longer suppored.
+No. Prior versions supported a tool called bamsnap, which had the potential to be great. Due to time constraints, this feature is no longer supported.
+
+## Where did the SAM files go?
+
+Never fear, they are still in nextflow's work directory if the **End User** really needs them. They are no longer included in `publishDir` because of size issues. The BAM files are still included in `publishDir`, and most analyses for SAM files can be done with BAM files.
+
+## Where did the *err files go?
+
+Personally, I like having `stderr` saved to a file because some of the tools using in this workflow print to `stderr` instead of `stdout`. I have found, however, that this puts all the error text into a file, which a lot of users-new-to-nextflow had a hard time finding. It is easier to assist and troubleshoot with **End Users** when `stderr` is printed normally.
 
 ## What is in the works to get added to 'Cecret'? (These are waiting for either versions to stabilize or a docker container to be available.)
 - https://github.com/chrisruis/bammix
 - https://github.com/lenaschimmel/sc2rf
-
+- primalseq mpx primers
+- masking options for phylogenetic relatedness
