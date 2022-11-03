@@ -33,7 +33,18 @@ if exists(vadr_file) :
 
 if exists(nextclade_file) :
     print("Getting results from nextclade file " + nextclade_file)
-    nextclade_df = pd.read_csv(nextclade_file, sep = ';' , dtype = str, usecols = ['seqName', 'clade', 'qc.overallStatus', 'qc.overallScore'])
+
+    use_cols = ['seqName', 'clade', 'qc.overallStatus', 'qc.overallScore']
+
+    first = pd.read_csv(nextclade_file, sep = ';' , dtype = str, nrows=1)
+    if 'clade_who' in first.columns:
+        use_cols.append('clade_who')
+    if 'outbreak' in first.columns:
+        use_cols.append('outbreak')
+    if 'lineage' in first.columns:
+        use_cols.append('lineage')
+
+    nextclade_df = pd.read_csv(nextclade_file, sep = ';' , dtype = str, usecols = use_cols)
     nextclade_df=nextclade_df.add_prefix('nextclade_')
     nextclade_columns = list(nextclade_df.columns)
     nextclade_columns.remove('nextclade_seqName')
