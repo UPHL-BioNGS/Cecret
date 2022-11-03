@@ -9,17 +9,16 @@ process iqtree2 {
   file(msa)
 
   output:
-  path "iqtree2/iqtree2.{iqtree,treefile,mldist,log}",                 emit: files
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}", emit: log
+  path "iqtree2/iqtree2.{iqtree,treefile,mldist,log}", emit: tree
+  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
   '''
     mkdir -p iqtree2 logs/!{task.process}
-    log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
+    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
-    date | tee -a $log_file $err_file > /dev/null
-    iqtree2 --version >> $log_file
+    date > $log
+    iqtree2 --version >> $log
 
     if [ -n "!{params.iqtree2_outgroup}" ] && [ "!{params.iqtree2_outgroup}" != "null" ] && [ "!{params.msa}" != "nextclade" ]
     then
@@ -37,6 +36,6 @@ process iqtree2 {
       -s !{msa}.renamed \
       -pre iqtree2/iqtree2 \
       $outgroup \
-      >> $log_file 2>> $err_file
+      | tee -a $log
   '''
 }

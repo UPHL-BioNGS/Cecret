@@ -11,17 +11,16 @@ process vadr {
   output:
   path "vadr/*",                                                                emit: vadr_files
   path "vadr/vadr.vadr.sqa",                                                    emit: vadr_file
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}",  emit: log
+  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
   '''
     mkdir -p logs/!{task.process}
-    log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
+    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
-    date | tee -a $log_file $err_file > /dev/null
-    echo "no version" >> $log_file
-    v-annotate.pl -h >> $log_file
+    date > $log
+    vadr --version | tee -a $log
+    v-annotate.pl -h | tee -a $log
 
     for fasta in !{fasta}
     do
@@ -40,7 +39,7 @@ process vadr {
         --mdir !{params.vadr_mdir} \
         trimmed_ultimate_fasta.fasta \
         vadr \
-        2>> $err_file >> $log_file
+        | tee -a $log
     fi
     cp ultimate_fasta.fasta vadr/combined.fasta
     cp trimmed_ultimate_fasta.fasta vadr/trimmed.fasta

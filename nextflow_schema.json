@@ -229,7 +229,7 @@
         "primer_set": { 
             "type": "string", 
             "description": "Specifies a primer set included in repo",
-            "enum": ["ncov_V3", "ncov_V4", "ncov_V4.1"]
+            "enum": ["ncov_V3", "ncov_V4", "ncov_V4.1", "mpx_idt"]
         },
         "reads": { 
             "type": "string", 

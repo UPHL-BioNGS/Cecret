@@ -9,17 +9,16 @@ process nextalign {
   output:
   path "nextalign/nextalign.aligned.fasta",                                     emit: msa
   path "nextalign/{*.fasta,nextalign.*.csv}",                                   emit: files
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.{log,err}",  emit: log
+  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
   '''
     mkdir -p nextalign logs/!{task.process}
-    log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
-    err_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.err
+    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
-    date | tee -a $log_file $err_file > /dev/null
-    echo "nextalign version:" >> $log_file
-    nextalign --version >> $log_file
+    date > $log
+    echo "nextalign version:" >> $log
+    nextalign --version >> $log
 
     for fasta in !{consensus}
     do
@@ -32,6 +31,6 @@ process nextalign {
       --jobs !{task.cpus} \
       --output-all=nextalign/ \
       nextalign/ultimate.fasta \
-      >> $log_file 2>> $err_file
+      | tee -a $log
   '''
 }
