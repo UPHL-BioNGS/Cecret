@@ -131,6 +131,9 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx
 
 # using IDT's primers
 nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_idt
+
+# using Illumina library prep methods and sequencing platforms
+nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_primalseq
 ```
 
 ### Other library prep methods
