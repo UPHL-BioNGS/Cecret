@@ -74,6 +74,9 @@ if ( params.primer_set        == 'ncov_V3' ) {
 } else if ( params.primer_set == 'mpx_idt' ) {
   params.primer_bed                         = workflow.projectDir + '/configs/mpx_idt_primer.bed'
   params.amplicon_bed                       = workflow.projectDir + '/configs/mpx_idt_insert.bed'
+} else if ( params.primer_set == 'mpx_primalseq' ) {
+  params.primer_bed                         = workflow.projectDir + '/configs/mpx_primalseq_primer.bed'
+  params.amplicon_bed                       = workflow.projectDir + '/configs/mpx_primalseq_insert.bed'
 } else {
   println("!{params.primer_set} has not been defined as an acceptable value for 'params.primer_set'.")
   println('Current acceptable values are' )
@@ -81,6 +84,7 @@ if ( params.primer_set        == 'ncov_V3' ) {
   println("SARS-CoV-2 artic primer V4 : 'params.primer_set' = 'ncov_V4'" )
   println("SARS-CoV-2 artic primer V4.1 (Version 4 with spike in) : 'params.primer_set' = 'ncov_V4.1'" )
   println("Monkeypox IDT primer : 'params.primer_set' = 'mpx_idt'" )
+  println("Monkeypox PrimalSeq primer : 'params.primer_set' = 'mpx_primalseq'" )
   exit 1
 }
 
