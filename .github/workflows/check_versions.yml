@@ -35,4 +35,11 @@ jobs:
               echo "New version for $base! Upgrade to $latest_version from $cecret_version." | tee -a versions.txt
             fi
           done
-          cat versions.txt
+          issue_text="$(cat versions.txt)"
+          echo 'ISSUE_TEXT='$issue_text >> $GITHUB_ENV
+          
+      - name: Create Issue
+        run: |
+          gh issue create --title "Version check" --body "$ISSUE_TEXT" --repo $GITHUB_REPOSITORY
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
