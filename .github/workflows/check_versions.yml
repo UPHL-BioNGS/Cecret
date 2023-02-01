@@ -1,0 +1,26 @@
+name: Check versions
+
+on:
+  - workflow_dispatch:
+  - cron:  '30 4 * * TUE'
+
+jobs:
+
+  check:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+
+      - name: Checkout LFS objects
+        run: git lfs checkout
+        
+      - name: versions
+        run: |
+          staphb_containers=($(grep container configs/cecret_config_template.config | grep staphb | grep -v latest | awk '{print $3}' ))
+          for container in ${staphb_containers[@]}
+          do
+            echo $container
+          done
