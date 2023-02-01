@@ -19,15 +19,15 @@ jobs:
         
       - name: versions
         run: |
-          staphb_containers=($(grep container configs/cecret_config_template.config | grep staphb | grep -v latest | awk '{print $3}'))
+          staphb_containers=($(grep container configs/cecret_config_template.config | grep staphb | grep -v latest | awk '{print $3}' | sed 's/'\''//'))
           for container in ${staphb_containers[@]}
           do
             echo $container
-            container="${container:1}"
-                        echo $container
+            #container="${container:1}"
+            #            echo $container
 
-            container="${container:-1}"
-                        echo $container
+            #container="${container:-1}"
+            #            echo $container
 
             base=$(echo $container | cut -f 1 -d ":")
             version=$(echo $container | cut -f 2 -d ":")
