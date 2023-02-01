@@ -22,13 +22,16 @@ jobs:
           staphb_containers=($(grep container configs/cecret_config_template.config | grep staphb | grep -v latest | awk '{print $3}' | sed 's/'\''//g'))
           for container in ${staphb_containers[@]}
           do
-            echo $container
-
             base=$(echo $container | cut -f 1 -d ":")
             cecret_version=$(echo $container | cut -f 2 -d ":")
-            echo "version is $version"
-            echo "base is $base"
+            
             docker pull $base:latest
             latest_version=$(docker inspect --format '{{ index .Config.Labels "software.version"}}' $base:latest)
-            echo $latest_version
+            
+            if [ "$latest_version" -eq "$cecret_version ]
+            then
+              echo "No version change for $base:$cecret_version"
+            else
+              echo "New version for $base! Upgrade to $latest_version from $cecret_version."
+            fi
           done
