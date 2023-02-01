@@ -30,8 +30,9 @@ jobs:
             
             if [[ "$latest_version" == "$cecret_version" ]]
             then
-              echo "No version change for $base:$cecret_version"
+              echo "No version change for $base:$cecret_version" | tee -a versions.txt
             else
-              echo "New version for $base! Upgrade to $latest_version from $cecret_version."
+              echo "New version for $base! Upgrade to $latest_version from $cecret_version." | tee -a versions.txt
             fi
           done
+          cat versions.txt
