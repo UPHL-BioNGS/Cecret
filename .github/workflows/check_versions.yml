@@ -23,6 +23,12 @@ jobs:
           for container in ${staphb_containers[@]}
           do
             echo $container
+            container="${container:1}"
+                        echo $container
+
+            container="${container:-1}"
+                        echo $container
+
             base=$(echo $container | cut -f 1 -d ":")
             version=$(echo $container | cut -f 2 -d ":")
             echo "version is $version"
