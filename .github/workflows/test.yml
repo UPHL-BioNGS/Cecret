@@ -1,4 +1,4 @@
-name: Test workflow
+name: Test SARS-CoV-2 workflow
 
 on: [pull_request, workflow_dispatch]
 
@@ -38,7 +38,7 @@ jobs:
           ls
           mv *fastq.gz reads/.
           ls
-          nextflow run . -profile docker,artic_V3
+          nextflow run . -profile docker,artic_V3 --maxcpus 2 --medcpus 2
       
       - name: Move cache
         run: |
