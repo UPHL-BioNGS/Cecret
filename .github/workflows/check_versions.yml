@@ -37,7 +37,6 @@ jobs:
           done
           issue_text="$(cat versions.txt)"
           echo 'ISSUE_TEXT='$issue_text >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
           
       - name: Create Issue
         run: |
