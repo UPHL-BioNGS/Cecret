@@ -36,7 +36,7 @@ jobs:
           wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/077/SRR13957177/SRR13957177_1.fastq.gz
           wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/077/SRR13957177/SRR13957177_2.fastq.gz
           mv *fastq.gz reads/.
-          nextflow run . -profile docker,artic_V3 --maxcpus 2 --medcpus 2 --cleaner fastp --aligner minimap2
+          nextflow run . -profile docker,artic_V3 --maxcpus 2 --medcpus 2 --cleaner fastp --aligner minimap2 --mpileup_depth 200
       
       - name: Move cache
         run: |
