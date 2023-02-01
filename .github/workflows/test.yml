@@ -28,17 +28,17 @@ jobs:
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
           
-      - name: Set up Singularity
-        uses: eWaterCycle/setup-singularity@v5
-        with:
-          singularity-version: 3.7.1
-          
       - name: Run
         run: |
           docker --version
-          singularity version
+          
+          mkdir reads
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/077/SRR13957177/SRR13957177_1.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/077/SRR13957177/SRR13957177_2.fastq.gz
           ls
-          nextflow run . -profile docker
+          mv *fastq.gz reads/.
+          ls
+          nextflow run . -profile docker,artic_V3
       
       - name: Move cache
         run: |
