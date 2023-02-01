@@ -28,7 +28,7 @@ jobs:
             docker pull $base:latest
             latest_version=$(docker inspect --format '{{ index .Config.Labels "software.version"}}' $base:latest)
             
-            if [ "$latest_version" -eq "$cecret_version ]
+            if [ "$latest_version" -eq "$cecret_version" ]
             then
               echo "No version change for $base:$cecret_version"
             else
