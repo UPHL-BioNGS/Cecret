@@ -1,11 +1,11 @@
 name: Check versions
 
 on:
-  - workflow_dispatch:
-  - cron:  '30 4 * * TUE'
+  workflow_dispatch:
+  schedule:
+    - cron: '30 4 * * TUE'
 
 jobs:
-
   check:
     runs-on: ubuntu-20.04
     steps:
