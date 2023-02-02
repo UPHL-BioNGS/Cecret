@@ -36,7 +36,7 @@ jobs:
           mkdir reads_test
           wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_1.fastq.gz
           wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_2.fastq.gz
-          mv *fastq.gz reads/.
+          mv *fastq.gz reads_test/.
           
           mkdir -p fastas
           wget -q https://raw.githubusercontent.com/StaPH-B/docker-builds/master/tests/SARS-CoV-2/SRR13957123.consensus.fa
