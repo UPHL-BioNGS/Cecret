@@ -32,13 +32,14 @@ jobs:
         run: |
           docker --version
           
-          mkdir reads
+          # once I find some files that will work (ivar consensus has memory issues)
+          mkdir reads_test
           wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_1.fastq.gz
           wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_2.fastq.gz
           mv *fastq.gz reads/.
+          
+          mkdir -p fastas
+          wget -q https://raw.githubusercontent.com/StaPH-B/docker-builds/master/tests/SARS-CoV-2/SRR13957123.consensus.fa
+          mv *fasta fastas/.
+          
           nextflow run . -profile docker,artic_V3 --maxcpus 2 --medcpus 2 --cleaner fastp --aligner minimap2 --mpileup_depth 200
-      
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.cache-cecret
-          mv /tmp/.cache-cecret-new /tmp/.cache-cecret
