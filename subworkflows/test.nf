@@ -8,5 +8,5 @@ workflow test {
     download(ch_sra_accessions)
 
     emit:
-    reads = download.out.reads
+    reads = download.out.paired.mix(download.out.single)
 }
