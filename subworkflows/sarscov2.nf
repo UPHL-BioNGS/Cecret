@@ -1,7 +1,7 @@
-include { freyja; freyja_aggregate }    from '../modules/freyja'    addParams(freyja: params.freyja, freyja_variants_options: params.freyja_variants_options, freyja_demix_options: params.freyja_demix_options, freyja_aggregate: params.freyja_aggregate, freyja_aggregate_options: params.freyja_aggregate_options, freyja_plot_options: params.freyja_plot_options)
-include { vadr }                        from '../modules/vadr'      addParams(vadr: params.vadr, vadr_options: params.vadr_options, vadr_reference: params.vadr_reference, vadr_mdir: params.vadr_mdir)
-include { pangolin }                    from '../modules/pangolin'  addParams(pangolin: params.pangolin, pangolin_options: params.pangolin_options)
-include { nextclade }                   from '../modules/nextclade' addParams(nextclade: params.nextclade, nextclade_options: params.nextclade_options, nextclade_dataset: params.nextclade_dataset)
+include { freyja; freyja_aggregate }    from '../modules/freyja'    addParams(params)
+include { vadr }                        from '../modules/vadr'      addParams(params)
+include { pangolin }                    from '../modules/pangolin'  addParams(params)
+include { nextclade }                   from '../modules/nextclade' addParams(params)
 
 workflow sarscov2 {
     take:

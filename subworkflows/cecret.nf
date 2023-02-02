@@ -1,9 +1,9 @@
-include { seqyclean }                                                                                                             from '../modules/seqyclean' addParams(seqyclean_options: params.seqyclean_options )
-include { fastp }                                                                                                                 from '../modules/fastp'     addParams(fastp_options: params.fastp_options)
-include { bwa }                                                                                                                   from '../modules/bwa'       addParams()
-include { minimap2 }                                                                                                              from '../modules/minimap2'  addParams(minimap2_options: params.minimap2_options )
-include { ivar_trim ; ivar_consensus as ivar }                                                                                    from '../modules/ivar'      addParams(ivar_trim_options: params.ivar_trim_options)
-include { samtools_sort as sort; samtools_ampliconclip as ampliconclip; samtools_filter as filter; samtools_markdup as markdup }  from '../modules/samtools'  addParams(samtools_ampliconclip_options: params.samtools_ampliconclip_options, samtools_fixmate_options: params.samtools_fixmate_options, samtools_markdup_options: params.samtools_markdup_options )
+include { seqyclean }                                                                                                             from '../modules/seqyclean' addParams(params)
+include { fastp }                                                                                                                 from '../modules/fastp'     addParams(params)
+include { bwa }                                                                                                                   from '../modules/bwa'       addParams(params)
+include { minimap2 }                                                                                                              from '../modules/minimap2'  addParams(params)
+include { ivar_trim ; ivar_consensus as ivar }                                                                                    from '../modules/ivar'      addParams(params)
+include { samtools_sort as sort; samtools_ampliconclip as ampliconclip; samtools_filter as filter; samtools_markdup as markdup }  from '../modules/samtools'  addParams(params)
 
 workflow cecret {
   take:
