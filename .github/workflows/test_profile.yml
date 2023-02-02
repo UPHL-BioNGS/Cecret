@@ -1,4 +1,4 @@
-name: Test SARS-CoV-2 workflow
+name: Test SARS-CoV-2 profile workflow
 
 on: [pull_request, workflow_dispatch]
 
