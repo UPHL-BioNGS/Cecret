@@ -33,6 +33,7 @@ jobs:
           
           mkdir -p fastas
           wget -q https://raw.githubusercontent.com/StaPH-B/docker-builds/master/tests/SARS-CoV-2/SRR13957123.consensus.fa
+          mv SRR13957123.consensus.fa SRR13957123DB.fa
           mv *fa fastas/.
           
           nextflow run . \
