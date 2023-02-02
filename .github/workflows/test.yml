@@ -34,5 +34,5 @@ jobs:
           wget -q https://raw.githubusercontent.com/StaPH-B/docker-builds/master/tests/SARS-CoV-2/SRR13957123.consensus.fa
           mv *fa fastas/.
           
-          nextflow run . -c .github/github_actions.config
+          nextflow run . -c .github/workflows/github_actions.config
           cat cecret/cecret_results.txt
