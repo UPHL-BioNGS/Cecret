@@ -1,0 +1,39 @@
+name: Test SARS-CoV-2 workflow
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+
+      - name: Checkout LFS objects
+        run: git lfs checkout
+          
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+          
+      - name: Run Cecret
+        run: |
+          docker --version
+          
+          mkdir reads
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_1.fastq.gz
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_2.fastq.gz
+          mv *fastq.gz reads/.
+          
+          mkdir -p fastas
+          wget -q https://raw.githubusercontent.com/StaPH-B/docker-builds/master/tests/SARS-CoV-2/SRR13957123.consensus.fa
+          mv SRR13957123.consensus.fa SRR13957123DB.fa
+          mv *fa fastas/.
+          
+          nextflow run . -profile docker,test -c .github/workflows/github_actions.config 
+            
+          cat cecret/cecret_results.txt
