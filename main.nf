@@ -312,7 +312,7 @@ workflow {
 
   if ( ! params.sra_accessions.isEmpty() ) { 
     test(ch_sra_accessions)
-    ch_reads = ch_paired_reads.mix(test.out.reads)
+    ch_reads = ch_reads.mix(test.out.reads)
   } 
 
   //  combine_results_script

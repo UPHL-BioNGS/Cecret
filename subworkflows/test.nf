@@ -8,6 +8,5 @@ workflow test {
     download(ch_sra_accessions)
 
     emit:
-    reads = Channel.empty()
-//    reads = download.out.reads
+    reads = download.out.reads
 }
