@@ -14,15 +14,7 @@ jobs:
 
       - name: Checkout LFS objects
         run: git lfs checkout
-      
-      - name: Cache
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.cache-cecret
-          key: ${{ runner.os }}-cecret-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-cecret
-            
+          
       - name: Install Nextflow
         run: |
           wget -qO- get.nextflow.io | bash
