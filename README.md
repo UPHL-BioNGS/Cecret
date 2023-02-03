@@ -26,15 +26,14 @@ Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_to
 
 ```
 # using singularity
-nextflow run UPHL-BioNGS/Cecret -profile singularity
+nextflow run UPHL-BioNGS/Cecret -profile singularity --reads <directory to reads>
 # using docker
-nextflow run UPHL-BioNGS/Cecret -profile docker
+nextflow run UPHL-BioNGS/Cecret -profile docker --sample_sheet SampleSheet.csv
 ```
 
-## Default file structure
+### Getting files from directories
 (can be adjusted with 'params.reads', 'params.single_reads', and 'params.fastas')
 
-### Paired-end fastq.gz
 Paired-end fastq.gz (ending with 'fastq', 'fastq.gz', 'fq', or 'fq.gz') reads as follows or designate directory with 'params.reads' or '--reads'
 ```
 directory
@@ -44,7 +43,6 @@ directory
 
 WARNING : Sometimes nextflow does not catch every name of paired-end fastq files. This workflow is meant to be fairly agnostic, but if paired-end fastq files are not being found it might be worth renaming them to some sort of `sample_1.fastq.gz` format.
 
-### Single-end fastq.gz reads
 Single-end fastq.gz reads as follows or designate directory with 'params.single_reads' or '--single_reads'
 
 ```
@@ -55,7 +53,6 @@ directory
 
 WARNING : single and paired-end reads **cannot** be in the same directory
 
-### Fasta files
 Fasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.fastas' or '--fastas'
 ```
 directory
@@ -63,7 +60,6 @@ directory
      └── *fasta
 ```
 
-### MultiFasta files
 MultiFasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.multifastas' or '--multifastas'
 ```
 directory
@@ -72,6 +68,21 @@ directory
 ```
 
 WARNING : fastas and multifastas **cannot** be in the same directory. If no fasta preprocessing is necessary, put the single fastas in the multifastas directory.
+
+### Using a sample sheet
+Cecret can also use a sample sheet for input with the sample name and reads separated by commas. The header must be `sample,fastq_1,fastq_1`. If the input is paired-end reads, the sample-sheet rows would be `sample,read1,read2`, while single-reads samples are `sample,read1,single`. There is currently no support for reading in fastas or multifastas in the sample sheet at this time, although there are plans to add this functionality in the future.
+
+Example sample sheet:
+```
+sample,fastq_1,fastq_2
+SRR13957125,/home/eriny/sandbox/test_files/cecret/reads/SRR13957125_1.fastq.gz,/home/eriny/sandbox/test_files/cecret/reads/SRR13957125_2.fastq.gz
+SRR13957170,/home/eriny/sandbox/test_files/cecret/reads/SRR13957170_1.fastq.gz,/home/eriny/sandbox/test_files/cecret/reads/SRR13957170_2.fastq.gz
+SRR13957177S,/home/eriny/sandbox/test_files/cecret/single_reads/SRR13957177_1.fastq.gz,single
+```
+
+```
+nextflow run UPHL-BioNGS/Cecret -profile docker --sample_sheet SampleSheet.csv
+```
 
 ## Full workflow
 ![alt text](images/Cecret.png)
@@ -715,6 +726,11 @@ The expected amount of time to run this workflow with 250 G RAM and 48 CPUs, 'pa
 
 There is also a sample mpx dataset file that was using the mpx profile for ERR9810266, ERR9912327, SRR19536726, and SRR19536727
 - [data/mpx_summary.csv](./data/mpx_summary.csv)
+
+There is also a beta version of a test profile, which downloads fastq files from the ENA to use in the workflow. This does not always work due to local internet connectivity issues, but may work fine for every else.
+```
+nextflow run UPHL-BioNGS/Cecret -profile {docker or singularity},test
+```
 
 ## What if I just want to annotate some SARS-CoV-2 fastas with pangolin, freyja, nextclade and vadr?
 ```
