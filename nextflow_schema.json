@@ -5,10 +5,6 @@
     "description": "Cecret is a workflow for reference-based sequencing of organisms with small genomes, such as SARS-CoV-2",
     "type": "object",
     "properties": {
-        "config_file": {
-            "type": "boolean",
-            "description" : "Specifies if a config file is copied for the end user. Ends script."
-        },
         "aligner": { 
             "type": "string", 
             "description": "Specifies which aligner is going to be used.",
@@ -38,6 +34,10 @@
             "type": "string", 
             "description": "Specifies what tool to use to remove low quality reads",
             "enum": ["seqyclean", "fastp"]
+        },
+        "config_file": {
+            "type": "boolean",
+            "description" : "Specifies if a config file is copied for the end user. Ends script."
         },
         "fastas": { 
             "type": "string", 
@@ -144,13 +144,13 @@
             "type": "string", 
             "description": "organism of interest"
         },
-        "markdup": {
-            "type": "boolean",
-            "description": "Deduplication toggle"
-        },
         "mafft_options": { 
             "type": "string", 
             "description": "Options for process"
+        },
+        "markdup": {
+            "type": "boolean",
+            "description": "Deduplication toggle"
         },
         "maxcpus": { 
             "type": "string", 
@@ -217,11 +217,6 @@
             "type": "string", 
             "description": "Options for process"
         },
-        "species": { 
-            "type": "string", 
-            "description": "specifies SARS-CoV-2 or MPX options",
-            "enum": ["other", "mpx", "sarscov2"]
-        },
         "primer_bed": { 
             "type": "string", 
             "description": "File with bedfile of primers used in the analysis"
@@ -242,6 +237,10 @@
         "relatedness": { 
             "type": "boolean", 
             "description": "Specifies if subworkflow should be used"
+        },
+        "sample_sheet": { 
+            "type": "string", 
+            "description": "sample sheet with sample, fastq_1, and fastq_2 columns"
         },
         "samtools_ampliconclip_options": { 
             "type": "string", 
@@ -271,7 +270,15 @@
             "type": "string", 
             "description": "Options for process"
         },
+        "samtools_fixmate_options": { 
+            "type": "string", 
+            "description": "Options for process"
+        },
         "samtools_flagstat_options": { 
+            "type": "string", 
+            "description": "Options for process"
+        },
+        "samtools_markdup_options": { 
             "type": "string", 
             "description": "Options for process"
         },
@@ -280,14 +287,6 @@
             "description": "Specifies if process should be used"
         },
         "samtools_plot_ampliconstats_options": { 
-            "type": "string", 
-            "description": "Options for process"
-        },
-        "samtools_markdup_options": { 
-            "type": "string", 
-            "description": "Options for process"
-        },
-        "samtools_fixmate_options": { 
             "type": "string", 
             "description": "Options for process"
         },
@@ -318,6 +317,15 @@
         "snpdists_options": { 
             "type": "string", 
             "description": "Options for process"
+        },
+        "species": { 
+            "type": "string", 
+            "description": "specifies SARS-CoV-2 or MPX options",
+            "enum": ["other", "mpx", "sarscov2"]
+        },
+        "sra_accessions":{
+            "type": "string",
+            "description": "list of sra acessions to download with wget from ENA"
         },
         "trimmer": { 
             "type": "string", 
