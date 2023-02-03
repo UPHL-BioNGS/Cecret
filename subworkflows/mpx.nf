@@ -1,5 +1,5 @@
-include { vadr }      from '../modules/vadr'      addParams(vadr: params.vadr, vadr_options: params.vadr_options, vadr_reference: params.vadr_reference, vadr_mdir: params.vadr_mdir)
-include { nextclade } from '../modules/nextclade' addParams(nextclade: params.nextclade, nextclade_options: params.nextclade_options, nextclade_dataset: params.nextclade_dataset)
+include { vadr }      from '../modules/vadr'      addParams(params)
+include { nextclade } from '../modules/nextclade' addParams(params)
 
 workflow mpx {
   take:

@@ -1,6 +1,6 @@
 #/bin/bash
-#nextflow ~/sandbox/Cecret/main.nf -profile singularity --reads /home/eriny/sandbox/test_files/cecret/reads --outdir tests -with-tower -resume
-# nextflow ~/sandbox/Cecret/main.nf -profile singularity,mpx --reads /home/eriny/sandbox/test_files/cecret/mpx --outdir tests --cleaner 'fastp' -with-tower -resume
+#nextflow run ~/sandbox/Cecret -profile singularity --reads /home/eriny/sandbox/test_files/cecret/reads --outdir tests -with-tower -resume
+# nextflow run ~/sandbox/Cecret -profile singularity,mpx --reads /home/eriny/sandbox/test_files/cecret/mpx --outdir tests --cleaner 'fastp' -with-tower -resume
 
 
 test=$1
@@ -9,19 +9,27 @@ if [ -z "$test" ]; then test="small" ; fi
 
 if [ "$test" == "small" ]
 then
+
+  # sample sheet
+  nextflow run ~/sandbox/Cecret \
+    -profile singularity \
+    --sample_sheet /home/eriny/sandbox/test_files/cecret/sample_sheet.csv \
+    --outdir singularity_defaults_sample_sheet \
+    -with-tower
+
   options=("reads" "single_reads" "fastas")
 
   for option in ${options[@]}
   do
     # defaults
-    nextflow ~/sandbox/Cecret/main.nf \
+    nextflow run ~/sandbox/Cecret \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir singularity_defaults_$option \
       -with-tower
 
     # removed test for bamsnap and rename because of lack of interest
-    nextflow ~/sandbox/Cecret/main.nf \
+    nextflow run ~/sandbox/Cecret \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir all_on_$option \
@@ -30,7 +38,7 @@ then
       -resume
 
     # removing primer trimming
-    nextflow ~/sandbox/Cecret/main.nf \
+    nextflow run ~/sandbox/Cecret \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir nontrimmed_$option \
@@ -39,7 +47,7 @@ then
       -resume
 
     # changing the cleaner, aligner, and trimmer
-    nextflow ~/sandbox/Cecret/main.nf \
+    nextflow run ~/sandbox/Cecret \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir toggled_$option \
@@ -51,7 +59,7 @@ then
       -resume
 
     # with UPHL's config
-    nextflow ~/sandbox/Cecret/main.nf \
+    nextflow run ~/sandbox/Cecret \
       -profile uphl,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir uphl_$option \
@@ -60,7 +68,7 @@ then
   done
 
   # multifasta
-  nextflow ~/sandbox/Cecret/main.nf \
+  nextflow run ~/sandbox/Cecret \
     -profile singularity,artic_V3 \
     --reads /home/eriny/sandbox/test_files/cecret/reads \
     --single-reads /home/eriny/sandbox/test_files/cecret/single-reads \
@@ -70,7 +78,7 @@ then
     -with-tower
 
   # empty
-  nextflow ~/sandbox/Cecret/main.nf \
+  nextflow run ~/sandbox/Cecret \
     -profile singularity,artic_V3 \
     --reads doesntexit \
     --single-reads willnotexist \
@@ -80,14 +88,14 @@ then
 
 else
   # CDC's test data with relatedness
-  nextflow ~/sandbox/Cecret/main.nf \
+  nextflow run ~/sandbox/Cecret \
     -profile singularity,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir default_datasets \
     --relatedness true  \
     -with-tower
 
-  nextflow ~/sandbox/Cecret/main.nf \
+  nextflow run ~/sandbox/Cecret \
     -profile uphl,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir uphl_datasets \
@@ -96,7 +104,7 @@ else
     --relatedness true
 
   # CDC's test data with relatedness using nextalign
-  nextflow ~/sandbox/Cecret/main.nf \
+  nextflow run ~/sandbox/Cecret \
     -profile singularity,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir toggled_datasets \
@@ -110,7 +118,7 @@ else
     -resume
 
   # MPX
-  nextflow ~/sandbox/Cecret/main.nf \
+  nextflow run ~/sandbox/Cecret \
     -profile singularity,mpx \
     --reads /home/eriny/sandbox/test_files/cecret/mpx \
     --outdir mpx \
@@ -121,7 +129,7 @@ else
     -resume
 
   # MPX with idt primers
-  nextflow ~/sandbox/Cecret/main.nf \
+  nextflow run ~/sandbox/Cecret \
     -profile singularity,mpx_idt \
     --reads /home/eriny/sandbox/test_files/cecret/mpx_idt \
     --outdir mpx_idt \
@@ -132,7 +140,7 @@ else
     -resume
 
   # other
-  nextflow ~/sandbox/Cecret/main.nf \
+  nextflow run ~/sandbox/Cecret \
     -profile singularity \
     --reads /home/eriny/sandbox/test_files/cecret/mpx \
     --outdir mpx \
@@ -148,7 +156,7 @@ else
     -resume
 
   # MPX with kraken
-  nextflow ~/sandbox/Cecret/main.nf \
+  nextflow run ~/sandbox/Cecret \
     -profile uphl,mpx \
     --reads /home/eriny/sandbox/test_files/cecret/mpx \
     --outdir uphl_mpx \

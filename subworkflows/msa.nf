@@ -1,7 +1,7 @@
-include { mafft }     from '../modules/mafft'     addParams(mafft_options: params.mafft_options)
-include { nextalign } from '../modules/nextalign' addParams(nextalign_options: params.nextalign_options)
-include { iqtree2 }   from '../modules/iqtree2'   addParams(iqtree2: params.iqtree2, iqtree2_outgroup: params.iqtree2_outgroup)
-include { snpdists }  from '../modules/snp-dists' addParams(snpdists: params.snpdists, snpdists_options: params.snpdists_options)
+include { mafft }     from '../modules/mafft'     addParams(params)
+include { nextalign } from '../modules/nextalign' addParams(params)
+include { iqtree2 }   from '../modules/iqtree2'   addParams(params)
+include { snpdists }  from '../modules/snp-dists' addParams(params)
 
 workflow msa {
   take:

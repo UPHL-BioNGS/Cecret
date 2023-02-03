@@ -1,0 +1,9 @@
+reports:
+  multiqc_report.html:
+    display: "MultiQC report"
+  cecret_results.txt :
+    display: "Full report in txt format"
+  cecret_results.csv:
+    display: "Full report in csv format"
+  combined_summary.csv:
+    display: "Limited summary in csv format"
