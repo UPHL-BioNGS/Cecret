@@ -186,7 +186,7 @@ if ( params.species == 'sarscov2' ) {
   params.vadr_options                       = ''
   params.vadr_reference                     = ''
   params.vadr_trim_options                  = ''
-  params.kraken2_organis                    = '.'
+  params.kraken2_organism                   = '.'
 }
 
 include { fasta_prep ; summary; combine_results } from './modules/cecret.nf'      addParams(params)
