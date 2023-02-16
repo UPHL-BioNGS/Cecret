@@ -1,0 +1,54 @@
+name: Test SARS-CoV-2 msa workflow
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+
+      - name: Checkout LFS objects
+        run: git lfs checkout
+          
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+      
+      - name: Install Datasets
+        run: |
+          wget https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/LATEST/linux-amd64/datasets
+          chmod +x datasets
+          sudo mv datasets /usr/local/bin/
+
+      - name: Download fasta files
+        run: |
+          mkdir fastas
+          cd fastas
+
+          # have to download separately because I don't want them in the same file
+          for accession in OQ255990.1 OQ255991.1 OQ255992.1 OQ255993.1 OQ255994.1
+          do
+            datasets download virus genome accession $accession
+            unzip ncbi_dataset.zip
+            cp ncbi_dataset/data/genomic.fna $accession.fasta
+            rm -rf ncbi_dataset*
+            rm -rf README.md
+          done
+
+          cd ../
+
+      - name: Run Cecret
+        run: |
+          nextflow run . -profile docker -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --relatedness true --outdir cecret1
+
+          nextflow run . -profile docker -resume -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --relatedness true --outdir cecret2 --msa nextalign
+            
+          head cecret*/cecret_results.txt
+
+          head cecret*/iqtree2/iqtree2.treefile
