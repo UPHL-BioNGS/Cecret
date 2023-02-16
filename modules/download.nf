@@ -5,7 +5,6 @@ process download {
   val(sra)
 
   output:
-  path "sra/paired/*fastq.gz"
   tuple val(sra), file("sra/paired/${sra}*fastq.gz"), val("paired"), optional: true, emit: paired
   tuple val(sra), file("sra/single/${sra}*fastq.gz"), val("single"), optional: true, emit: single
 
