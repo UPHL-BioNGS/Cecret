@@ -360,7 +360,7 @@ workflow {
   }
 
   if ( params.relatedness ) { 
-    msa(fasta_prep.out.fastas.concat(ch_multifastas).concat(cecret.out.consensus), ch_reference_genome, ch_dataset) 
+    msa(fasta_prep.out.fastas.concat(ch_multifastas).concat(cecret.out.consensus), ch_reference_genome, dataset) 
 
     tree      = msa.out.tree
     alignment = msa.out.msa
