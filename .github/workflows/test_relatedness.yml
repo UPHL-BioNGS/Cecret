@@ -24,6 +24,7 @@ jobs:
         run: |
           wget https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/LATEST/linux-amd64/datasets
           chmod +x datasets
+          sudo mv datasets /usr/local/bin/
 
       - name: Download fasta files
         run: |
@@ -33,7 +34,7 @@ jobs:
           # have to download separately because I don't want them in the same file
           for accession in OQ255990.1 OQ255991.1 OQ255992.1 OQ255993.1 OQ255994.1
           do
-            ./datasets download virus genome accession $accession
+            datasets download virus genome accession $accession
             unzip ncbi_dataset.zip
             cp ncbi_dataset/data/genomic.fna $accession.fasta
             rm -rf ncbi_dataset*
