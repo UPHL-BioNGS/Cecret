@@ -19,6 +19,7 @@ jobs:
         
       - name: versions
         run: |
+          issue_text="Needing updates:  " 
           staphb_containers=($(grep container configs/cecret_config_template.config | grep staphb | sort | uniq | grep -v latest | awk '{print $3}' | sed 's/'\''//g'))
           for container in ${staphb_containers[@]}
           do
@@ -33,9 +34,11 @@ jobs:
               echo "No version change for $base:$cecret_version" | tee -a versions.txt
             else
               echo "New version for $base! Upgrade to $latest_version from $cecret_version." | tee -a versions.txt
+              issue_text="$issue_text<br>- $base from $repo_version to $latest_version  "
             fi
           done
-          issue_text="$(cat versions.txt)"
+          echo $issue_text
+          cat versions.txt
           echo 'ISSUE_TEXT='$issue_text >> $GITHUB_ENV
           
       - name: Create Issue
