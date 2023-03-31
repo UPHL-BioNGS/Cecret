@@ -19,7 +19,7 @@ process fastp {
   output:
   tuple val(sample), file("fastp/${sample}_{clean_PE1,clean_PE2,cln}.fastq.gz"), optional: true,  emit: clean_reads
   path "fastp/${sample}_fastp.html",                                                              emit: html
-  path "fastp/${sample}_fastp.json",                                                              emit: fastp_files
+  tuple val(sample), file("fastp/${sample}_fastp.json"),                                          emit: fastp_files
   path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}"
   tuple val("${params.cleaner}"), env(cleaner_version),                                           emit: cleaner_version
 
