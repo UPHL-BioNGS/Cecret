@@ -10,18 +10,16 @@ workflow sarscov2 {
         ch_reference_genome
 
     main:
-        ch_vadr(fastas.collect())
-        ch_pangolin(fastas.collect())
-        ch_nextclade(fastas.collect())
-        ch_freyja(bam.combine(reference_genome))
-        ch_freyja_aggregate(freyja.out.freyja_demix.collect())
+        vadr(ch_fastas.collect())
+        pangolin(ch_fastas.collect())
+        nextclade(ch_fastas.collect())
+        freyja(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
+        freyja_aggregate(freyja.out.freyja_demix.collect())
 
     emit:
-        pangolin_file   = pangolin.out.pangolin_file
-        nextclade_file  = nextclade.out.nextclade_file
-        vadr_file       = vadr.out.vadr_file
-        dataset         = nextclade.out.prepped_nextalign
-        freyja_file     = freyja_aggregate.out.aggregated_freyja_file
+        dataset     = nextclade.out.prepped_nextalign
+        for_multiqc = pangolin.out.pangolin_file.mix(nextclade.out.nextclade_file)
+        for_summary = pangolin.out.pangolin_file.mix(nextclade.out.nextclade_file).mix(freyja_aggregate.out.aggregated_freyja_file).mix(vadr.out.vadr_file)
 }
 
 
