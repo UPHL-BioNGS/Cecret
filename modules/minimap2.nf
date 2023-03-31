@@ -1,7 +1,7 @@
 process minimap2 {
   tag        "${sample}"
   label      "maxcpus"
-  publishDir "${params.outdir}", mode: 'copy'
+  publishDir = [ path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log' ]
   container  'staphb/minimap2:2.24'
 
   //#UPHLICA maxForks 10
