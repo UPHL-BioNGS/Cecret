@@ -3,13 +3,24 @@
 import pandas as pd
 from os.path import exists
 
+# Contains the results for
+# bcftools variants
+# bedtools multicov
+# num AGCT
+# fastp
+# fastqc
+# ivar
+# kraken2
+# samtools*
+summary_file='summary.txt'
+
+# Entire sample set already in one file
 pangolin_file='lineage_report.csv'
 nextclade_file='nextclade.csv'
 vadr_file='vadr.csv'
 freyja_file='aggregated-freyja.tsv'
 seqyclean_file='Combined_SummaryStatistics.tsv'
 seqycln_file='Combined_seqyclean_SummaryStatistics.tsv'
-summary_file='combined_summary.csv'
 
 summary_df = pd.read_csv(summary_file, dtype = str)
 columns = list(summary_df.columns)
