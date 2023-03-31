@@ -18,7 +18,6 @@ workflow cecret {
 
   if ( params.cleaner == 'seqyclean' ) {
     seqyclean(ch_reads)
-    ch_for_version = ch_for_version.mix(seqyclean.out.cleaner_version)
 
     seqyclean.out.seqyclean_files_collect_paired
       .collectFile(name: "Combined_SummaryStatistics.tsv",
@@ -33,67 +32,71 @@ workflow cecret {
       .set { seqyclean_file2 }
 
     ch_clean_reads = seqyclean.out.clean_reads
+    ch_for_version = ch_for_version.mix(seqyclean.out.cleaner_version)
     ch_for_multiqc = ch_for_multiqc.mix(seqyclean_file1).mix(seqyclean_file2)
-    ch_for_summary = ch_for_summary.mix(seqyclean_file1).mix(seqyclean_file2)
 
   } else if ( params.cleaner == 'fastp' ) {
     fastp(ch_reads)
 
     ch_clean_reads = fastp.out.clean_reads
-    ch_for_multiqc = ch_for_multiqc.mix(fastp.out.fastp_results)
     ch_for_version = ch_for_version.mix(fastp.out.cleaner_version)
-    ch_for_summary = ch_for_summary.mix(fastp.out.fastp_results)
+    ch_for_summary = ch_for_multiqc.mix(fastp.out.fastp_files) 
+  
   }
 
   if ( params.aligner == 'bwa' ) {
-    bwa(clean_reads.combine(reference))
+    bwa(ch_clean_reads.combine(ch_reference))
+
     ch_sam         = bwa.out.sam
     ch_for_version = ch_for_version.mix(bwa.out.aligner_version)
+  
   } else if ( params.aligner = 'minimap2' ) {
-    minimap2(clean_reads.combine(reference))
+    minimap2(ch_clean_reads.combine(ch_reference))
+    
     ch_sam         = minimap2.out.sam
     ch_for_version = ch_for_version.mix(minimap2.out.aligner_version)
+  
   }
 
   if ( params.markdup ) {
-    markdup(reads.join(ch_sam).map { it -> tuple(it[0], it[2], it[3])} )
+    markdup(ch_reads.join(ch_sam).map { it -> tuple(it[0], it[2], it[3])} )
     ch_bam = markdup.out.bam_bai
+  
   } else {
     sort(ch_sam)
     ch_bam = sort.out.bam_bai
+  
   }
 
   if ( params.trimmer == 'ivar' ) {
-    ivar_trim(ch_bam.combine(ch_primer_bed))
+    ivar_trim(ch_bam.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
+
     ch_trim_bam    = ivar_trim.out.bam_bai
     ch_for_version = ch_for_version.mix(ivar_trim.out.trimmer_version)
-    ch_for_multiqc = ch_for_multiqc.mix(ivar_files)
+    ch_for_summary = ch_for_summary.mix(ivar_trim.out.ivar_trim_files)
 
-  } else if ( params.trimmer == 'samtools' ) {
-    ampliconclip(ch_bam.combine(ch_primer_bed))
+  } else if ( params.trimmer == 'samtools' || params.trimmer == 'ampliconclip' ) {
+    ampliconclip(ch_bam.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
+    
     ch_trim_bam    = ampliconclip.out.bam_bai
     ch_for_version = ch_for_version.mix(ampliconclip.out.trimmer_version)
   
   } else if ( params.trimmer == 'none' ) {
-    Channel
-      .tuple('none', 'NA')
-      .set { ch_no_trimmer }
-
-    ch_for_version = ch_for_version.mix( ch_no_trimmer ) 
     ch_trim_bam    = ch_bam
+  
   }
 
-  ivar(ch_trim_bam.combine(reference))
+  ivar(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_reference))
 
-  if ( params.filter ) { filter(sam) }
+  if ( params.filter ) { filter(ch_sam) }
 
   emit:
-  consensus        = ivar.out.consensus
-  trim_bam         = ch_trim_bam
-  clean_reads      = ch_clean_reads
-  sam              = ch_sam
+    consensus        = ivar.out.consensus
+    trim_bam         = ch_trim_bam
+    clean_reads      = ch_clean_reads
+    sam              = ch_sam
 
-  for_multiqc      = ch_for_multiqc
-  for_version      = ch_for_version
-  for_summary      = ch_for_summary
+    for_multiqc      = ch_for_summary.map { it -> it[1] }.mix(ch_for_multiqc) 
+    for_version      = ch_for_version.unique()
+    for_summary      = ch_for_summary
 }
