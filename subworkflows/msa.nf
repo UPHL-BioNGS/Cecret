@@ -17,11 +17,11 @@ workflow msa {
       mafft(ch_fasta.collect(), reference_genome)
       ch_msa = mafft.out.msa
     }
-    iqtree2(ch_msa)
-    snpdists(ch_msa)
+//     iqtree2(ch_msa)
+//     snpdists(ch_msa)
 
-  emit:
-    tree   = iqtree2.out.tree
-    matrix = snpdists.out.matrix
-    msa    = ch_msa
+//   emit:
+//     tree   = iqtree2.out.tree
+//     matrix = snpdists.out.matrix
+//     msa    = ch_msa
 }
