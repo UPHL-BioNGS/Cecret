@@ -27,40 +27,40 @@ workflow qc {
     ch_for_summary = Channel.empty()
 
     fastqc(ch_raw_reads)
-    if ( ch_kraken2_db ) {
-      kraken2(ch_clean_reads.combine(ch_kraken2_db))
-      ch_for_multiqc = ch_for_multiqc.mix(kraken2.out.kraken2_files)
-      ch_for_summary = ch_for_summary.mix(kraken2.out.kraken2_files)
-    } 
-    samtools_flagstat(bam)
-    samtools_depth(bam)
-    samtools_coverage(bam)
-    samtools_stats(bam)
-    samtools_intial_stats(sam)
-    samtools_ampliconstats(bam.combine(primer_bed))
+  //   if ( ch_kraken2_db ) {
+  //     kraken2(ch_clean_reads.combine(ch_kraken2_db))
+  //     ch_for_multiqc = ch_for_multiqc.mix(kraken2.out.kraken2_files)
+  //     ch_for_summary = ch_for_summary.mix(kraken2.out.kraken2_files)
+  //   } 
+  //   samtools_flagstat(bam)
+  //   samtools_depth(bam)
+  //   samtools_coverage(bam)
+  //   samtools_stats(bam)
+  //   samtools_intial_stats(sam)
+  //   samtools_ampliconstats(bam.combine(primer_bed))
 
-    samtools_plot_ampliconstats(samtools_ampliconstats.out.samtools_ampliconstats_files)
+  //   samtools_plot_ampliconstats(samtools_ampliconstats.out.samtools_ampliconstats_files)
 
-    bcftools_variants(bam.combine(reference_genome))
-    ivar_variants(bam.combine(reference_genome).combine(gff_file))
-    bedtools_multicov(bam_bai.combine(amplicon_bed))
+  //   bcftools_variants(bam.combine(reference_genome))
+  //   ivar_variants(bam.combine(reference_genome).combine(gff_file))
+  //   bedtools_multicov(bam_bai.combine(amplicon_bed))
 
-    ch_for_summary
-      .mix(fastqc.out.fastqc_1_results)
-      .mix(fastqc.out.fastqc_2_results)
-      .mix(ivar_variants.out.ivar_variants_results)
-      .mix(bcftools_variants.out.bcftools_variants_results)
-      .mix(samtools_stats.out.samtools_stats_after_size_results)
-      .mix(samtools_coverage.out.samtools_coverage_results)
-      .mix(samtools_coverage.out.samtools_covdepth_results)
-      .mix(samtools_depth.out.samtools_depth_results)
-      .mix(samtools_ampliconstats.out.samtools_ampliconstats_results)
-      .mix(bedtools_multicov.out.bedtools_results)
-      .set (ch_all_summary)
+  //   ch_for_summary
+  //     .mix(fastqc.out.fastqc_1_results)
+  //     .mix(fastqc.out.fastqc_2_results)
+  //     .mix(ivar_variants.out.ivar_variants_results)
+  //     .mix(bcftools_variants.out.bcftools_variants_results)
+  //     .mix(samtools_stats.out.samtools_stats_after_size_results)
+  //     .mix(samtools_coverage.out.samtools_coverage_results)
+  //     .mix(samtools_coverage.out.samtools_covdepth_results)
+  //     .mix(samtools_depth.out.samtools_depth_results)
+  //     .mix(samtools_ampliconstats.out.samtools_ampliconstats_results)
+  //     .mix(bedtools_multicov.out.bedtools_results)
+  //     .set (ch_all_summary)
 
 
 
-  emit:
-  for_multiqc = ch_for_multiqc.mix(fastqc.out.fastqc_files).mix(samtools_intial_stats.out.samtools_stats_files).mix(samtools_flagstat.out.samtools_flagstat_files)
-  for_summary = ch_all_summary
+  // emit:
+  // for_multiqc = ch_for_multiqc.mix(fastqc.out.fastqc_files).mix(samtools_intial_stats.out.samtools_stats_files).mix(samtools_flagstat.out.samtools_flagstat_files)
+  // for_summary = ch_all_summary
 }
