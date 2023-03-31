@@ -20,21 +20,21 @@ jobs:
       - name: versions
         run: |
           issue_text="Needing updates:  " 
-          staphb_containers=($(grep container configs/cecret_config_template.config | grep staphb | sort | uniq | grep -v latest | awk '{print $3}' | sed 's/'\''//g'))
-          for container in ${staphb_containers[@]}
+          workflow_containers=($(grep container modules/* | grep staphb | sort | uniq | grep -v latest | awk '{print $3}' | sed 's/'\''//g'))
+          for container in ${workflow_containers[@]}
           do
             base=$(echo $container | cut -f 1 -d ":")
-            cecret_version=$(echo $container | cut -f 2 -d ":")
+            workflow_version=$(echo $container | cut -f 2 -d ":")
             
             docker pull $base:latest
             latest_version=$(docker inspect --format '{{ index .Config.Labels "software.version"}}' $base:latest)
             
-            if [[ "$latest_version" == "$cecret_version" ]]
+            if [[ "$latest_version" == "$workflow_version" ]]
             then
-              echo "No version change for $base:$cecret_version" | tee -a versions.txt
+              echo "No version change for $base:$workflow_version" | tee -a versions.txt
             else
-              echo "New version for $base! Upgrade to $latest_version from $cecret_version." | tee -a versions.txt
-              issue_text="$issue_text<br>- $base from $cecret_version to $latest_version  "
+              echo "New version for $base! Upgrade to $latest_version from $workflow_version." | tee -a versions.txt
+              issue_text="$issue_text<br>- $base from $workflow_version to $latest_version  "
             fi
           done
           echo $issue_text
