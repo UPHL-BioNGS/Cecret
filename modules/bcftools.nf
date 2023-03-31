@@ -1,6 +1,14 @@
 process bcftools_variants {
-  tag "${sample}"
-  errorStrategy 'ignore'
+  tag           "${sample}"
+  publishDir    "${params.outdir}", mode: 'copy'
+  errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  container     'staphb/bcftools:1.16'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
+  //#UPHLICA memory 1.GB
+  //#UPHLICA cpus 3
+  //#UPHLICA time '45m'
 
   when:
   params.bcftools_variants

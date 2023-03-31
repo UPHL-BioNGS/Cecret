@@ -1,8 +1,15 @@
 process mafft {
-  tag "Multiple Sequence Alignment"
-  label "maxcpus"
-  errorStrategy 'retry'
-  maxRetries 2
+  tag           "Multiple Sequence Alignment"
+  label         "maxcpus"
+  errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  publishDir    "${params.outdir}", mode: 'copy'
+  container     'staphb/mafft:7.475'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '2h'
 
   input:
   file(fasta)

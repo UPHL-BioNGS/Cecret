@@ -1,6 +1,15 @@
 process nextalign {
-  tag "Multiple Sequence Alignment"
-  label "maxcpus"
+  tag        "Multiple Sequence Alignment"
+  label      "maxcpus"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'nextstrain/nextalign:2.13.1'
+
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   file(consensus)

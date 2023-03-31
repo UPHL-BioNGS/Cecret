@@ -1,5 +1,14 @@
 process multiqc_combine {
-  tag "multiqc"
+  tag        "multiqc"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'quay.io/biocontainers/multiqc:1.14--pyhdfd78af_0'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
+  //#UPHLICA memory 1.GB
+  //#UPHLICA cpus 3
+  //#UPHLICA time '45m'
 
   when:
   params.multiqc

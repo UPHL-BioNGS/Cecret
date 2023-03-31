@@ -1,6 +1,15 @@
 //# some fastas are created with the header of >reference, so this changes the header
 process fasta_prep {
-  tag "${fasta}"
+  tag        "${fasta}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'quay.io/biocontainers/pandas:1.1.5'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
+  //#UPHLICA memory 1.GB
+  //#UPHLICA cpus 3
+  //#UPHLICA time '45m'
 
   when:
   fasta != null
@@ -21,7 +30,16 @@ process fasta_prep {
 }
 
 process summary {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'quay.io/biocontainers/pandas:1.1.5'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
+  //#UPHLICA memory 1.GB
+  //#UPHLICA cpus 3
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(files), file(summary_script)

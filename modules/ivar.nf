@@ -1,8 +1,15 @@
 process ivar_consensus {
-  tag "${sample}"
-  memory {2.GB * task.attempt}
-  errorStrategy {'retry'}
-  maxRetries 2
+  tag           "${sample}"
+  memory        { 2.GB * task.attempt }
+  errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  publishDir    params.outdir, mode: 'copy'
+  container     'staphb/ivar:1.3.1'
+
+  //#UPHLICA maxForks      10
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(bam), file(reference_genome)
@@ -29,10 +36,18 @@ process ivar_consensus {
 }
 
 process ivar_variants {
-  tag "${sample}"
-  memory {2.GB * task.attempt}
-  errorStrategy 'retry'
-  maxRetries 2
+  tag           "${sample}"
+  memory        { 2.GB * task.attempt }
+  errorStrategy { task.attempt < 3 ? 'retry' : 'ignore'}
+  publishDir    "${params.outdir}", mode: 'copy'  
+  container     'staphb/ivar:1.3.1'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.ivar_variants
@@ -79,7 +94,16 @@ process ivar_variants {
 }
 
 process ivar_trim {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/ivar:1.3.1'
+  
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(bam), file(primer_bed)

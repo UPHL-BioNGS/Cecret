@@ -1,5 +1,14 @@
 process samtools_stats {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/samtools:1.16'
+  
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.samtools_stats
@@ -28,7 +37,16 @@ process samtools_stats {
 }
 
 process samtools_coverage {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/samtools:1.16'
+  
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.samtools_coverage
@@ -62,7 +80,16 @@ process samtools_coverage {
 }
 
 process samtools_flagstat {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/samtools:1.16'
+  
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(bam)
@@ -89,7 +116,16 @@ process samtools_flagstat {
 }
 
 process samtools_depth {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/samtools:1.16'
+  
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(bam)
@@ -119,10 +155,19 @@ process samtools_depth {
 }
 
 process samtools_ampliconstats {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/samtools:1.16'
+  
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
- when:
- params.samtools_ampliconstats && ( params.trimmer != 'none' )
+  when:
+  params.samtools_ampliconstats && ( params.trimmer != 'none' )
 
   input:
   tuple val(sample), file(bam), file(primer_bed)
@@ -150,8 +195,15 @@ process samtools_ampliconstats {
 }
 
 process samtools_plot_ampliconstats {
-  tag "${sample}"
-  errorStrategy 'ignore'
+  tag           "${sample}"
+  errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  publishDir    "${params.outdir}", mode: 'copy'
+  container     'staphb/samtools:1.16'
+  //#UPHLICA maxForks 10
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.samtools_plot_ampliconstats
@@ -178,8 +230,17 @@ process samtools_plot_ampliconstats {
 }
 
 process samtools_sort {
-  tag "${sample}"
-  label "maxcpus"
+  tag        "${sample}"
+  label      "maxcpus"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/samtools:1.16'
+
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(sam)
@@ -207,7 +268,16 @@ process samtools_sort {
 }
 
 process samtools_filter {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/samtools:1.16'
+
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.filter
@@ -239,7 +309,16 @@ process samtools_filter {
 }
 
 process samtools_ampliconclip {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/samtools:1.16'
+  
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(bam), file(primer_bed)
@@ -270,7 +349,16 @@ process samtools_ampliconclip {
 }
 
 process samtools_markdup {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/samtools:1.16'
+  
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), val(type), file(sam) 

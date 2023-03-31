@@ -1,6 +1,15 @@
 process bwa {
-  tag "${sample}"
-  label "maxcpus"
+  tag        "${sample}"
+  label      "maxcpus"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/bwa:0.7.17'
+  
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(reads), file(reference_genome)
