@@ -373,16 +373,17 @@ workflow {
     ch_for_multiqc = Channel.empty()
     ch_for_summary = Channel.empty()
     ch_for_version = Channel.empty()
+    ch_for_dataset = Channel.empty()
 
     if ( ! params.sra_accessions.isEmpty() ) { 
       test(ch_sra_accessions)
       ch_reads = ch_reads.mix(test.out.reads)
     } 
 
-    //  combine_results_script
     fasta_prep(ch_fastas)
 
     cecret(ch_reads, ch_reference_genome, ch_primer_bed)
+
   //   qc(ch_reads,
   //     cecret.out.clean_reads,
   //     ch_kraken2_db,
@@ -395,44 +396,49 @@ workflow {
 
     if ( params.species == 'sarscov2' ) {
       sarscov2(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), cecret.out.trim_bam, ch_reference_genome)
+      
       ch_for_multiqc = ch_for_multiqc.mix(sarscov2.out.for_multiqc)
       ch_for_summary = ch_for_summary.mix(sarscov2.out.for_summary)
+      ch_for_dataset = sarscov2.out.dataset
     
     } else if ( params.species == 'mpx') {
       mpx(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus))
+      
       ch_for_multiqc = ch_for_multiqc.mix(mpx.out.for_multiqc)
       ch_for_summary = ch_for_summary.mix(mpx.out.for_summary)
+      ch_for_dataset = mpx.out.dataset
     
     } else if ( params.species == 'other') {
       other(fasta_prep.out.fastas.concat(ch_multifastas).mix(cecret.out.consensus))
+      
       ch_for_multiqc = ch_for_multiqc.mix(other.out.for_multiqc)
       ch_for_summary = ch_for_summary.mix(other.out.for_summary)
+      ch_for_dataset = other.out.dataset
 
     } 
 
-  //   if ( params.relatedness ) { 
-  //     msa(fasta_prep.out.fastas.concat(ch_multifastas).concat(cecret.out.consensus), ch_reference_genome, dataset) 
+    if ( params.relatedness ) { 
+      msa(fasta_prep.out.fastas.concat(ch_multifastas).concat(cecret.out.consensus), ch_reference_genome, ch_for_dataset) 
 
-  //     tree      = msa.out.tree
-  //     alignment = msa.out.msa
-  //     matrix    = msa.out.matrix
+      tree      = msa.out.tree
+      alignment = msa.out.msa
+      matrix    = msa.out.matrix
 
-  //   } else {
-  //     tree      = Channel.empty()
-  //     alignment = Channel.empty()
-  //     matrix    = Channel.empty()
+    } else {
+      tree      = Channel.empty()
+      alignment = Channel.empty()
+      matrix    = Channel.empty()
+    }
 
-  //   }
-
-  //   multiqc_combine(ch_for_multiqc)
+    multiqc_combine(ch_for_multiqc.collect())
   //   summary(ch_for_summary, ch_combine_results_script)
 
-  // emit:
-  //   bam       = cecret.out.trim_bam
-  //   consensus = fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus)
-  //   tree      = tree
-  //   alignment = alignment
-  //   matrix    = matrix
+  emit:
+    bam       = cecret.out.trim_bam
+    consensus = fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus).collect()
+    tree      = tree
+    alignment = alignment
+    matrix    = matrix
 }
 
 workflow.onComplete {
