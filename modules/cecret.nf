@@ -1,7 +1,7 @@
 //# some fastas are created with the header of >reference, so this changes the header
 process fasta_prep {
   tag        "${fasta}"
-  publishDir "${params.outdir}", mode: 'copy'
+  //# nothing to publish in publishDir
   container  'quay.io/biocontainers/pandas:1.1.5'
 
   //#UPHLICA maxForks 10
