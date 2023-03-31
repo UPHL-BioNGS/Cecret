@@ -7,92 +7,93 @@ include { samtools_sort as sort; samtools_ampliconclip as ampliconclip; samtools
 
 workflow cecret {
   take:
-  reads
-  reference
-  primer_bed
+    ch_reads
+    ch_reference
+    ch_primer_bed
 
   main:
+    ch_for_summary = Channel.empty()
+    ch_for_multiqc = Channel.empty()
+    ch_for_version = Channel.empty()
+
   if ( params.cleaner == 'seqyclean' ) {
-    seqyclean(reads)
-    clean_reads       = seqyclean.out.single_reads.mix(seqyclean.out.paired_reads)
-    cleaner_version   = seqyclean.out.cleaner_version
-    seqyclean_files1  = seqyclean.out.seqyclean_files_collect_paired
-    seqyclean_files2  = seqyclean.out.seqyclean_files_collect_single
-    clean_type        = seqyclean.out.clean_reads
-    fastp_results     = Channel.empty()
-    fastp_files       = Channel.empty()
+    seqyclean(ch_reads)
+    ch_for_version = ch_for_version.mix(seqyclean.out.cleaner_version)
+
+    seqyclean.out.seqyclean_files_collect_paired
+      .collectFile(name: "Combined_SummaryStatistics.tsv",
+        keepHeader: true,
+        storeDir: "${params.outdir}/seqyclean")
+      .set { seqyclean_file1 }
+
+    seqyclean.out.seqyclean_files_collect_single
+      .collectFile(name: "Combined_seqyclean_SummaryStatistics.tsv",
+        keepHeader: true,
+        storeDir: "${params.outdir}/seqyclean")
+      .set { seqyclean_file2 }
+
+    ch_clean_reads = seqyclean.out.clean_reads
+    ch_for_multiqc = ch_for_multiqc.mix(seqyclean_file1).mix(seqyclean_file2)
+    ch_for_summary = ch_for_summary.mix(seqyclean_file1).mix(seqyclean_file2)
+
   } else if ( params.cleaner == 'fastp' ) {
-    fastp(reads)
-    clean_reads       = fastp.out.paired_files.mix(fastp.out.single_files)
-    clean_type        = fastp.out.clean_reads
-    cleaner_version   = fastp.out.cleaner_version
-    fastp_results     = fastp.out.fastp_results
-    fastp_files       = fastp.out.fastp_files
-    seqyclean_files1  = Channel.empty()
-    seqyclean_files2  = Channel.empty()
+    fastp(ch_reads)
+
+    ch_clean_reads = fastp.out.clean_reads
+    ch_for_multiqc = ch_for_multiqc.mix(fastp.out.fastp_results)
+    ch_for_version = ch_for_version.mix(fastp.out.cleaner_version)
+    ch_for_summary = ch_for_summary.mix(fastp.out.fastp_results)
   }
 
   if ( params.aligner == 'bwa' ) {
     bwa(clean_reads.combine(reference))
-    sam               = bwa.out.sam
-    aligner_version   = bwa.out.aligner_version
+    ch_sam         = bwa.out.sam
+    ch_for_version = ch_for_version.mix(bwa.out.aligner_version)
   } else if ( params.aligner = 'minimap2' ) {
     minimap2(clean_reads.combine(reference))
-    sam               = minimap2.out.sam
-    aligner_version   = minimap2.out.aligner_version
+    ch_sam         = minimap2.out.sam
+    ch_for_version = ch_for_version.mix(minimap2.out.aligner_version)
   }
 
   if ( params.markdup ) {
-    markdup(reads.join(sam).map { reads -> tuple(reads[0], reads[2], reads[3])} )
-    bam = markdup.out.bam
-    bam_bai = markdup.out.bam_bai
+    markdup(reads.join(ch_sam).map { it -> tuple(it[0], it[2], it[3])} )
+    ch_bam = markdup.out.bam_bai
   } else {
-    sort(sam)
-    bam = sort.out.bam
-    bam_bai = sort.out.bam_bai
+    sort(ch_sam)
+    ch_bam = sort.out.bam_bai
   }
 
   if ( params.trimmer == 'ivar' ) {
-    ivar_trim(bam.combine(primer_bed))
-    trimmed_bam       = ivar_trim.out.trimmed_bam
-    trimmer_version   = ivar_trim.out.trimmer_version
-    bam_bai           = ivar_trim.out.bam_bai
-    ivar_files        = ivar_trim.out.ivar_trim_files
+    ivar_trim(ch_bam.combine(ch_primer_bed))
+    ch_trim_bam    = ivar_trim.out.bam_bai
+    ch_for_version = ch_for_version.mix(ivar_trim.out.trimmer_version)
+    ch_for_multiqc = ch_for_multiqc.mix(ivar_files)
+
   } else if ( params.trimmer == 'samtools' ) {
-    ampliconclip(bam.combine(primer_bed))
-    trimmed_bam       = ampliconclip.out.trimmed_bam
-    bam_bai           = ampliconclip.out.bam_bai
-    trimmer_version   = ampliconclip.out.trimmer_version
-    ivar_files        = Channel.empty()
+    ampliconclip(ch_bam.combine(ch_primer_bed))
+    ch_trim_bam    = ampliconclip.out.bam_bai
+    ch_for_version = ch_for_version.mix(ampliconclip.out.trimmer_version)
+  
   } else if ( params.trimmer == 'none' ) {
-    trimmed_bam       = bam
-    trimmer_version   = reads.map { reads -> tuple(reads[0],'none') }
-    bam_bai           = bam_bai
-    ivar_files        = Channel.empty()
+    Channel
+      .tuple('none', 'NA')
+      .set { ch_no_trimmer }
+
+    ch_for_version = ch_for_version.mix( ch_no_trimmer ) 
+    ch_trim_bam    = ch_bam
   }
 
-  ivar(trimmed_bam.combine(reference))
+  ivar(ch_trim_bam.combine(reference))
 
   if ( params.filter ) { filter(sam) }
 
   emit:
-  consensus         = ivar.out.consensus
-  bam               = trimmed_bam
-  bam_bai           = bam_bai
-  clean_type        = clean_type
-  sam               = sam
+  consensus        = ivar.out.consensus
+  trim_bam         = ch_trim_bam
+  clean_reads      = ch_clean_reads
+  sam              = ch_sam
 
-  // for multiqc
-  seqyclean_files1  = seqyclean_files1
-  seqyclean_files2  = seqyclean_files2
-  fastp_files       = fastp_files
-  ivar_files        = ivar_files
-
-  // for summary file
-  consensus_results = ivar.out.consensus_results
-  cleaner_version   = cleaner_version
-  aligner_version   = aligner_version
-  trimmer_version   = trimmer_version
-  ivar_version      = ivar.out.ivar_version
-  fastp_results     = fastp_results
+  for_multiqc      = ch_for_multiqc
+  for_version      = ch_for_version
+  for_summary      = ch_for_summary
 }

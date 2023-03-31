@@ -3,11 +3,11 @@ include { nextclade } from '../modules/nextclade' addParams(params)
 
 workflow mpx {
   take:
-  fastas
+  ch_fastas
 
   main:
-  vadr(fastas.collect())
-  nextclade(fastas.collect())
+  vadr(ch_fastas.collect())
+  nextclade(ch_fastas.collect())
 
   emit:
   nextclade_file  = nextclade.out.nextclade_file

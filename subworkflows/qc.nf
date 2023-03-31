@@ -12,56 +12,55 @@ include { samtools_flagstat }                                   from '../modules
 
 workflow qc {
   take:
-  reads
-  clean_reads
-  kraken2_db
-  sam
-  bam
-  bam_bai
-  reference_genome
-  gff_file
-  amplicon_bed
-  primer_bed
+    ch_raw_reads
+    ch_clean_reads
+    ch_kraken2_db
+    ch_sam
+    ch_trim_bam
+    ch_reference_genome
+    ch_gff_file
+    ch_amplicon_bed
+    ch_primer_bed
 
   main:
-  fastqc(reads)
-  if ( kraken2_db ) {
-    kraken2(clean_reads.combine(kraken2_db))
-    kraken2_files = kraken2.out.kraken2_files
-  } else {
-    kraken2_files = Channel.empty()
-  }
-  samtools_flagstat(bam)
-  samtools_depth(bam)
-  samtools_coverage(bam)
-  samtools_stats(bam)
-  samtools_intial_stats(sam)
-  samtools_ampliconstats(bam.combine(primer_bed))
+    ch_for_multiqc = Channel.empty()
+    ch_for_summary = Channel.empty()
 
-  samtools_plot_ampliconstats(samtools_ampliconstats.out.samtools_ampliconstats_files)
+    fastqc(ch_raw_reads)
+    if ( ch_kraken2_db ) {
+      kraken2(ch_clean_reads.combine(ch_kraken2_db))
+      ch_for_multiqc = ch_for_multiqc.mix(kraken2.out.kraken2_files)
+      ch_for_summary = ch_for_summary.mix(kraken2.out.kraken2_files)
+    } 
+    samtools_flagstat(bam)
+    samtools_depth(bam)
+    samtools_coverage(bam)
+    samtools_stats(bam)
+    samtools_intial_stats(sam)
+    samtools_ampliconstats(bam.combine(primer_bed))
 
-  bcftools_variants(bam.combine(reference_genome))
-  ivar_variants(bam.combine(reference_genome).combine(gff_file))
-  bedtools_multicov(bam_bai.combine(amplicon_bed))
+    samtools_plot_ampliconstats(samtools_ampliconstats.out.samtools_ampliconstats_files)
+
+    bcftools_variants(bam.combine(reference_genome))
+    ivar_variants(bam.combine(reference_genome).combine(gff_file))
+    bedtools_multicov(bam_bai.combine(amplicon_bed))
+
+    ch_for_summary
+      .mix(fastqc.out.fastqc_1_results)
+      .mix(fastqc.out.fastqc_2_results)
+      .mix(ivar_variants.out.ivar_variants_results)
+      .mix(bcftools_variants.out.bcftools_variants_results)
+      .mix(samtools_stats.out.samtools_stats_after_size_results)
+      .mix(samtools_coverage.out.samtools_coverage_results)
+      .mix(samtools_coverage.out.samtools_covdepth_results)
+      .mix(samtools_depth.out.samtools_depth_results)
+      .mix(samtools_ampliconstats.out.samtools_ampliconstats_results)
+      .mix(bedtools_multicov.out.bedtools_results)
+      .set (ch_all_summary)
+
+
 
   emit:
-  // for multiqc
-  fastqc_files                    = fastqc.out.fastqc_files
-  samtools_stats_files            = samtools_intial_stats.out.samtools_stats_files
-  kraken2_files                   = kraken2_files
-  samtools_flagstat_files         = samtools_flagstat.out.samtools_flagstat_files
-
-  // for summary file
-  fastqc_1_results                = fastqc.out.fastqc_1_results
-  fastqc_2_results                = fastqc.out.fastqc_2_results
-  kraken2_target_results          = kraken2.out.kraken2_target_results
-  kraken2_human_results           = kraken2.out.kraken2_human_results
-  ivar_variants_results           = ivar_variants.out.ivar_variants_results
-  bcftools_variants_results       = bcftools_variants.out.bcftools_variants_results
-  insert_size_after_trimming      = samtools_stats.out.samtools_stats_after_size_results
-  samtools_coverage_results       = samtools_coverage.out.samtools_coverage_results
-  samtools_covdepth_results       = samtools_coverage.out.samtools_covdepth_results
-  samtools_depth_results          = samtools_depth.out.samtools_depth_results
-  samtools_ampliconstats_results  = samtools_ampliconstats.out.samtools_ampliconstats_results
-  bedtools_results                = bedtools_multicov.out.bedtools_results
+  for_multiqc = ch_for_multiqc.mix(fastqc.out.fastqc_files).mix(samtools_intial_stats.out.samtools_stats_files).mix(samtools_flagstat.out.samtools_flagstat_files)
+  for_summary = ch_all_summary
 }
