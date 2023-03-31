@@ -3,14 +3,14 @@ include { nextclade } from '../modules/nextclade' addParams(params)
 
 workflow mpx {
   take:
-  ch_fastas
+    ch_fastas
 
   main:
-  vadr(ch_fastas.collect())
-  nextclade(ch_fastas.collect())
+    vadr(ch_fastas.collect())
+    nextclade(ch_fastas.collect())
 
   emit:
-  nextclade_file  = nextclade.out.nextclade_file
-  vadr_file       = vadr.out.vadr_file
-  dataset         = nextclade.out.prepped_nextalign
+    for_multiqc = nextclade.out.nextclade_file
+    for_summary = nextclade.out.nextclade_file.mix(vadr.out.vadr_file)
+    dataset     = nextclade.out.prepped_nextalign
 }
