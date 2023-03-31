@@ -6,8 +6,8 @@ process bwa {
   tuple val(sample), file(reads), file(reference_genome)
 
   output:
-  tuple val(sample), file("bwa/${sample}.sam"),                           emit: sam
-  tuple val(sample), env(bwa_version),                                    emit: aligner_version
+  tuple val(sample), file("bwa/${sample}.sam"),                     emit: sam
+  tuple val("${params.aligner}"), env(bwa_version),                 emit: aligner_version
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:

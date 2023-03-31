@@ -198,7 +198,6 @@ process samtools_sort {
     date > $log
     samtools --version >> $log
 
-    # NOTE: the -@ flag is used for thread count
     samtools sort -@ !{task.cpus} !{sam} | \
       samtools view -F 4 -o aligned/!{sample}.sorted.bam | tee -a $log
 

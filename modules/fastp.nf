@@ -8,14 +8,11 @@ process fastp {
   tuple val(sample), file(reads), val(paired_single)
 
   output:
-  tuple val(sample), file("fastp/${sample}_clean_PE{1,2}.fastq.gz"),                                 optional: true,  emit: paired_files
-  tuple val(sample), file("fastp/${sample}_cln.fastq.gz"),                                           optional: true,  emit: single_files
-  tuple val(sample), file("fastp/${sample}_{clean_PE1,clean_PE2,cln}.fastq.gz"), val(paired_single), optional: true,  emit: clean_reads
-  path "fastp/${sample}_fastp.html",                                                                                  emit: html
-  path "fastp/${sample}_fastp.json",                                                                                  emit: fastp_files
+  tuple val(sample), file("fastp/${sample}_{clean_PE1,clean_PE2,cln}.fastq.gz"), optional: true,  emit: clean_reads
+  path "fastp/${sample}_fastp.html",                                                              emit: html
+  path "fastp/${sample}_fastp.json",                                                              emit: fastp_files
   path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}"
-  tuple val(sample), env(passed_reads),                                                                               emit: fastp_results
-  tuple val(sample), env(cleaner_version),                                                                            emit: cleaner_version
+  tuple val("${params.cleaner}"), env(cleaner_version),                                           emit: cleaner_version
 
   shell:
   if ( paired_single == 'paired' ) {
@@ -37,9 +34,6 @@ process fastp {
         -h fastp/!{sample}_fastp.html \
         -j fastp/!{sample}_fastp.json \
         2>> $err | tee -a $log
-
-      passed_reads=$(grep "reads passed filter" $err | tail -n 1 | cut -f 2 -d ":" | sed 's/ //g' )
-      if [ -z "$passed_reads" ] ; then passed_reads="0" ; fi
     '''
   } else if ( paired_single == 'single' ) {
     '''
@@ -58,9 +52,6 @@ process fastp {
         -h fastp/!{sample}_fastp.html \
         -j fastp/!{sample}_fastp.json \
         2>> $err | tee -a $log
-
-      passed_reads=$(grep "reads passed filter" $err | tail -n 1 | cut -f 2 -d ":" | sed 's/ //g' )
-      if [ -z "$passed_reads" ] ; then passed_reads="0" ; fi
     '''
   }
 }

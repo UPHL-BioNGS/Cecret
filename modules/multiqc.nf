@@ -5,15 +5,7 @@ process multiqc_combine {
   params.multiqc
 
   input:
-  file(fastqc)
-  file(fastp)
-  file(seqyclean)
-  file(seqyclean2)
-  file(kraken2)
-  file(pangolin)
-  file(ivar)
-  file(samtools_stats)
-  file(samtools_flagstat)
+  file(input)
 
   output:
   path "multiqc/multiqc_report.html",  optional: true,                         emit: html

@@ -8,7 +8,7 @@ process minimap2 {
   output:
   tuple val(sample), file("aligned/${sample}.sam"),                       emit: sam
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
-  tuple val(sample), env(minimap2_version),                               emit: aligner_version
+  tuple val("${params.aligner}"), env(minimap2_version),                  emit: aligner_version
 
   shell:
   '''

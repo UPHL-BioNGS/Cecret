@@ -1,5 +1,5 @@
 process snpdists {
-  tag "createing snp matrix with snp-dists"
+  tag "creating snp matrix with snp-dists"
 
   when:
   params.snpdists
