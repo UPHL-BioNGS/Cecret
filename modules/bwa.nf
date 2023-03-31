@@ -1,7 +1,7 @@
 process bwa {
   tag        "${sample}"
   label      "maxcpus"
-  publishDir "${params.outdir}", mode: 'copy'
+  publishDir = [ path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log' ]
   container  'staphb/bwa:0.7.17'
   
   //#UPHLICA maxForks 10
