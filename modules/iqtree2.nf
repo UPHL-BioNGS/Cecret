@@ -18,7 +18,7 @@ process iqtree2 {
   file(msa)
 
   output:
-  path "iqtree2/iqtree2.{iqtree,treefile,mldist,log}", emit: tree
+  path "iqtree2/iqtree2.{iqtree,treefile*,mldist,log}", emit: tree
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
@@ -46,5 +46,7 @@ process iqtree2 {
       -pre iqtree2/iqtree2 \
       $outgroup \
       | tee -a $log
+
+    if [ -f "iqtree2/iqtree2.treefile" ] ; then cp iqtree2/iqtree2.treefile iqtree2/iqtree2.treefile.nwk ; fi
   '''
 }
