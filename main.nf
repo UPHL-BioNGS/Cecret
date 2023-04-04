@@ -180,6 +180,10 @@ params.multiqc_options                      = ''
 //# for optional contamination determination
 params.kraken2_db                           = false
 
+//# for using an included version of nextclade dataset
+params.download_nextclade_dataset           = true
+params.predownloaded_nextclade_dataset      = workflow.projectDir + '/data/sars.zip'
+
 //# organism specific
 params.nextclade                            = true
 params.pangolin                             = true
@@ -197,7 +201,6 @@ params.freyja_boot_options                  = '--nb 1000'
 params.freyja_aggregate_options             = ''
 params.freyja_plot_options                  = ''
 params.freyja_plot_filetype                 = 'png'
-
 
 //# Specifying some species-specific params
 if ( params.species == 'sarscov2' ) {
@@ -351,6 +354,20 @@ if ( params.kraken2_db ) {
 
 }
 
+if ( ! params.download_nextclade_dataset ) {
+  Channel
+    .fromPath(params.predownloaded_nextclade_dataset)
+    .ifEmpty{
+      println("Dataset file could not be found at ${params.predownloaded_nextclade_dataset}.")
+      println("Please set nextclade dataset file with 'params.predownloaded_nextclade_dataset'")
+      exit 1
+    }
+    .set { ch_nextclade_dataset }
+} else {
+  ch_nextclade_dataset = Channel.empty()
+}
+
+
 //# getting scripts
 ch_combine_results_script = Channel.fromPath("${workflow.projectDir}/bin/combine_results.py", type:'file')
 
@@ -370,9 +387,6 @@ workflow {
     ch_multifastas.view  { "MultiFasta file found : ${it}" }
     ch_reads.ifEmpty     { println("No fastq or fastq.gz files were found at ${params.reads} or ${params.single_reads}") }
 
-    ch_for_multiqc = Channel.empty()
-    ch_for_summary = Channel.empty()
-    ch_for_version = Channel.empty()
     ch_for_dataset = Channel.empty()
 
     if ( ! params.sra_accessions.isEmpty() ) { 
@@ -384,32 +398,35 @@ workflow {
 
     cecret(ch_reads, ch_reference_genome, ch_primer_bed)
 
-  //   qc(ch_reads,
-  //     cecret.out.clean_reads,
-  //     ch_kraken2_db,
-  //     cecret.out.sam,
-  //     cecret.out.trim_bam,
-  //     ch_reference_genome,
-  //     ch_gff_file,
-  //     ch_amplicon_bed,
-  //     ch_primer_bed)
+    qc(ch_reads,
+      cecret.out.clean_reads,
+      ch_kraken2_db,
+      cecret.out.sam,
+      cecret.out.trim_bam,
+      ch_reference_genome,
+      ch_gff_file,
+      ch_amplicon_bed,
+      ch_primer_bed)
+
+    ch_for_multiqc = cecret.out.for_multiqc.mix(qc.out.for_multiqc)
+    ch_for_summary = qc.out.for_summary
 
     if ( params.species == 'sarscov2' ) {
-      sarscov2(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), cecret.out.trim_bam, ch_reference_genome)
+      sarscov2(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), cecret.out.trim_bam, ch_reference_genome, ch_nextclade_dataset)
       
       ch_for_multiqc = ch_for_multiqc.mix(sarscov2.out.for_multiqc)
       ch_for_summary = ch_for_summary.mix(sarscov2.out.for_summary)
       ch_for_dataset = sarscov2.out.dataset
     
     } else if ( params.species == 'mpx') {
-      mpx(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus))
+      mpx(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), ch_nextclade_dataset)
       
       ch_for_multiqc = ch_for_multiqc.mix(mpx.out.for_multiqc)
       ch_for_summary = ch_for_summary.mix(mpx.out.for_summary)
       ch_for_dataset = mpx.out.dataset
     
     } else if ( params.species == 'other') {
-      other(fasta_prep.out.fastas.concat(ch_multifastas).mix(cecret.out.consensus))
+      other(fasta_prep.out.fastas.concat(ch_multifastas).mix(cecret.out.consensus), ch_nextclade_dataset)
       
       ch_for_multiqc = ch_for_multiqc.mix(other.out.for_multiqc)
       ch_for_summary = ch_for_summary.mix(other.out.for_summary)
@@ -431,7 +448,14 @@ workflow {
     }
 
     multiqc_combine(ch_for_multiqc.collect())
-  //   summary(ch_for_summary, ch_combine_results_script)
+    summary(
+      ch_for_summary
+        .groupTuple()
+        .view()
+        //.combine(cecret.out.for_version)
+        //.combine(multiqc_combine.out.multiqc_data)
+        //.combine(ch_combine_results_script))
+    )
 
   emit:
     bam       = cecret.out.trim_bam
