@@ -12,7 +12,6 @@ workflow cecret {
     ch_primer_bed
 
   main:
-    ch_for_summary = Channel.empty()
     ch_for_multiqc = Channel.empty()
     ch_for_version = Channel.empty()
 
@@ -40,7 +39,7 @@ workflow cecret {
 
     ch_clean_reads = fastp.out.clean_reads
     ch_for_version = ch_for_version.mix(fastp.out.cleaner_version)
-    ch_for_summary = ch_for_multiqc.mix(fastp.out.fastp_files) 
+    ch_for_multiqc = ch_for_multiqc.mix(fastp.out.fastp_files) 
   
   }
 
@@ -73,7 +72,7 @@ workflow cecret {
 
     ch_trim_bam    = ivar_trim.out.bam_bai
     ch_for_version = ch_for_version.mix(ivar_trim.out.trimmer_version)
-    ch_for_summary = ch_for_summary.mix(ivar_trim.out.ivar_trim_files)
+    ch_for_multiqc = ch_for_multiqc.mix(ivar_trim.out.ivar_trim_files)
 
   } else if ( params.trimmer == 'samtools' || params.trimmer == 'ampliconclip' ) {
     ampliconclip(ch_bam.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
@@ -96,7 +95,6 @@ workflow cecret {
     clean_reads      = ch_clean_reads
     sam              = ch_sam
 
-    for_multiqc      = ch_for_summary.map { it -> it[1] }.mix(ch_for_multiqc) 
+    for_multiqc      = ch_for_multiqc 
     for_version      = ch_for_version.unique()
-    for_summary      = ch_for_summary
 }
