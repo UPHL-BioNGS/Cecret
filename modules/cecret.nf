@@ -29,6 +29,35 @@ process fasta_prep {
   '''
 }
 
+process unzip {
+  tag        "${fasta}"
+  //# nothing to publish in publishDir
+  container  'quay.io/biocontainers/pandas:1.1.5'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
+  //#UPHLICA memory 1.GB
+  //#UPHLICA cpus 3
+  //#UPHLICA time '45m'
+
+  when:
+  params.nextclade || params.msa == 'nextalign'
+
+  input:
+  file(input)
+
+  output:
+  path "dataset", emit: dataset
+
+  shell:
+  '''
+    mkdir dataset
+    
+    unzip !{input} -d dataset
+  '''
+}
+
 process summary {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
@@ -42,7 +71,7 @@ process summary {
   //#UPHLICA time '45m'
 
   input:
-  tuple val(sample), file(files), file(summary_script)
+  tuple val(sample), file(files), val(versions), path(multiqc), file(summary_script)
 
   output:
   path "summary/${sample}.summary.csv", emit: summary_file
@@ -51,6 +80,8 @@ process summary {
   '''
     mkdir -p summary
 
-    python !{summary_script}    
+    exit 1
+
+    python !{summary_script}
   '''
 }

@@ -112,7 +112,7 @@ process ivar_trim {
   tuple val(sample), file("ivar_trim/${sample}.primertrim.sorted.bam"),                                                         emit: trimmed_bam
   tuple val(sample), file("ivar_trim/${sample}.primertrim.sorted.bam"), file("ivar_trim/${sample}.primertrim.sorted.bam.bai"),  emit: bam_bai
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
-  tuple val(sample), file("ivar_trim/${sample}_ivar.log"),                                                                      emit: ivar_trim_files
+  path "ivar_trim/${sample}_ivar.log",                                                                                          emit: ivar_trim_files
   tuple val("${params.trimmer}"), env(trimmer_version),                                                                         emit: trimmer_version
 
   shell:

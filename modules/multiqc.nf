@@ -17,8 +17,9 @@ process multiqc_combine {
   file(input)
 
   output:
-  path "multiqc/multiqc_report.html",  optional: true,                         emit: html
-  path "multiqc/multiqc_data/*",       optional: true,                         emit: files
+  path "multiqc/multiqc_report.html",  optional: true,                    emit: html
+  path "multiqc/multiqc_data/*",       optional: true,                    emit: files
+  path "multiqc/multiqc_data",         optional: true,                    emit: multiqc_data
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:

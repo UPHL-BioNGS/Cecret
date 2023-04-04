@@ -18,8 +18,8 @@ process freyja {
   tuple val(sample), file(bam), file(reference_genome)
 
   output:
-  path "freyja/${sample}_demix.tsv",                                      emit: freyja_demix
-  path "freyja/${sample}*",                                               emit: files
+  path "freyja/${sample}_demix.tsv", optional: true, emit: freyja_demix
+  path "freyja/${sample}*",                          emit: files
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:

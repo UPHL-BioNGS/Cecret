@@ -18,8 +18,8 @@ process vadr {
   file(fasta)
 
   output:
-  path "vadr/*",                                                                emit: vadr_files
-  path "vadr/vadr.vadr.sqa",                                                    emit: vadr_file
+  path "vadr/*",              emit: vadr_files
+  path "vadr/vadr.vadr.sqa",  emit: vadr_file
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
@@ -33,7 +33,8 @@ process vadr {
 
     for fasta in !{fasta}
     do
-      cat $fasta >> ultimate_fasta.fasta
+      lines=$(cat $fasta | fold -w 75 | wc -l | awk '{print $1}' )
+      if [ "$lines" -gt 2 ] ; then cat $fasta >> ultimate_fasta.fasta ; fi
     done
 
     fasta-trim-terminal-ambigs.pl !{params.vadr_trim_options} \

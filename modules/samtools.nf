@@ -51,7 +51,7 @@ process samtools_coverage {
   tuple val(sample), file(bam)
 
   output:
-  path "samtools_coverage/${sample}.cov.{txt,hist}",              emit: files
+  path "samtools_coverage/${sample}.cov.{txt,hist}", emit: files
   tuple val(sample), path("samtools_coverage/${sample}.cov.txt"), emit: samtools_coverage
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
@@ -123,7 +123,7 @@ process samtools_depth {
   params.samtools_depth
 
   output:
-  path "samtools_depth/${sample}.depth.txt", emit: file
+  tuple val(sample), file("samtools_depth/${sample}.depth.txt"), emit: file
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
@@ -194,7 +194,7 @@ process samtools_plot_ampliconstats {
   tuple val(sample), file(ampliconstats)
 
   output:
-  path "samtools_plot_ampliconstats/${sample}*",                          emit: files
+  path "samtools_plot_ampliconstats/${sample}*", emit: files
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
