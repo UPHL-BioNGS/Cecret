@@ -96,5 +96,5 @@ workflow cecret {
     sam              = ch_sam
 
     for_multiqc      = ch_for_multiqc 
-    for_version      = ch_for_version.unique()
+    for_version      = ch_for_version.unique().collect()
 }
