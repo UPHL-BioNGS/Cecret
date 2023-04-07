@@ -64,7 +64,7 @@ process samtools_coverage {
     samtools --version >> $log
 
     samtools coverage !{params.samtools_coverage_options} !{bam} -m -o samtools_coverage/!{sample}.cov.hist | tee -a $log
-    samtools coverage !{params.samtools_coverage_options} !{bam}    -o samtools_coverage/!{sample}.cov.txt  | tee -a $log
+    samtools coverage !{params.samtools_coverage_options} !{bam} | awk -v sample=!{sample} '{print sample "\\t" $0 }' > samtools_coverage/!{sample}.cov.txt  | tee -a $log
   '''
 }
 
