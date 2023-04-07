@@ -43,17 +43,23 @@ workflow qc {
     samtools_plot_ampliconstats(samtools_ampliconstats.out.samtools_ampliconstats_files)
     bedtools_multicov(ch_trim_bam.combine(ch_amplicon_bed))
 
+    samtools_coverage.out.samtools_coverage
+      .collectFile(name: "samtools_coverage_summary.tsv",
+        keepHeader: true,
+        storeDir: "${params.outdir}/samtools_coverage")
+      .set { samtools_coverage_file }
+
+
     //# All of these tools are for QC, so each needs to make it to the summary file if actually useful
     ch_for_summary = ch_for_summary
       .mix(ivar_variants.out.variant_tsv)
       .mix(bcftools_variants.out.bcftools_variants_file)
       .mix(samtools_stats.out.samtools_stats_files)
-      .mix(samtools_coverage.out.samtools_coverage)
       .mix(samtools_depth.out.file)
       .mix(samtools_ampliconstats.out.samtools_ampliconstats_files)
       .mix(bedtools_multicov.out.multicov)
 
   emit:
-    for_multiqc = ch_for_multiqc.mix(fastqc.out.fastqc_files).mix(samtools_intial_stats.out.samtools_stats_files).mix(samtools_flagstat.out.samtools_flagstat_files)
+    for_multiqc = ch_for_multiqc.mix(fastqc.out.fastqc_files).mix(samtools_intial_stats.out.samtools_stats_files).mix(samtools_flagstat.out.samtools_flagstat_files).mix(samtools_coverage_file)
     for_summary = ch_for_summary
 }
