@@ -32,7 +32,7 @@ workflow cecret {
 
     ch_clean_reads = seqyclean.out.clean_reads
     ch_for_version = ch_for_version.mix(seqyclean.out.cleaner_version)
-    ch_for_multiqc = ch_for_multiqc.mix(seqyclean_file1).mix(seqyclean_file2)
+    ch_for_multiqc = ch_for_multiqc.mix(seqyclean.out.seqyclean_files_collect_paired).mix(seqyclean.out.seqyclean_files_collect_single)
 
   } else if ( params.cleaner == 'fastp' ) {
     fastp(ch_reads)
@@ -40,7 +40,6 @@ workflow cecret {
     ch_clean_reads = fastp.out.clean_reads
     ch_for_version = ch_for_version.mix(fastp.out.cleaner_version)
     ch_for_multiqc = ch_for_multiqc.mix(fastp.out.fastp_files) 
-  
   }
 
   if ( params.aligner == 'bwa' ) {
