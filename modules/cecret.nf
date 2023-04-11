@@ -71,7 +71,7 @@ process summary {
   //#UPHLICA time '45m'
 
   input:
-  tuple file(files), val(versions), file(multisample), path(multiqc), file(summary_script)
+  tuple file(files), val(versions), file(multisample), path(multiqc), file(summary_script), file(fasta)
 
   output:
   path "summary/${sample}.summary.csv", emit: summary_file
@@ -84,6 +84,8 @@ process summary {
     echo "!{versions}" | tr "," "\n" | sed 's/\\[//g' | sed 's/\\]//g' | grep ":"    | cut -f 2- -d ":" | awk '{$1=$1 ; print $0}'    | tr "\\n" "," | sed 's/,$/\\n/g' >> versions.csv
 
     grep -h ^FREADS *_ampliconstats.txt > ampliconstats.summary
+
+    if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | grep -v "#-" | tr -s '[:blank:]' ',' > vadr.csv ; fi
 
     exit 1
 
