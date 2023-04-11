@@ -17,7 +17,7 @@ process samtools_stats {
   tuple val(sample), file(bam)
 
   output:
-  tuple val(sample), path("samtools_stats/${sample}.stats.txt"), emit: samtools_stats_files
+  path "samtools_stats/${sample}.stats.txt", emit: samtools_stats_files
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
@@ -52,7 +52,7 @@ process samtools_coverage {
 
   output:
   path "samtools_coverage/${sample}.cov.{txt,hist}", emit: files
-  tuple val(sample), path("samtools_coverage/${sample}.cov.txt"), emit: samtools_coverage
+  path "samtools_coverage/${sample}.cov.txt", emit: samtools_coverage
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
@@ -64,7 +64,7 @@ process samtools_coverage {
     samtools --version >> $log
 
     samtools coverage !{params.samtools_coverage_options} !{bam} -m -o samtools_coverage/!{sample}.cov.hist | tee -a $log
-    samtools coverage !{params.samtools_coverage_options} !{bam} | awk -v sample=!{sample} '{print sample "\\t" $0 }' > samtools_coverage/!{sample}.cov.txt  | tee -a $log
+    samtools coverage !{params.samtools_coverage_options} !{bam} | awk -v sample=!{sample} '{print sample "\\t" $0 }' | sed '0,/!{sample}/s//sample/' > samtools_coverage/!{sample}.cov.txt  | tee -a $log
   '''
 }
 
@@ -123,7 +123,7 @@ process samtools_depth {
   params.samtools_depth
 
   output:
-  tuple val(sample), file("samtools_depth/${sample}.depth.txt"), emit: file
+  path "samtools_depth/${sample}.depth.txt", emit: file
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:

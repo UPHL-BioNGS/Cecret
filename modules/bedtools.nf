@@ -17,7 +17,7 @@ process bedtools_multicov {
   tuple val(sample), file(bam), file(bai), file(amplicon_bed)
 
   output:
-  tuple val(sample), file("multicov/${sample}.multicov.txt"), emit: multicov
+  path "multicov/${sample}.multicov.txt", emit: multicov
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:

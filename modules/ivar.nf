@@ -56,8 +56,8 @@ process ivar_variants {
   tuple val(sample), file(bam), file(reference_genome), file(gff_file)
 
   output:
-  tuple val(sample), file("ivar_variants/${sample}.variants.tsv"),        emit: variant_tsv
-  tuple val(sample), file("ivar_variants/${sample}.ivar_variants.vcf"),   emit: ivar_variant_file
+  path "ivar_variants/${sample}.variants.tsv",      emit: variant_tsv
+  path "ivar_variants/${sample}.ivar_variants.vcf", emit: ivar_variant_file
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:

@@ -17,7 +17,7 @@ process bcftools_variants {
   tuple val(sample), file(bam), file(reference_genome)
 
   output:
-  tuple val(sample), file("bcftools_variants/${sample}.vcf"),             emit: bcftools_variants_file
+  path "bcftools_variants/${sample}.vcf", emit: bcftools_variants_file
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
