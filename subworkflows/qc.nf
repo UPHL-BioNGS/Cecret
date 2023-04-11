@@ -56,10 +56,11 @@ workflow qc {
       .mix(bcftools_variants.out.bcftools_variants_file)
       .mix(samtools_stats.out.samtools_stats_files)
       .mix(samtools_depth.out.file)
-      .mix(samtools_ampliconstats.out.samtools_ampliconstats_files)
+      .mix(samtools_ampliconstats.out.samtools_ampliconstats_files.map{it -> it[1]})
       .mix(bedtools_multicov.out.multicov)
+      .mix(samtools_coverage_file)
 
   emit:
-    for_multiqc = ch_for_multiqc.mix(fastqc.out.fastqc_files).mix(samtools_intial_stats.out.samtools_stats_files).mix(samtools_flagstat.out.samtools_flagstat_files).mix(samtools_coverage_file)
+    for_multiqc = ch_for_multiqc.mix(fastqc.out.fastqc_files).mix(samtools_intial_stats.out.samtools_stats_files).mix(samtools_flagstat.out.samtools_flagstat_files)
     for_summary = ch_for_summary
 }
