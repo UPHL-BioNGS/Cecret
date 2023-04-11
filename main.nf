@@ -450,15 +450,12 @@ workflow {
 
     multiqc_combine(ch_for_multiqc.collect())
     summary(
-      ch_for_summary
-        .groupTuple()
-        .map(it -> tuple(it[1]))
-        .collect()
-        .map(it -> tuple([it]))
+      ch_for_summary.collect().map(it -> tuple([it]))
         .combine(cecret.out.for_version.map{it -> tuple([it])})
         .combine(ch_multisample.collect().ifEmpty([]).map{it -> tuple([it])})
         .combine(multiqc_combine.out.multiqc_data.ifEmpty([]))
-        .combine(ch_combine_results_script))
+        .combine(ch_combine_results_script)
+        .combine(fasta_prep.out.fastas.mix(cecret.out.consensus).collect().map{it -> tuple([it])}))
 
   emit:
     bam       = cecret.out.trim_bam
