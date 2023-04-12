@@ -22,7 +22,7 @@ then
   nextflow run ~/sandbox/Cecret \
     -profile singularity \
     --sample_sheet /home/eriny/sandbox/test_files/cecret/sample_sheet.csv \
-    --outdir singularity_defaults_sample_sheet \
+    --outdir singularity_defaults_sample_sheet_included_nextclade \
     --download_nextclade_dataset false \
     -resume \
     -with-tower
