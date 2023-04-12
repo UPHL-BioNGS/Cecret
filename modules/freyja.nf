@@ -3,7 +3,7 @@ process freyja {
   label         "medcpus"
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
-  container     'staphb/freyja:1.3.12'
+  container     'staphb/freyja:1.4.2'
 
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
