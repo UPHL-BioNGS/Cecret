@@ -1,7 +1,7 @@
 process fastqc {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/fastqc:0.11.9'
+  container  'staphb/fastqc:0.12.1'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
