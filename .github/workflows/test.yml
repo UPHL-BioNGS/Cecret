@@ -36,6 +36,6 @@ jobs:
           
           nextflow run . -profile docker -c .github/workflows/github_actions.config --primer_set ncov_V3 --maxcpus 2 --medcpus 2 --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200 
 
-          ls
+          ls cecret*
             
           cat cecret*/cecret_results.txt
