@@ -184,7 +184,7 @@ if not multicov_df.empty :
     summary_df               = summary_df.drop('multicov_sample', axis=1)
     columns                  = columns + ['bedtools_num_failed_amplicons']
 
-if exists(ampliconstats_file) :
+if not ( os.stat(ampliconstats_file).st_size==0 ) : 
     print("Getting results from samtools ampliconstats file " + ampliconstats_file)
     amp_df = pd.read_table(ampliconstats_file, header=None)
     amp_df = amp_df.rename(columns = {1:'sample'})
