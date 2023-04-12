@@ -37,6 +37,29 @@ jobs:
               issue_text="$issue_text<br>- $base from $workflow_version to $latest_version  "
             fi
           done
+
+          latest_nextclade_version=$(docker run nextstrain/nextclade:latest nextclade --version | awk '{print $2}')
+          worfklow_nextclade_version=$(grep container modules/nextclade.nf | cut -f 2 -d ":" | cut -f 1 -d "'" | head -n 1)
+
+          if [[ "$latest_nextclade_version" == "$worfklow_nextclade_version" ]]
+          then
+            echo "No version change for nextstrain/nextclade:$worfklow_nextclade_version" | tee -a versions.txt
+          else
+            echo "New version for nextstrain/nextclade! Upgrade to $latest_nextclade_version from $worfklow_nextclade_version." | tee -a versions.txt
+            issue_text="$issue_text<br>- nextstrain/nextclade from $worfklow_nextclade_version to $latest_nextclade_version  "
+          fi
+
+          latest_nextalign_version=$(docker run nextstrain/nextalign:latest nextalign --version | awk '{print $2}')
+          worfklow_nextalign_version=$(grep container modules/nextalign.nf | cut -f 2 -d ":" | cut -f 1 -d "'" | head -n 1)
+
+          if [[ "$latest_nextalign_version" == "$worfklow_nextalign_version" ]]
+          then
+            echo "No version change for nextstrain/nextalign:$worfklow_nextalign_version" | tee -a versions.txt
+          else
+            echo "New version for nextstrain/nextalign! Upgrade to $latest_nextalign_version from $worfklow_nextalign_version." | tee -a versions.txt
+            issue_text="$issue_text<br>- nextstrain/nextalign from $worfklow_nextalign_version to $latest_nextalign_version  "
+          fi
+
           echo $issue_text
           cat versions.txt
           echo 'ISSUE_TEXT='$issue_text >> $GITHUB_ENV
