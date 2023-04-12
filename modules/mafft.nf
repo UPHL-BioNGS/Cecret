@@ -3,7 +3,7 @@ process mafft {
   label         "maxcpus"
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
-  container     'staphb/mafft:7.475'
+  container     'staphb/mafft:7.505'
 
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
