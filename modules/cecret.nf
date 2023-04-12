@@ -74,37 +74,17 @@ process summary {
   tuple file(files), val(versions), file(multisample), path(multiqc), file(summary_script), file(fasta)
 
   output:
-  path "summary/${sample}.summary.csv", emit: summary_file
+  path "cecret_results.{csv,txt}", emit: summary_file
 
   shell:
   '''
-    mkdir -p summary
+    echo "!{versions}" | cut -f 1,3,5,7,9,11  -d ',' | sed 's/\\[//g' | sed 's/\\]//g' | sed 's/, /,/g' >  versions.csv
+    echo "!{versions}" | cut -f 2,4,6,8,10,12 -d ',' | sed 's/\\[//g' | sed 's/\\]//g' | sed 's/, /,/g' | awk '{($1=$1); print $0}' >> versions.csv
 
-    echo "!{versions}" | tr "," "\n" | sed 's/\\[//g' | sed 's/\\]//g' | grep -v ":" | cut -f 1 -d ":"  | awk '{print $1 " version"}' | tr "\\n" "," | sed 's/,$/\\n/g' >  versions.csv
-    echo "!{versions}" | tr "," "\n" | sed 's/\\[//g' | sed 's/\\]//g' | grep ":"    | cut -f 2- -d ":" | awk '{$1=$1 ; print $0}'    | tr "\\n" "," | sed 's/,$/\\n/g' >> versions.csv
-
-    grep -h ^FREADS *_ampliconstats.txt > ampliconstats.summary
+    grep -h ^FREADS *_ampliconstats.txt > ampliconstats.summary || echo "No ampliconstats file"
 
     if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | grep -v "#-" | tr -s '[:blank:]' ',' > vadr.csv ; fi
-
-    exit 1
 
     python !{summary_script}
   '''
 }
-
-
-    // #echo "sample files:"
-    // #echo "!{files}"
-
-    // #echo "the versions:"
-    // #echo "!{versions}"
-
-    // #echo "multisample files not in multiqc"
-    // #echo "!{multisample}"
-
-    // #echo "multiqc files"
-    // #ls "!{multiqc}"
-
-    // #echo "the script"
-    // #echo "!{summary_script}"
