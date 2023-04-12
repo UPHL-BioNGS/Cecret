@@ -59,7 +59,7 @@ process unzip {
 }
 
 process summary {
-  tag        "${sample}"
+  tag        "Creating summary files"
   publishDir "${params.outdir}", mode: 'copy'
   container  'quay.io/biocontainers/pandas:1.1.5'
 
