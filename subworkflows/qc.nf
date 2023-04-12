@@ -30,6 +30,7 @@ workflow qc {
     if ( ch_kraken2_db ) {
       kraken2(ch_clean_reads.combine(ch_kraken2_db))
       ch_for_multiqc = ch_for_multiqc.mix(kraken2.out.kraken2_files)
+      ch_for_summary = ch_for_summary.mix(kraken2.out.kraken2_files)
     } 
 
     samtools_intial_stats( ch_sam)
