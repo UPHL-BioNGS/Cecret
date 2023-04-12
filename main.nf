@@ -208,21 +208,18 @@ if ( params.species == 'sarscov2' ) {
   params.vadr_options                       = '--split --glsearch -s -r --nomisc --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn'
   params.vadr_reference                     = 'sarscov2'
   params.vadr_trim_options                  = '--minlen 50 --maxlen 30000'
-  params.kraken2_organism                   = 'Severe acute respiratory syndrome-related coronavirus'
   params.iqtree2_outgroup                   = 'MN908947'
 } else if ( params.species == 'mpx' ) {
   params.nextclade_dataset                  = 'hMPXV'
   params.vadr_options                       = '--split --glsearch -s -r --nomisc --r_lowsimok --r_lowsimxd 100 --r_lowsimxl 2000 --alt_pass discontn,dupregin'
   params.vadr_reference                     = 'mpxv'
   params.vadr_trim_options                  = '--minlen 50 --maxlen 210000'
-  params.kraken2_organism                   = 'Monkeypox virus'
   params.iqtree2_outgroup                   = 'NC_063383'
 } else {
   params.nextclade_dataset                  = ''
   params.vadr_options                       = ''
   params.vadr_reference                     = ''
   params.vadr_trim_options                  = ''
-  params.kraken2_organism                   = '.'
 }
 
 //# Adding in subworkflows
