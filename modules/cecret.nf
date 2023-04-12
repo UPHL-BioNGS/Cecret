@@ -30,7 +30,7 @@ process fasta_prep {
 }
 
 process unzip {
-  tag        "${fasta}"
+  tag        "unzipping nextclade dataset"
   //# nothing to publish in publishDir
   container  'quay.io/biocontainers/pandas:1.1.5'
 
