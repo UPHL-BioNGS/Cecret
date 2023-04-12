@@ -2,7 +2,7 @@ process vadr {
   tag        "QC metrics"
   label      "medcpus"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/vadr:1.5'
+  container  'staphb/vadr:1.5.1'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
