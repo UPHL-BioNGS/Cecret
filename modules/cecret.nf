@@ -85,6 +85,6 @@ process summary {
 
     if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | grep -v "#-" | tr -s '[:blank:]' ',' > vadr.csv ; fi
 
-    python !{summary_script}
+    python !{summary_script} !{params.minimum_depth}
   '''
 }
