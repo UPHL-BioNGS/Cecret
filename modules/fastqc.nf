@@ -17,8 +17,8 @@ process fastqc {
   tuple val(sample), file(fastq), val(type)
 
   output:
-  path "fastqc/*.{html,zip}",                                             emit: files
-  path "fastqc/*_fastqc.zip",                                             emit: fastqc_files
+  path "fastqc/*.html",       emit: files
+  path "fastqc/*_fastqc.zip", emit: fastqc_files
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
