@@ -3,6 +3,7 @@
 import pandas as pd
 import glob
 import os
+import sys
 from os.path import exists
 
 # Entire sample set already in one file
@@ -19,7 +20,7 @@ versions_file           = 'versions.csv'
 
 columns = []
 summary_df = pd.DataFrame(columns=['sample_id'])
-min_depth = 20
+min_depth = sys.argv[1]
 
 if exists(fastqc_file) :
     print("Getting results from fastqc file " + fastqc_file)
@@ -66,23 +67,26 @@ if not fasta_df.empty :
     columns                 = ['fasta_line'] + columns + ['num_N', 'num_total']
 
 if exists(fastp_file) :
-    print("Getting results for fastp from " + fastp_file )
-    
-    fastp_df = pd.read_table(fastp_file, dtype = str, sep="\t")
-    fastp_df['fastp_sample_match']  = fastp_df['Sample'].str.replace('Consensus','').str.split('_').str[0]
-    fastp_df['fastp_passed_reads']  = fastp_df['fastp_mqc-generalstats-fastp-filtering_result_passed_filter_reads']
-    fastp_df['fastp_pct_surviving'] = fastp_df['fastp_mqc-generalstats-fastp-pct_surviving']
+    with open(fastp_file) as file:
+        contents = file.read()
+        if "fastp_mqc" in contents :
+            print("Getting results for fastp from " + fastp_file )
+            
+            fastp_df = pd.read_table(fastp_file, dtype = str, sep="\t")
+            fastp_df['fastp_sample_match']  = fastp_df['Sample'].str.replace('Consensus','').str.split('_').str[0]
+            fastp_df['fastp_passed_reads']  = fastp_df['fastp_mqc-generalstats-fastp-filtering_result_passed_filter_reads']
+            fastp_df['fastp_pct_surviving'] = fastp_df['fastp_mqc-generalstats-fastp-pct_surviving']
 
-    fastp_tmp_df = fastp_df[['fastp_sample_match', 'fastp_passed_reads', 'fastp_pct_surviving']]
-    fastp_tmp1_df = fastp_tmp_df[~fastp_tmp_df['fastp_passed_reads'].isna()]
+            fastp_tmp_df = fastp_df[['fastp_sample_match', 'fastp_passed_reads', 'fastp_pct_surviving']]
+            fastp_tmp1_df = fastp_tmp_df[~fastp_tmp_df['fastp_passed_reads'].isna()]
 
-    fastp_columns = list(fastp_tmp1_df.columns)
-    fastp_columns.remove('fastp_sample_match')
+            fastp_columns = list(fastp_tmp1_df.columns)
+            fastp_columns.remove('fastp_sample_match')
 
-    summary_df = pd.merge(summary_df, fastp_tmp1_df, left_on = 'sample_id', right_on = 'fastp_sample_match', how = 'outer')
-    summary_df['sample_id'].fillna(summary_df['fastp_sample_match'], inplace=True)
-    summary_df.drop('fastp_sample_match', axis=1, inplace=True)
-    columns = columns + fastp_columns
+            summary_df = pd.merge(summary_df, fastp_tmp1_df, left_on = 'sample_id', right_on = 'fastp_sample_match', how = 'outer')
+            summary_df['sample_id'].fillna(summary_df['fastp_sample_match'], inplace=True)
+            summary_df.drop('fastp_sample_match', axis=1, inplace=True)
+            columns = columns + fastp_columns
 
 if exists(seqyclean_file) :
     print("Getting results from seqyclean file " + seqyclean_file)
