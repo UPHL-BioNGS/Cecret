@@ -52,6 +52,12 @@
             "hidden": true,
             "description" : "Specifies if a config file is copied for the end user. Ends script."
         },
+        "download_nextclade_dataset": {
+            "type": "boolean",
+            "hidden": false,
+            "description" : "Specifies if nextclade should download its dataset. Set to false to use included dataset.",
+            "default" : true
+        },
         "fastas": { 
             "type": "string",
             "description": "input channel for fastas"
@@ -128,7 +134,7 @@
             "hidden": true,
             "description": "Options for process"
         },
-        "gff_file": { 
+        "gff": { 
             "type": "string",
             "hidden": true,
             "description": "File used in ivar variants. Must correspond with reference genome."
@@ -186,10 +192,6 @@
             "type": "string",
             "hidden": true,
             "description": "Options for process"
-        },
-        "kraken2_organism": { 
-            "type": "string",
-            "description": "organism of interest"
         },
         "mafft_options": { 
             "type": "string",
@@ -291,6 +293,11 @@
             "type": "string",
             "hidden": true,
             "description": "Options for process"
+        },
+        "predownloaded_nextclade_dataset": {
+            "type": "string",
+            "hidden": true,
+            "description": "Specifies a zipped nextclade dataset to use instead of downloading during runtime."
         },
         "primer_bed": { 
             "type": "string",
