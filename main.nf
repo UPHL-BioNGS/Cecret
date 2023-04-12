@@ -370,7 +370,6 @@ ch_combine_results_script = Channel.fromPath("${workflow.projectDir}/bin/combine
 
 // This is where the results will be
 println('The files and directory for results is ' + params.outdir)
-println("A table summarizing results will be created: ${params.outdir}/cecret_results.csv\n")
 
 ch_paired_reads
   .mix(ch_single_reads)
@@ -464,6 +463,7 @@ workflow {
 
 workflow.onComplete {
   println("Pipeline completed at: $workflow.complete")
-  println("A summary of results can be found in a comma-delimited file: ${params.outdir}/summary/combined_summary.csv")
+  println("A summary of results can be found in a comma-delimited file: ${params.outdir}/cecret_results.csv")
+  println("A summary of results can be found in a tab-delimited file: ${params.outdir}/cecret_results.txt")
   println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
 }
