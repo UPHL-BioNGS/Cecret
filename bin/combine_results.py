@@ -20,7 +20,7 @@ versions_file           = 'versions.csv'
 
 columns = []
 summary_df = pd.DataFrame(columns=['sample_id'])
-min_depth = sys.argv[1]
+min_depth = int(sys.argv[1])
 
 if exists(fastqc_file) :
     print("Getting results from fastqc file " + fastqc_file)
