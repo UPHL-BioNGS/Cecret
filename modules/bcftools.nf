@@ -2,7 +2,7 @@ process bcftools_variants {
   tag           "${sample}"
   publishDir    "${params.outdir}", mode: 'copy'
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  container     'staphb/bcftools:1.16'
+  container     'staphb/bcftools:1.17'
 
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
