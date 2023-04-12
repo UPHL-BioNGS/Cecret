@@ -65,6 +65,85 @@ if not fasta_df.empty :
     summary_df              = summary_df.drop('fasta_sample', axis=1)
     columns                 = ['fasta_line'] + columns + ['num_N', 'num_total']
 
+if exists(fastp_file) :
+    print("Getting results for fastp from " + fastp_file )
+    
+    fastp_df = pd.read_table(fastp_file, dtype = str, sep="\t")
+    fastp_df['fastp_sample_match']  = fastp_df['Sample'].str.replace('Consensus','').str.split('_').str[0]
+    fastp_df['fastp_passed_reads']  = fastp_df['fastp_mqc-generalstats-fastp-filtering_result_passed_filter_reads']
+    fastp_df['fastp_pct_surviving'] = fastp_df['fastp_mqc-generalstats-fastp-pct_surviving']
+
+    fastp_tmp_df = fastp_df[['fastp_sample_match', 'fastp_passed_reads', 'fastp_pct_surviving']]
+    fastp_tmp1_df = fastp_tmp_df[~fastp_tmp_df['fastp_passed_reads'].isna()]
+
+    fastp_columns = list(fastp_tmp1_df.columns)
+    fastp_columns.remove('fastp_sample_match')
+
+    summary_df = pd.merge(summary_df, fastp_tmp1_df, left_on = 'sample_id', right_on = 'fastp_sample_match', how = 'outer')
+    summary_df['sample_id'].fillna(summary_df['fastp_sample_match'], inplace=True)
+    summary_df.drop('fastp_sample_match', axis=1, inplace=True)
+    columns = columns + fastp_columns
+
+if exists(seqyclean_file) :
+    print("Getting results from seqyclean file " + seqyclean_file)
+
+    use_cols = ['Sample', 'Perc_Kept']
+
+    first = pd.read_table(seqyclean_file, sep = '\t' , dtype = str, nrows=1)
+    if 'SEReadsKept' in first.columns:
+        use_cols.append('SEReadsKept')
+    if 'PairsKept' in first.columns:
+        use_cols.append('PairsKept')
+
+    seqyclean_df = pd.read_table(seqyclean_file, dtype = str, sep="\t", usecols = use_cols)
+    seqyclean_df = seqyclean_df.add_prefix('seqyclean_')
+    seqyclean_df['seqyclean_name'] = seqyclean_df['seqyclean_Sample'].str.replace("seqyclean/", "").str.replace('_clean', '').str.replace("_cln", "")
+    seqyclean_columns = list(seqyclean_df.columns)
+    seqyclean_columns.remove('seqyclean_Sample')
+    seqyclean_columns.remove('seqyclean_name')
+
+    summary_df = pd.merge(summary_df, seqyclean_df, left_on = 'sample_id', right_on = 'seqyclean_name', how = 'outer')
+    summary_df['sample_id'].fillna(summary_df['seqyclean_name'], inplace=True)
+    summary_df.drop('seqyclean_name', axis=1, inplace=True)
+    columns = columns + seqyclean_columns
+
+kraken2_df = pd.DataFrame(columns=['kraken2_sample', '%_human_reads', 'top_organism', 'percent_reads_top_organism'])
+kraken2_files = glob.glob("*_kraken2_report.txt")
+for file in kraken2_files :
+    print("Getting species information from " + file)
+    if not ( os.stat(file).st_size==0 ) : 
+        sample = str(file).replace('_kraken2_report.txt', '')
+        percent_human_reads = 0
+        top_organism = 'none'
+        percent_reads_top_organism = 0
+        with open(file) as report : 
+            kraken2_sample_df = pd.DataFrame(columns=['percent', 'reads', 'species'])
+            for line in report :
+                if ("S" == line.split()[3]):
+                    per=line.split()[0].strip()
+                    reads=int(line.split()[1].strip())
+                    species=' '.join(line.split()[5:]).strip()
+                    tmp_kraken2_df    = pd.DataFrame({'percent': [per], 'reads': [reads], 'species': [species]})
+                    kraken2_sample_df        = pd.concat([kraken2_sample_df, tmp_kraken2_df], axis=0 )
+        kraken2_sample_df = kraken2_sample_df.sort_values(by=['reads'], ascending=False)
+        kraken2_human_df   = kraken2_sample_df[kraken2_sample_df['species'].isin(['Homo sapiens','Human'])]
+        if not kraken2_human_df.empty :
+            percent_human_reads = kraken2_human_df['percent'].iloc[0]
+        
+        kraken2_species_df   = kraken2_sample_df[~kraken2_sample_df['species'].isin(['Homo sapiens','Human'])]
+        if not kraken2_species_df.empty :
+            top_organism = kraken2_species_df['species'].iloc[0]
+            percent_reads_top_organism = kraken2_species_df['percent'].iloc[0]
+        
+        kraken2_tmp_df = pd.DataFrame({'kraken2_sample' : [sample], '%_human_reads' : [percent_human_reads], 'top_organism' : [top_organism], 'percent_reads_top_organism' : [percent_reads_top_organism]})
+        kraken2_df = pd.concat([kraken2_df, kraken2_tmp_df], axis=0 ) 
+
+if not kraken2_df.empty :
+    summary_df              = pd.merge(summary_df, kraken2_df, left_on = 'sample_id', right_on = 'kraken2_sample', how = 'outer')
+    summary_df['sample_id'] = summary_df['sample_id'].fillna(summary_df['kraken2_sample'])
+    summary_df              = summary_df.drop('kraken2_sample', axis=1)
+    columns                 = columns + ['top_organism', 'percent_reads_top_organism', '%_human_reads' ]
+
 depth_df = pd.DataFrame(columns=['samtools_sample', "num_pos_" + str(min_depth) + "X"])
 depth_files = glob.glob("*.depth.txt")
 for file in depth_files :
@@ -100,6 +179,19 @@ if not multicov_df.empty :
     summary_df['sample_id']  = summary_df['sample_id'].fillna(summary_df['multicov_sample'])
     summary_df               = summary_df.drop('multicov_sample', axis=1)
     columns                  = columns + ['bedtools_num_failed_amplicons']
+
+if exists(ampliconstats_file) :
+    print("Getting results from samtools ampliconstats file " + ampliconstats_file)
+    amp_df = pd.read_table(ampliconstats_file, header=None)
+    amp_df = amp_df.rename(columns = {1:'sample'})
+    amp_df['samtools_num_failed_amplicons'] = amp_df.iloc[ : , 2: ].lt(20).sum( axis=1 )
+    amp_df['sample_name'] = amp_df['sample'].str.replace('.primertrim.sorted', '', regex = False)
+    amp_tmp_df = amp_df[['sample_name', 'samtools_num_failed_amplicons']]
+    
+    summary_df = pd.merge(summary_df, amp_tmp_df, left_on = 'sample_id', right_on = 'sample_name', how = 'outer' )
+    summary_df['sample_id'].fillna(summary_df['sample_name'], inplace=True)
+    summary_df.drop('sample_name', axis=1, inplace=True)
+    columns = columns + ['samtools_num_failed_amplicons']
 
 stats_df = pd.DataFrame(columns=['samtools_sample', 'insert_size_after_trimming'])
 stats_files = glob.glob("*.stats.txt")
@@ -180,19 +272,6 @@ if exists(samtools_coverage_file) :
     summary_df              = summary_df.drop('sample', axis=1)
     columns                 = columns + ['samtools_meandepth_after_trimming', 'samtools_per_1X_coverage_after_trimming']
 
-if exists(ampliconstats_file) :
-    print("Getting results from samtools ampliconstats file " + ampliconstats_file)
-    amp_df = pd.read_table(ampliconstats_file, header=None)
-    amp_df = amp_df.rename(columns = {1:'sample'})
-    amp_df['samtools_num_failed_amplicons'] = amp_df.iloc[ : , 2: ].lt(20).sum( axis=1 )
-    amp_df['sample_name'] = amp_df['sample'].str.replace('.primertrim.sorted', '', regex = False)
-    amp_tmp_df = amp_df[['sample_name', 'samtools_num_failed_amplicons']]
-    
-    summary_df = pd.merge(summary_df, amp_tmp_df, left_on = 'sample_id', right_on = 'sample_name', how = 'outer' )
-    summary_df['sample_id'].fillna(summary_df['sample_name'], inplace=True)
-    summary_df.drop('sample_name', axis=1, inplace=True)
-    columns = columns + ['samtools_num_failed_amplicons']
-
 if exists(vadr_file) :
     print("Getting results from vadr file " + vadr_file)
     vadr_df = pd.read_csv(vadr_file, dtype = str, usecols = ['name', 'p/f', 'model', 'alerts'], index_col= False)
@@ -260,48 +339,6 @@ if exists(freyja_file) :
     summary_df.drop('freyja_Unnamed: 0', axis=1, inplace=True)
     columns = columns + freyja_columns
 
-if exists(fastp_file) :
-    print("Getting results for fastp from " + fastp_file )
-    
-    fastp_df = pd.read_table(fastp_file, dtype = str, sep="\t")
-    fastp_df['fastp_sample_match']  = fastp_df['Sample'].str.replace('Consensus','').str.split('_').str[0]
-    fastp_df['fastp_passed_reads']  = fastp_df['fastp_mqc-generalstats-fastp-filtering_result_passed_filter_reads']
-    fastp_df['fastp_pct_surviving'] = fastp_df['fastp_mqc-generalstats-fastp-pct_surviving']
-
-    fastp_tmp_df = fastp_df[['fastp_sample_match', 'fastp_passed_reads', 'fastp_pct_surviving']]
-    fastp_tmp1_df = fastp_tmp_df[~fastp_tmp_df['fastp_passed_reads'].isna()]
-
-    fastp_columns = list(fastp_tmp1_df.columns)
-    fastp_columns.remove('fastp_sample_match')
-
-    summary_df = pd.merge(summary_df, fastp_tmp1_df, left_on = 'sample_id', right_on = 'fastp_sample_match', how = 'outer')
-    summary_df['sample_id'].fillna(summary_df['fastp_sample_match'], inplace=True)
-    summary_df.drop('fastp_sample_match', axis=1, inplace=True)
-    columns = columns + fastp_columns
-
-if exists(seqyclean_file) :
-    print("Getting results from seqyclean file " + seqyclean_file)
-
-    use_cols = ['Sample', 'Perc_Kept']
-
-    first = pd.read_table(seqyclean_file, sep = '\t' , dtype = str, nrows=1)
-    if 'SEReadsKept' in first.columns:
-        use_cols.append('SEReadsKept')
-    if 'PairsKept' in first.columns:
-        use_cols.append('PairsKept')
-
-    seqyclean_df = pd.read_table(seqyclean_file, dtype = str, sep="\t", usecols = use_cols)
-    seqyclean_df = seqyclean_df.add_prefix('seqyclean_')
-    seqyclean_df['seqyclean_name'] = seqyclean_df['seqyclean_Sample'].str.replace("seqyclean/", "").str.replace('_clean', '').str.replace("_cln", "")
-    seqyclean_columns = list(seqyclean_df.columns)
-    seqyclean_columns.remove('seqyclean_Sample')
-    seqyclean_columns.remove('seqyclean_name')
-
-    summary_df = pd.merge(summary_df, seqyclean_df, left_on = 'sample_id', right_on = 'seqyclean_name', how = 'outer')
-    summary_df['sample_id'].fillna(summary_df['seqyclean_name'], inplace=True)
-    summary_df.drop('seqyclean_name', axis=1, inplace=True)
-    columns = columns + seqyclean_columns
-
 if exists(versions_file) :
     print("Adding versions to summary file from " + versions_file)
     versions_df = pd.read_csv(versions_file, dtype = str)
@@ -313,9 +350,9 @@ if exists(versions_file) :
     columns = columns + version_columns
 
 summary_df['sample'] = summary_df['sample_id'].str.split("_").str[0]
-summary_df.replace([" ", ",", "\t", "\n"], [" ", " ", " ", " "], regex=True, inplace=True)
-summary_df.sort_values(by=['sample_id'], ascending=True)
-summary_df.replace([" ", ",", "\t", "\n"], [" ", " ", " ", " "], regex=True, inplace=True)
-summary_df.drop_duplicates(keep='first', inplace=True)
-#summary_df.to_csv('cecret_results.csv', columns = ['sample_id','sample'] + columns, index=False)
-print(summary_df.to_csv(columns = ['sample_id','sample'] + columns, index=False))
+summary_df = summary_df.replace([" ", ",", "\t", "\n"], [" ", " ", " ", " "], regex=True)
+summary_df = summary_df.sort_values(by=['sample_id'], ascending=True)
+summary_df = summary_df.replace([" ", ",", "\t", "\n"], [" ", " ", " ", " "], regex=True)
+summary_df = summary_df.drop_duplicates(keep='first')
+summary_df.to_csv('cecret_results.csv', columns = ['sample_id','sample'] + columns, index=False)
+summary_df.to_csv('cecret_results.txt', columns = ['sample_id','sample'] + columns, index=False, sep = "\t")
