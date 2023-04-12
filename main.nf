@@ -384,7 +384,7 @@ workflow {
     ch_reads.ifEmpty     { println("No fastq or fastq.gz files were found at ${params.reads} or ${params.single_reads}") }
 
     ch_for_dataset = Channel.empty()
-    ch_multisample = Channel.empty()
+    ch_for_version = Channel.from("Cecret version", workflow.manifest.version).collect()
 
     if ( ! params.sra_accessions.isEmpty() ) { 
       test(ch_sra_accessions)
@@ -413,21 +413,21 @@ workflow {
       
       ch_for_multiqc = ch_for_multiqc.mix(sarscov2.out.for_multiqc)
       ch_for_dataset = sarscov2.out.dataset
-      ch_multisample = ch_multisample.mix(sarscov2.out.for_summary)
+      ch_for_summary = ch_for_summary.mix(sarscov2.out.for_summary)
     
     } else if ( params.species == 'mpx') {
       mpx(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), ch_nextclade_dataset)
       
       ch_for_multiqc = ch_for_multiqc.mix(mpx.out.for_multiqc)
       ch_for_dataset = mpx.out.dataset
-      ch_multisample = ch_multisample.mix(mpx.out.for_summary)
+      ch_for_summary = ch_for_summary.mix(mpx.out.for_summary)
 
     } else if ( params.species == 'other') {
       other(fasta_prep.out.fastas.concat(ch_multifastas).mix(cecret.out.consensus), ch_nextclade_dataset)
       
       ch_for_multiqc = ch_for_multiqc.mix(other.out.for_multiqc)
       ch_for_dataset = other.out.dataset
-      ch_multisample = ch_multisample.mix(other.out.for_summary)
+      ch_for_summary = ch_for_summary.mix(other.out.for_summary)
 
     } 
 
@@ -445,10 +445,10 @@ workflow {
     }
 
     multiqc_combine(ch_for_multiqc.collect())
+
     summary(
-      ch_for_summary.collect().map(it -> tuple([it]))
-        .combine(cecret.out.for_version.map{it -> tuple([it])})
-        .combine(ch_multisample.collect().ifEmpty([]).map{it -> tuple([it])})
+      ch_for_summary.collect().map{it -> tuple([it])}.ifEmpty([])
+        .combine(ch_for_version.mix(cecret.out.for_version).collect().map{it -> tuple([it])})
         .combine(multiqc_combine.out.multiqc_data.ifEmpty([]))
         .combine(ch_combine_results_script)
         .combine(fasta_prep.out.fastas.mix(cecret.out.consensus).collect().map{it -> tuple([it])}))
