@@ -1,11 +1,35 @@
 #!/usr/bin/env nextflow
 
-println('Currently using the Cecret workflow for use with amplicon Illumina library prep on MiSeq with a corresponding reference genome.\n')
-println('Author: Erin Young')
-println('email: eriny@utah.gov')
-println("Version: ${workflow.manifest.version}")
-println('')
+//# For aesthetics - and, yes, we are aware that there are better ways to write this than a bunch of 'println' statements
+println("") 
+println("  ____ _____ ____ ____  _____ _____")
+println(" / ___| ____/ ___|  _ \\| ____|_   _|")
+println("| |   |  _|| |   | |_) |  _|   | |")
+println("| |___| |__| |___|  _ <| |___  | |")
+println(" \\____|_____\\____|_| \\_\\_____| |_|")
 
+println("Version: ${workflow.manifest.version}")
+println("")
+println("Currently using the Cecret workflow for use with amplicon Illumina library prep on MiSeq with a corresponding reference genome.\n")
+println("Author: Erin Young")
+println("email: eriny@utah.gov")
+println("")
+
+println("Cecret is named after a real lake!")
+println("Visit https://www.alltrails.com/trail/us/utah/cecret-lake-trail to learn more.")
+println("Not everyone can visit in person, so here is some ASCII art of nucleotides in lake forming a consensus sequence.")
+println("                    _________ ______")
+println("               _ /      G    A   T   \\_____")
+println("          __/    C      C A    G      T  C \\")
+println("        /    G     A   T   T  A   G  G    T  \\_")
+println("        | G       G  C   A            G   T     \\")  
+println("        \\      A     C     G   A   T    A  G  T  \\__")
+println("         \\_           C       G    ____ _____ __ C  \\________")
+println("            \\__T______ ___________/                \\ C T G A G G T C G A T A") 
+println("")
+println("")
+
+//# copying the confit template and ending the workflow
 params.config_file                          = false
 if (params.config_file) {
   def src = new File("${workflow.projectDir}/configs/cecret_config_template.config")
@@ -15,11 +39,13 @@ if (params.config_file) {
   exit 0
 }
 
+//# Starting the workflow --------------------------------------------------------------
+
 nextflow.enable.dsl = 2
 
-//# params
+//# params and their default values
 
-//# input params
+//# params for inputs including fasta and fastq files
 params.sample_sheet                         = ""
 params.reads                                = workflow.launchDir + '/reads'
 params.single_reads                         = workflow.launchDir + '/single_reads'
@@ -27,6 +53,9 @@ params.fastas                               = workflow.launchDir + '/fastas'
 params.multifastas                          = workflow.launchDir + '/multifastas'
 params.sra_accessions                       = []
 
+//# input checks ---------------------------------------------------------------------
+
+//# Ensuring that reads and single_reads are not set to the same directory
 if ( params.reads == params.single_reads ) {
   println("'params.reads' and 'params.single_reads' cannot point to the same directory!")
   println("'params.reads' is set to " + params.reads)
@@ -44,6 +73,7 @@ if ( params.fastas == params.multifastas ) {
 //# outdir params
 params.outdir                               = workflow.launchDir + '/cecret'
 
+//# roughly grouping cpu usage
 params.maxcpus                              = 8
 params.medcpus                              = 4
 println("The maximum number of CPUS used in this workflow is ${params.maxcpus}")
@@ -51,34 +81,35 @@ println("The maximum number of CPUS used in this workflow is ${params.maxcpus}")
 //# default reference files for SARS-CoV-2 or MPX (part of the github repository)
 params.species                              = 'sarscov2'
 if (params.species        == 'sarscov2' ) {
-  params.reference_genome                   = workflow.projectDir + '/configs/MN908947.3.fasta'
-  params.gff                                = workflow.projectDir + '/configs/MN908947.3.gff'
+  params.reference_genome                   = workflow.projectDir + '/genomes/MN908947.3.fasta'
+  params.gff                                = workflow.projectDir + '/genomes/MN908947.3.gff'
   println("Using the subworkflow for SARS-CoV-2")
 } else if (params.species == 'mpx') {
-  params.reference_genome                   = workflow.projectDir + '/configs/NC_063383.1.fasta'
-  params.gff                                = workflow.projectDir + '/configs/NC_063383.1.gff3'
+  params.reference_genome                   = workflow.projectDir + '/genomes/NC_063383.1.fasta'
+  params.gff                                = workflow.projectDir + '/genomes/NC_063383.1.gff3'
   println("Using the subworkflow for Monkeypox Virus")
 } else {
   params.reference_genome                   = ''
   params.gff                                = ''
 }
 
+//# Yes, there are a LOT of primer sets that are included in the workflow. And, yes, there could be more.
 params.primer_set                           = 'ncov_V4'
 if ( params.primer_set        == 'ncov_V3' ) {
-  params.primer_bed                         = workflow.projectDir + '/configs/artic_V3_nCoV-2019.primer.bed'
-  params.amplicon_bed                       = workflow.projectDir + '/configs/artic_V3_nCoV-2019.insert.bed'
+  params.primer_bed                         = workflow.projectDir + '/schema/artic_V3_nCoV-2019.primer.bed'
+  params.amplicon_bed                       = workflow.projectDir + '/schema/artic_V3_nCoV-2019.insert.bed'
 } else if ( params.primer_set == 'ncov_V4' ) {
-  params.primer_bed                         = workflow.projectDir + '/configs/artic_V4_SARS-CoV-2.primer.bed'
-  params.amplicon_bed                       = workflow.projectDir + '/configs/artic_V4_SARS-CoV-2.insert.bed'
+  params.primer_bed                         = workflow.projectDir + '/schema/artic_V4_SARS-CoV-2.primer.bed'
+  params.amplicon_bed                       = workflow.projectDir + '/schema/artic_V4_SARS-CoV-2.insert.bed'
 } else if ( params.primer_set == 'ncov_V4.1' ) {
-  params.primer_bed                         = workflow.projectDir + '/configs/artic_V4.1_SARS-CoV-2.primer.bed'
-  params.amplicon_bed                       = workflow.projectDir + '/configs/artic_V4.1_SARS-CoV-2.insert.bed'
+  params.primer_bed                         = workflow.projectDir + '/schema/artic_V4.1_SARS-CoV-2.primer.bed'
+  params.amplicon_bed                       = workflow.projectDir + '/schema/artic_V4.1_SARS-CoV-2.insert.bed'
 } else if ( params.primer_set == 'mpx_idt' ) {
-  params.primer_bed                         = workflow.projectDir + '/configs/mpx_idt_primer.bed'
-  params.amplicon_bed                       = workflow.projectDir + '/configs/mpx_idt_insert.bed'
+  params.primer_bed                         = workflow.projectDir + '/schema/mpx_idt_primer.bed'
+  params.amplicon_bed                       = workflow.projectDir + '/schema/mpx_idt_insert.bed'
 } else if ( params.primer_set == 'mpx_primalseq' ) {
-  params.primer_bed                         = workflow.projectDir + '/configs/mpx_primalseq_primer.bed'
-  params.amplicon_bed                       = workflow.projectDir + '/configs/mpx_primalseq_insert.bed'
+  params.primer_bed                         = workflow.projectDir + '/schema/mpx_primalseq_primer.bed'
+  params.amplicon_bed                       = workflow.projectDir + '/schema/mpx_primalseq_insert.bed'
 } else {
   println("!{params.primer_set} has not been defined as an acceptable value for 'params.primer_set'.")
   println('Current acceptable values are' )
@@ -117,7 +148,7 @@ params.relatedness                          = false
 params.snpdists                             = true
 params.iqtree2                              = true
 
-//# parameters for processes
+//# parameters for processes with their default values
 params.fastqc_options                       = ''
 params.seqyclean_contaminant_file           = '/Adapters_plus_PhiX_174.fasta'
 params.seqyclean_options                    = '-minlen 25 -qual'
@@ -149,6 +180,10 @@ params.multiqc_options                      = ''
 //# for optional contamination determination
 params.kraken2_db                           = false
 
+//# for using an included version of nextclade dataset
+params.download_nextclade_dataset           = true
+params.predownloaded_nextclade_dataset      = workflow.projectDir + '/data/sars.zip'
+
 //# organism specific
 params.nextclade                            = true
 params.pangolin                             = true
@@ -167,40 +202,40 @@ params.freyja_aggregate_options             = ''
 params.freyja_plot_options                  = ''
 params.freyja_plot_filetype                 = 'png'
 
+//# Specifying some species-specific params
 if ( params.species == 'sarscov2' ) {
   params.nextclade_dataset                  = 'sars-cov-2'
   params.vadr_options                       = '--split --glsearch -s -r --nomisc --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn'
   params.vadr_reference                     = 'sarscov2'
   params.vadr_trim_options                  = '--minlen 50 --maxlen 30000'
-  params.kraken2_organism                   = 'Severe acute respiratory syndrome-related coronavirus'
   params.iqtree2_outgroup                   = 'MN908947'
 } else if ( params.species == 'mpx' ) {
   params.nextclade_dataset                  = 'hMPXV'
   params.vadr_options                       = '--split --glsearch -s -r --nomisc --r_lowsimok --r_lowsimxd 100 --r_lowsimxl 2000 --alt_pass discontn,dupregin'
   params.vadr_reference                     = 'mpxv'
   params.vadr_trim_options                  = '--minlen 50 --maxlen 210000'
-  params.kraken2_organism                   = 'Monkeypox virus'
   params.iqtree2_outgroup                   = 'NC_063383'
 } else {
   params.nextclade_dataset                  = ''
   params.vadr_options                       = ''
   params.vadr_reference                     = ''
   params.vadr_trim_options                  = ''
-  params.kraken2_organism                   = '.'
 }
 
-include { fasta_prep ; summary; combine_results } from './modules/cecret.nf'      addParams(params)
-include { cecret }                                from './subworkflows/cecret.nf' addParams(params)
-include { qc }                                    from './subworkflows/qc'        addParams(params)
-include { msa }                                   from './subworkflows/msa'       addParams(params)
-include { multiqc_combine }                       from './modules/multiqc'        addParams(params)
-include { mpx }                                   from './subworkflows/mpx'       addParams(params)                                 
-include { mpx as other }                          from './subworkflows/mpx'       addParams(params)
-include { sarscov2 }                              from './subworkflows/sarscov2'  addParams(params)
-include { test }                                  from './subworkflows/test'      addParams(params) 
+//# Adding in subworkflows
+include { fasta_prep ; summary } from './modules/cecret.nf'      addParams(params)
+include { cecret }               from './subworkflows/cecret.nf' addParams(params)
+include { qc }                   from './subworkflows/qc'        addParams(params)
+include { msa }                  from './subworkflows/msa'       addParams(params)
+include { multiqc_combine }      from './modules/multiqc'        addParams(params)
+include { mpx }                  from './subworkflows/mpx'       addParams(params)                                 
+include { mpx as other }         from './subworkflows/mpx'       addParams(params)
+include { sarscov2 }             from './subworkflows/sarscov2'  addParams(params)
+include { test }                 from './subworkflows/test'      addParams(params) 
+
+//# Now that everything is defined (phew!), the workflow can begin ---------------------------------------------------
 
 //# getting input files
-
 if ( params.sample_sheet ) { 
   Channel
     .fromPath("${params.sample_sheet}", type: "file")
@@ -208,13 +243,17 @@ if ( params.sample_sheet ) {
     .splitCsv( header: true, sep: ',' )
     .map { row -> tuple( "${row.sample}", [ file("${row.fastq_1}"), file("${row.fastq_2}") ]) }
     .branch {
-      single : it[1] =~ /single/
-      paired : true 
+      single :     it[1] =~ /single/
+      multifasta : it[1] =~ /multifasta/
+      fasta  :     it[1] =~ /fasta/
+      paired :     true 
     }
     .set { inputs }
   
-  ch_paired_reads=inputs.paired.map{ it -> tuple(it[0], it[1], "paired")}
-  ch_single_reads=inputs.single.map{ it -> tuple(it[0], it[1][0], "single")}
+  ch_paired_reads = inputs.paired.map{ it -> tuple(it[0], it[1], "paired")}
+  ch_single_reads = inputs.single.map{ it -> tuple(it[0], it[1][0], "single")}
+  ch_fastas       = inputs.fasta.map{  it -> tuple(it[0], it[1])}
+  ch_multifastas  = inputs.fasta.map{  it -> tuple(it[0], it[1])}
 
 } else {
   Channel
@@ -228,16 +267,18 @@ if ( params.sample_sheet ) {
     .fromPath("${params.single_reads}/*.{fastq,fastq.gz,fq,fq.gz}")
     .map { reads -> tuple(reads.simpleName, reads, "single" ) }
     .set { ch_single_reads }
+
+  Channel
+    .fromPath("${params.fastas}/*{.fa,.fasta,.fna}", type:'file')
+    .map { fasta -> tuple(fasta.baseName, fasta ) }
+    .set { ch_fastas }
+
+  Channel
+    .fromPath("${params.multifastas}/*{.fa,.fasta,.fna}", type:'file')
+    .set { ch_multifastas }
 }
 
 ch_sra_accessions = Channel.from( params.sra_accessions )
-
-Channel
-  .fromPath("${params.fastas}/*{.fa,.fasta,.fna}", type:'file')
-  .map { fasta -> tuple(fasta.baseName, fasta ) }
-  .set { ch_fastas }
-
-ch_multifastas = Channel.fromPath("${params.multifastas}/*{.fa,.fasta,.fna}", type:'file')
 
 //# Checking for input files and giving an explanatory message if none are found
 ch_paired_reads
@@ -265,9 +306,14 @@ Channel
   .view { "Reference Genome : $it"}
   .set { ch_reference_genome }
 
-ch_gff_file = params.ivar_variants
-  ? Channel.fromPath(params.gff, type:'file').view { "GFF file for Reference Genome : $it"}
-  : Channel.empty()
+if ( params.ivar_variants ) {
+  Channel
+    .fromPath(params.gff, type:'file')
+    .view { "GFF file for Reference Genome : $it"}
+    .set { ch_gff_file }
+} else {
+  ch_gff_file = Channel.empty()
+}
 
 if ( params.trimmer != 'none' ) {
   Channel
@@ -279,24 +325,51 @@ if ( params.trimmer != 'none' ) {
     .view { "Primer BedFile : $it"}
     .set { ch_primer_bed }
 
-  ch_amplicon_bed = params.bedtools_multicov
-    ? Channel.fromPath(params.amplicon_bed, type:'file').view { "Amplicon BedFile : $it"}
-    : Channel.empty()
+  if ( params.bedtools_multicov ) {
+    Channel
+      .fromPath(params.amplicon_bed, type:'file')
+      .view { "Amplicon BedFile : $it"}
+      .set {ch_amplicon_bed }
+  } else {
+    ch_amplicon_bed = Channel.empty()  
+  }
+
 } else {
   ch_primer_bed = Channel.empty()
   ch_amplicon_bed = Channel.empty()
+
 }
 
-ch_kraken2_db = params.kraken2_db
-  ? Channel.fromPath(params.kraken2_db, type:'dir').view { "Kraken2 database : $it" }
-  : Channel.empty()
+if ( params.kraken2_db ) {
+  Channel
+    .fromPath(params.kraken2_db, type:'dir')
+    .view { "Kraken2 database : $it" }
+    .set{ ch_kraken2_db }
+
+} else {
+  ch_kraken2_db = Channel.empty()
+
+}
+
+if ( ! params.download_nextclade_dataset ) {
+  Channel
+    .fromPath(params.predownloaded_nextclade_dataset)
+    .ifEmpty{
+      println("Dataset file could not be found at ${params.predownloaded_nextclade_dataset}.")
+      println("Please set nextclade dataset file with 'params.predownloaded_nextclade_dataset'")
+      exit 1
+    }
+    .set { ch_nextclade_dataset }
+} else {
+  ch_nextclade_dataset = Channel.empty()
+}
+
 
 //# getting scripts
 ch_combine_results_script = Channel.fromPath("${workflow.projectDir}/bin/combine_results.py", type:'file')
 
 // This is where the results will be
 println('The files and directory for results is ' + params.outdir)
-println("A table summarizing results will be created: ${params.outdir}/cecret_results.csv\n")
 
 ch_paired_reads
   .mix(ch_single_reads)
@@ -304,141 +377,93 @@ ch_paired_reads
   .set { ch_reads }
 
 workflow {
-  ch_paired_reads.view { "Paired-end Fastq files found : ${it[0]}" }
-  ch_single_reads.view { "Fastq files found : ${it[0]}" }
-  ch_fastas.view       { "Fasta file found : ${it[0]}" }
-  ch_multifastas.view  { "MultiFasta file found : ${it}" }
-  ch_reads.ifEmpty     { println("No fastq or fastq.gz files were found at ${params.reads} or ${params.single_reads}") }
+    ch_paired_reads.view { "Paired-end Fastq files found : ${it[0]}" }
+    ch_single_reads.view { "Fastq files found : ${it[0]}" }
+    ch_fastas.view       { "Fasta file found : ${it[0]}" }
+    ch_multifastas.view  { "MultiFasta file found : ${it}" }
+    ch_reads.ifEmpty     { println("No fastq or fastq.gz files were found at ${params.reads} or ${params.single_reads}") }
 
-  if ( ! params.sra_accessions.isEmpty() ) { 
-    test(ch_sra_accessions)
-    ch_reads = ch_reads.mix(test.out.reads)
-  } 
+    ch_for_dataset = Channel.empty()
+    ch_for_version = Channel.from("Cecret version", workflow.manifest.version).collect()
 
-  //  combine_results_script
-  fasta_prep(ch_fastas)
+    if ( ! params.sra_accessions.isEmpty() ) { 
+      test(ch_sra_accessions)
+      ch_reads = ch_reads.mix(test.out.reads)
+    } 
 
-  cecret(ch_reads,ch_reference_genome,ch_primer_bed)
-  qc(ch_reads,
-    cecret.out.clean_type,
-    ch_kraken2_db,
-    cecret.out.sam,
-    cecret.out.bam,
-    cecret.out.bam_bai,
-    ch_reference_genome,
-    ch_gff_file,
-    ch_amplicon_bed,
-    ch_primer_bed)
+    fasta_prep(ch_fastas)
 
-  if ( params.species == 'sarscov2' ) {
-    sarscov2(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), cecret.out.bam, ch_reference_genome)
-    pangolin_file   = sarscov2.out.pangolin_file
-    nextclade_file  = sarscov2.out.nextclade_file
-    vadr_file       = sarscov2.out.vadr_file
-    freyja_file     = sarscov2.out.freyja_file
-    dataset         = sarscov2.out.dataset 
-  } else if ( params.species == 'mpx') {
-    mpx(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus))
-    pangolin_file   = Channel.empty()
-    freyja_file     = Channel.empty()
-    nextclade_file  = mpx.out.nextclade_file
-    vadr_file       = mpx.out.vadr_file
-    dataset         = mpx.out.dataset
-  } else if ( params.species == 'other') {
-    other(fasta_prep.out.fastas.concat(ch_multifastas).mix(cecret.out.consensus))
-    pangolin_file   = Channel.empty()
-    freyja_file     = Channel.empty()
-    nextclade_file  = other.out.nextclade_file
-    vadr_file       = other.out.vadr_file
-    dataset         = other.out.dataset
-  } else {
-    pangolin_file   = Channel.empty()
-    freyja_file     = Channel.empty()
-    nextclade_file  = Channel.empty()
-    vadr_file       = Channel.empty()
-    dataset         = Channel.empty()
-  }
+    cecret(ch_reads, ch_reference_genome, ch_primer_bed)
 
-  if ( params.relatedness ) { 
-    msa(fasta_prep.out.fastas.concat(ch_multifastas).concat(cecret.out.consensus), ch_reference_genome, dataset) 
+    qc(ch_reads,
+      cecret.out.clean_reads,
+      ch_kraken2_db,
+      cecret.out.sam,
+      cecret.out.trim_bam,
+      ch_reference_genome,
+      ch_gff_file,
+      ch_amplicon_bed,
+      ch_primer_bed)
 
-    tree      = msa.out.tree
-    alignment = msa.out.msa
-    matrix    = msa.out.matrix
-  } else {
-    tree      = Channel.empty()
-    alignment = Channel.empty()
-    matrix    = Channel.empty()
-  }
+    ch_for_multiqc = cecret.out.for_multiqc.mix(qc.out.for_multiqc)
+    ch_for_summary = qc.out.for_summary
 
-  multiqc_combine(qc.out.fastqc_files.collect().ifEmpty([]),
-    cecret.out.fastp_files.collect().ifEmpty([]),
-    cecret.out.seqyclean_files1.collect().ifEmpty([]),
-    cecret.out.seqyclean_files2.collect().ifEmpty([]),
-    qc.out.kraken2_files.collect().ifEmpty([]),
-    pangolin_file.collect().ifEmpty([]),
-    cecret.out.ivar_files.collect().ifEmpty([]),
-    qc.out.samtools_stats_files.collect().ifEmpty([]),
-    qc.out.samtools_flagstat_files.collect().ifEmpty([]))
+    if ( params.species == 'sarscov2' ) {
+      sarscov2(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), cecret.out.trim_bam, ch_reference_genome, ch_nextclade_dataset)
+      
+      ch_for_multiqc = ch_for_multiqc.mix(sarscov2.out.for_multiqc)
+      ch_for_dataset = sarscov2.out.dataset
+      ch_for_summary = ch_for_summary.mix(sarscov2.out.for_summary)
+    
+    } else if ( params.species == 'mpx') {
+      mpx(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), ch_nextclade_dataset)
+      
+      ch_for_multiqc = ch_for_multiqc.mix(mpx.out.for_multiqc)
+      ch_for_dataset = mpx.out.dataset
+      ch_for_summary = ch_for_summary.mix(mpx.out.for_summary)
 
-  cecret.out.consensus_results
-    .mix(fasta_prep.out.fastas_results)
-    // cecret subworkflow
-    .join(cecret.out.cleaner_version,             remainder: true, by: 0 )
-    .join(cecret.out.aligner_version,             remainder: true, by: 0 )
-    .join(cecret.out.trimmer_version,             remainder: true, by: 0 )
-    .join(cecret.out.ivar_version,                remainder: true, by: 0 )
-    .join(cecret.out.fastp_results,               remainder: true, by: 0 )
-    // qc subworkflow
-    .join(qc.out.fastqc_1_results,                remainder: true, by: 0 )
-    .join(qc.out.fastqc_2_results,                remainder: true, by: 0 )
-    .join(qc.out.kraken2_target_results,          remainder: true, by: 0 )
-    .join(qc.out.kraken2_human_results,           remainder: true, by: 0 )
-    .join(qc.out.ivar_variants_results,           remainder: true, by: 0 )
-    .join(qc.out.bcftools_variants_results,       remainder: true, by: 0 )
-    .join(qc.out.insert_size_after_trimming,      remainder: true, by: 0 )
-    .join(qc.out.samtools_coverage_results,       remainder: true, by: 0 )
-    .join(qc.out.samtools_covdepth_results,       remainder: true, by: 0 )
-    .join(qc.out.samtools_depth_results,          remainder: true, by: 0 )
-    .join(qc.out.samtools_ampliconstats_results,  remainder: true, by: 0 )
-    .join(qc.out.bedtools_results,                remainder: true, by: 0 )
+    } else if ( params.species == 'other') {
+      other(fasta_prep.out.fastas.concat(ch_multifastas).mix(cecret.out.consensus), ch_nextclade_dataset)
+      
+      ch_for_multiqc = ch_for_multiqc.mix(other.out.for_multiqc)
+      ch_for_dataset = other.out.dataset
+      ch_for_summary = ch_for_summary.mix(other.out.for_summary)
 
-    // seqyclean and anything from the organism-specific subworkflows will be added by pandas
-    .set { results }
+    } 
 
-  summary(results)
+    if ( params.relatedness ) { 
+      msa(fasta_prep.out.fastas.concat(ch_multifastas).concat(cecret.out.consensus), ch_reference_genome, ch_for_dataset) 
 
-  cecret.out.seqyclean_files1
-    .collectFile(name: "Combined_SummaryStatistics.tsv",
-      keepHeader: true,
-      storeDir: "${params.outdir}/seqyclean")
-    .set { seqyclean_file1 }
+      tree      = msa.out.tree
+      alignment = msa.out.msa
+      matrix    = msa.out.matrix
 
-  cecret.out.seqyclean_files2
-    .collectFile(name: "Combined_seqyclean_SummaryStatistics.tsv",
-      keepHeader: true,
-      storeDir: "${params.outdir}/seqyclean")
-    .set { seqyclean_file2 }
+    } else {
+      tree      = Channel.empty()
+      alignment = Channel.empty()
+      matrix    = Channel.empty()
+    }
 
-  combine_results(nextclade_file.ifEmpty([]),
-    pangolin_file.ifEmpty([]),
-    vadr_file.ifEmpty([]),
-    freyja_file.ifEmpty([]),
-    seqyclean_file1.ifEmpty([]),
-    seqyclean_file2.ifEmpty([]),
-    summary.out.summary_file.collect().ifEmpty([]),
-    ch_combine_results_script)
+    multiqc_combine(ch_for_multiqc.collect())
+
+    summary(
+      ch_for_summary.collect().map{it -> tuple([it])}.ifEmpty([])
+        .combine(ch_for_version.mix(cecret.out.for_version).collect().map{it -> tuple([it])})
+        .combine(multiqc_combine.out.multiqc_data.ifEmpty([]))
+        .combine(ch_combine_results_script)
+        .combine(fasta_prep.out.fastas.mix(cecret.out.consensus).collect().map{it -> tuple([it])}))
 
   emit:
-  bam       = cecret.out.bam_bai
-  consensus = fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus)
-  tree      = tree
-  alignment = alignment
-  matrix    = matrix
+    bam       = cecret.out.trim_bam
+    consensus = fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus).collect()
+    tree      = tree
+    alignment = alignment
+    matrix    = matrix
 }
 
 workflow.onComplete {
   println("Pipeline completed at: $workflow.complete")
-  println("A summary of results can be found in a comma-delimited file: ${params.outdir}/summary/combined_summary.csv")
+  println("A summary of results can be found in a comma-delimited file: ${params.outdir}/cecret_results.csv")
+  println("A summary of results can be found in a tab-delimited file: ${params.outdir}/cecret_results.txt")
   println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
 }

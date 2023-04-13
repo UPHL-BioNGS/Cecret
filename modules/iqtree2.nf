@@ -1,6 +1,15 @@
 process iqtree2 {
-  tag "Creating phylogenetic tree with iqtree"
-  label "maxcpus"
+  tag        "Creating phylogenetic tree with iqtree"
+  label      "maxcpus"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/iqtree2:2.1.2'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.iqtree2
@@ -9,7 +18,7 @@ process iqtree2 {
   file(msa)
 
   output:
-  path "iqtree2/iqtree2.{iqtree,treefile,mldist,log}", emit: tree
+  path "iqtree2/iqtree2.{iqtree,treefile*,mldist,log}", emit: tree
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
@@ -37,5 +46,7 @@ process iqtree2 {
       -pre iqtree2/iqtree2 \
       $outgroup \
       | tee -a $log
+
+    if [ -f "iqtree2/iqtree2.treefile" ] ; then cp iqtree2/iqtree2.treefile iqtree2/iqtree2.treefile.nwk ; fi
   '''
 }

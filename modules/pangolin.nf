@@ -1,6 +1,15 @@
 process pangolin {
-  tag "SARS-CoV-2 lineage Determination"
-  label "medcpus"
+  tag        "SARS-CoV-2 lineage Determination"
+  label      "medcpus"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/pangolin:4.2-pdata-1.18.1.1'
+
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.pangolin

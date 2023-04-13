@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<pd:pipeline xmlns:pd="xsd://www.illumina.com/ica/cp/pipelinedefinition" code="" version="1.0">
+    <pd:dataInputs>
+        <pd:dataInput code="reads" format="FASTQ" type="DIRECTORY" required="false" multiValue="false">
+            <pd:label>reads</pd:label>
+            <pd:description locked="false"></pd:description>
+        </pd:dataInput>
+        <pd:dataInput code="single_reads" format="FASTQ" type="DIRECTORY" required="false" multiValue="false">
+            <pd:label>single_reads</pd:label>
+            <pd:description locked="false"></pd:description>
+        </pd:dataInput>
+        <pd:dataInput code="fastas" format="FASTA" type="DIRECTORY" required="false" multiValue="false">
+            <pd:label>fastas</pd:label>
+            <pd:description locked="false"></pd:description>
+        </pd:dataInput>
+        <pd:dataInput code="multifastas" format="FASTA" type="DIRECTORY" required="false" multiValue="false">
+            <pd:label>multifastas</pd:label>
+            <pd:description locked="false"></pd:description>
+        </pd:dataInput>
+        <pd:dataInput code="project_dirs" format="UNKNOWN" type="DIRECTORY" required="true" multiValue="true">
+            <pd:label>project_dirs from edited Git Repo</pd:label>
+            <pd:description>directory with additional files/input to run pipeline --- other files in your github project</pd:description>
+        </pd:dataInput>
+    </pd:dataInputs>
+    <pd:steps>
+        <pd:step execution="MANDATORY" code="General">
+            <pd:label>General</pd:label>
+            <pd:description>General parameters</pd:description>
+            <pd:tool code="generalparameters">
+                <pd:label locked="false"></pd:label>
+                <pd:description locked="false"></pd:description>
+                <pd:parameter code="seqyclean_options" minValues="1" maxValues="1" classification="USER">
+                    <pd:label>seqyclean_options</pd:label>
+                    <pd:description locked="false"></pd:description>
+                    <pd:stringType/>
+                    <pd:value>-minlen 25 -qual</pd:value>
+                </pd:parameter>
+                <pd:parameter code="minimap2_options " minValues="1" maxValues="1" classification="USER">
+                    <pd:label>minimap2_options </pd:label>
+                    <pd:description locked="false"></pd:description>
+                    <pd:stringType/>
+                    <pd:value>-K 20M</pd:value>
+                </pd:parameter>
+                <pd:parameter code="ivar_variants_options" minValues="1" maxValues="1" classification="USER">
+                    <pd:label>ivar_variants_options</pd:label>
+                    <pd:description locked="false"></pd:description>
+                    <pd:stringType/>
+                    <pd:value>-q 20 -t 0.6</pd:value>
+                </pd:parameter>
+                <pd:parameter code="ivar_consensus_options" minValues="1" maxValues="1" classification="USER">
+                    <pd:label>ivar_consensus_options</pd:label>
+                    <pd:description locked="false"></pd:description>
+                    <pd:stringType/>
+                    <pd:value>-q 20 -t 0.6 -n N</pd:value>
+                </pd:parameter>
+                <pd:parameter code="bedtools_multicov_options" minValues="1" maxValues="1" classification="USER">
+                    <pd:label>bedtools_multicov_options</pd:label>
+                    <pd:description locked="false"></pd:description>
+                    <pd:stringType/>
+                    <pd:value>-f .1</pd:value>
+                </pd:parameter>
+                <pd:parameter code="samtools_plot_ampliconstats_options" minValues="1" maxValues="1" classification="USER">
+                    <pd:label>samtools_plot_ampliconstats_options</pd:label>
+                    <pd:description locked="false"></pd:description>
+                    <pd:stringType/>
+                    <pd:value>-size 1200,900 -size2 1200,900 -size3 1200,900</pd:value>
+                </pd:parameter>
+                <pd:parameter code="vadr_options" minValues="1" maxValues="1" classification="USER">
+                    <pd:label>vadr_options</pd:label>
+                    <pd:description locked="false"></pd:description>
+                    <pd:stringType/>
+                    <pd:value>--split --glsearch -s -r --nomisc --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn</pd:value>
+                </pd:parameter>
+                <pd:parameter code="vadr_trim_options" minValues="1" maxValues="1" classification="USER">
+                    <pd:label>vadr_trim_options</pd:label>
+                    <pd:description locked="false"></pd:description>
+                    <pd:stringType/>
+                    <pd:value>--minlen 50 --maxlen 30000</pd:value>
+                </pd:parameter>
+                <pd:parameter code="mafft_options" minValues="1" maxValues="1" classification="USER">
+                    <pd:label>mafft_options</pd:label>
+                    <pd:description locked="false"></pd:description>
+                    <pd:stringType/>
+                    <pd:value>--maxambiguous 0.5</pd:value>
+                </pd:parameter>
+                <pd:parameter code="nextalign_options" minValues="1" maxValues="1" classification="USER">
+                    <pd:label>nextalign_options</pd:label>
+                    <pd:description locked="false"></pd:description>
+                    <pd:stringType/>
+                    <pd:value>--genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S --include-reference</pd:value>
+                </pd:parameter>
+                <pd:parameter code="iqtree2_options" minValues="1" maxValues="1" classification="USER">
+                    <pd:label>iqtree2_options</pd:label>
+                    <pd:description locked="false"></pd:description>
+                    <pd:stringType/>
+                    <pd:value>-ninit 2 -n 2 -me 0.05 -m GTR</pd:value>
+                </pd:parameter>
+            </pd:tool>
+        </pd:step>
+    </pd:steps>
+</pd:pipeline>

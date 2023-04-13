@@ -1,6 +1,15 @@
 process minimap2 {
-  tag "${sample}"
-  label "maxcpus"
+  tag        "${sample}"
+  label      "maxcpus"
+  publishDir = [ path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log' ]
+  container  'staphb/minimap2:2.24'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(reads), file(reference_genome)
@@ -8,7 +17,7 @@ process minimap2 {
   output:
   tuple val(sample), file("aligned/${sample}.sam"),                       emit: sam
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
-  tuple val(sample), env(minimap2_version),                               emit: aligner_version
+  tuple val("${params.aligner}"), env(minimap2_version),                  emit: aligner_version
 
   shell:
   '''

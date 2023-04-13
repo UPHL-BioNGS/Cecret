@@ -1,13 +1,22 @@
 process bwa {
-  tag "${sample}"
-  label "maxcpus"
+  tag        "${sample}"
+  label      "maxcpus"
+  publishDir = [ path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log' ]
+  container  'staphb/bwa:0.7.17'
+  
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(reads), file(reference_genome)
 
   output:
-  tuple val(sample), file("bwa/${sample}.sam"),                           emit: sam
-  tuple val(sample), env(bwa_version),                                    emit: aligner_version
+  tuple val(sample), file("bwa/${sample}.sam"),                     emit: sam
+  tuple val("${params.aligner}"), env(bwa_version),                 emit: aligner_version
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:

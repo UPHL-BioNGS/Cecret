@@ -1,6 +1,15 @@
 process vadr {
-  tag "QC metrics"
-  label "medcpus"
+  tag        "QC metrics"
+  label      "medcpus"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/vadr:1.5.1'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.vadr
@@ -9,8 +18,8 @@ process vadr {
   file(fasta)
 
   output:
-  path "vadr/*",                                                                emit: vadr_files
-  path "vadr/vadr.vadr.sqa",                                                    emit: vadr_file
+  path "vadr/*",              emit: vadr_files
+  path "vadr/vadr.vadr.sqa",  emit: vadr_file
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
@@ -24,7 +33,8 @@ process vadr {
 
     for fasta in !{fasta}
     do
-      cat $fasta >> ultimate_fasta.fasta
+      lines=$(cat $fasta | fold -w 75 | wc -l | awk '{print $1}' )
+      if [ "$lines" -gt 2 ] ; then cat $fasta >> ultimate_fasta.fasta ; fi
     done
 
     fasta-trim-terminal-ambigs.pl !{params.vadr_trim_options} \

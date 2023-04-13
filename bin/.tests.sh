@@ -15,6 +15,16 @@ then
     -profile singularity \
     --sample_sheet /home/eriny/sandbox/test_files/cecret/sample_sheet.csv \
     --outdir singularity_defaults_sample_sheet \
+    -resume \
+    -with-tower
+
+  # using included nextclade data
+  nextflow run ~/sandbox/Cecret \
+    -profile singularity \
+    --sample_sheet /home/eriny/sandbox/test_files/cecret/sample_sheet.csv \
+    --outdir singularity_defaults_sample_sheet_included_nextclade \
+    --download_nextclade_dataset false \
+    -resume \
     -with-tower
 
   options=("reads" "single_reads" "fastas")

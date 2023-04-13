@@ -1,23 +1,25 @@
 process multiqc_combine {
-  tag "multiqc"
+  tag        "multiqc"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'quay.io/biocontainers/multiqc:1.14--pyhdfd78af_0'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
+  //#UPHLICA memory 1.GB
+  //#UPHLICA cpus 3
+  //#UPHLICA time '45m'
 
   when:
   params.multiqc
 
   input:
-  file(fastqc)
-  file(fastp)
-  file(seqyclean)
-  file(seqyclean2)
-  file(kraken2)
-  file(pangolin)
-  file(ivar)
-  file(samtools_stats)
-  file(samtools_flagstat)
+  file(input)
 
   output:
-  path "multiqc/multiqc_report.html",  optional: true,                         emit: html
-  path "multiqc/multiqc_data/*",       optional: true,                         emit: files
+  path "multiqc/multiqc_report.html",  optional: true,                    emit: html
+  path "multiqc/multiqc_data/*",       optional: true,                    emit: files
+  path "multiqc/multiqc_data",         optional: true,                    emit: multiqc_data
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:

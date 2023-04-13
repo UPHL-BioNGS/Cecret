@@ -1,7 +1,15 @@
 process freyja {
-  tag "${sample}"
-  label "medcpus"
-  errorStrategy 'ignore'
+  tag           "${sample}"
+  label         "medcpus"
+  errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  publishDir    "${params.outdir}", mode: 'copy'
+  container     'staphb/freyja:1.4.2'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.freyja
@@ -10,8 +18,8 @@ process freyja {
   tuple val(sample), file(bam), file(reference_genome)
 
   output:
-  path "freyja/${sample}_demix.tsv",                                      emit: freyja_demix
-  path "freyja/${sample}*",                                               emit: files
+  path "freyja/${sample}_demix.tsv", optional: true, emit: freyja_demix
+  path "freyja/${sample}*",                          emit: files
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
@@ -46,7 +54,16 @@ process freyja {
 }
 
 process freyja_aggregate {
-  tag "Aggregating results from freyja"
+  tag        "Aggregating results from freyja"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/freyja:1.3.11'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.freyja_aggregate

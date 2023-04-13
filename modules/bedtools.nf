@@ -1,5 +1,14 @@
 process bedtools_multicov {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/bedtools:2.30.0'
+
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
+  //#UPHLICA memory 1.GB
+  //#UPHLICA cpus 3
+  //#UPHLICA time '45m'
 
   when:
   params.bedtools_multicov
@@ -8,8 +17,7 @@ process bedtools_multicov {
   tuple val(sample), file(bam), file(bai), file(amplicon_bed)
 
   output:
-  path "multicov/${sample}.multicov.txt",                                 emit: multicov
-  tuple val(sample), env(num_failed_amplicons),                           emit: bedtools_results
+  path "multicov/${sample}.multicov.txt", emit: multicov
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
@@ -24,9 +32,5 @@ process bedtools_multicov {
       -bams !{bam} \
       -bed !{amplicon_bed} \
       >> multicov/!{sample}.multicov.txt
-
-    result_column=$(head -n 1 multicov/!{sample}.multicov.txt | awk '{print NF}' )
-    num_failed_amplicons=$(cat multicov/!{sample}.multicov.txt | tr ' ' '\t' | cut -f $result_column | awk '{ if ( $1 < 20 ) print $0 }' | wc -l )
-    if [ -z "$num_failed_amplicons" ] ; then num_failed_amplicons="NA" ; fi
   '''
 }

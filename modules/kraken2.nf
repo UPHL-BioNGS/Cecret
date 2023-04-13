@@ -1,21 +1,28 @@
 process kraken2 {
-  tag "${sample}"
-  label "maxcpus"
+  tag        "${sample}"
+  label      "maxcpus"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/kraken2:2.1.2-no-db'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.kraken2
 
   input:
-  tuple val(sample), file(clean), val(paired_single), path(kraken2_db)
+  tuple val(sample), file(clean), path(kraken2_db)
 
   output:
   path "kraken2/${sample}_kraken2_report.txt",                            emit: kraken2_files
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
-  tuple val(sample), env(percentage_cov),                                 emit: kraken2_target_results
-  tuple val(sample), env(percentage_human),                               emit: kraken2_human_results
 
   shell:
-  if ( paired_single == 'single' ) {
+  if ( clean =~ "cln" ) {
   '''
     mkdir -p kraken2 logs/!{task.process}
     log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
@@ -31,13 +38,8 @@ process kraken2 {
       --report kraken2/!{sample}_kraken2_report.txt \
       | tee -a $log
 
-    percentage_human=$(grep "Homo sapiens" kraken2/!{sample}_kraken2_report.txt | awk '{if ($4 == "S") print $1}' | head -n 1)
-    percentage_cov=$(grep "!{params.kraken2_organism}" kraken2/!{sample}_kraken2_report.txt | awk '{if ($4 == "S") print $1}' | head -n 1)
-
-    if [ -z "$percentage_human" ] ; then percentage_human="0" ; fi
-    if [ -z "$percentage_cov" ] ; then percentage_cov="0" ; fi
   '''
-  } else if (paired_single == 'paired') {
+  } else {
     '''
       mkdir -p kraken2 logs/!{task.process}
       log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
@@ -53,12 +55,6 @@ process kraken2 {
         !{clean} \
         --report kraken2/!{sample}_kraken2_report.txt \
         | tee -a $log
-
-      percentage_human=$(grep "Homo sapiens" kraken2/!{sample}_kraken2_report.txt | awk '{if ($4 == "S") print $1}' | head -n 1)
-      percentage_cov=$(grep "!{params.kraken2_organism}" kraken2/!{sample}_kraken2_report.txt | awk '{if ($4 == "S") print $1}' | head -n 1)
-
-      if [ -z "$percentage_human" ] ; then percentage_human="0" ; fi
-      if [ -z "$percentage_cov" ] ; then percentage_cov="0" ; fi
     '''
   }
 }

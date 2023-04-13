@@ -1,8 +1,15 @@
 process ivar_consensus {
-  tag "${sample}"
-  memory {2.GB * task.attempt}
-  errorStrategy {'retry'}
-  maxRetries 2
+  tag           "${sample}"
+  memory        { 2.GB * task.attempt }
+  errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  publishDir    params.outdir, mode: 'copy'
+  container     'staphb/ivar:1.3.1'
+
+  //#UPHLICA maxForks      10
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(bam), file(reference_genome)
@@ -11,8 +18,7 @@ process ivar_consensus {
   path "consensus/${sample}.consensus.fa",                                                            emit: consensus
   path "consensus/${sample}.consensus.qual.txt",                                                      emit: qual
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
-  tuple val(sample), env(num_N), env(num_ACTG), env(num_degenerate), env(num_total), env(first_line), emit: consensus_results
-  tuple val(sample), env(ivar_version),                                                               emit: ivar_version
+  tuple val("iVar"), env(ivar_version),                                                               emit: ivar_version
 
   shell:
   '''
@@ -26,37 +32,22 @@ process ivar_consensus {
 
     samtools mpileup -A -d !{params.mpileup_depth} -B -Q 0 --reference !{reference_genome} !{bam} | \
       ivar consensus !{params.ivar_consensus_options} -m !{params.minimum_depth} -p consensus/!{sample}.consensus | tee -a $log
-
-    if [ -f "consensus/!{sample}.consensus.fa" ]
-    then
-      num_N=$(grep -v ">" consensus/!{sample}.consensus.fa | grep -o 'N' | wc -l )
-      num_ACTG=$(grep -v ">" consensus/!{sample}.consensus.fa | grep -o -E "C|A|T|G" | wc -l )
-      num_degenerate=$(grep -v ">" consensus/!{sample}.consensus.fa | grep -o -E "B|D|E|F|H|I|J|K|L|M|O|P|Q|R|S|U|V|W|X|Y|Z" | wc -l )
-      first_line=$(grep ">" consensus/!{sample}.consensus.fa | sed 's/>//g' )
-
-      if [ -z "$num_N" ] ; then num_N="0" ; fi
-      if [ -z "$num_ACTG" ] ; then num_ACTG="0" ; fi
-      if [ -z "$num_degenerate" ] ; then num_degenerate="0" ; fi
-      if [ -z "$first_line" ] ; then first_line=!{sample} ; fi
-    else
-      num_N="0"
-      num_ACTG="0"
-      num_degenerate="0"
-      first_line=!{sample}
-    fi
-
-    if [ -z "$num_N" ] ; then num_N="0" ; fi
-    if [ -z "$num_ACTG" ] ; then num_ACTG="0" ; fi
-    if [ -z "$num_degenerate" ] ; then num_degenerate="0" ; fi
-    num_total=$(( $num_N + $num_degenerate + $num_ACTG ))
   '''
 }
 
 process ivar_variants {
-  tag "${sample}"
-  memory {2.GB * task.attempt}
-  errorStrategy 'retry'
-  maxRetries 2
+  tag           "${sample}"
+  memory        { 2.GB * task.attempt }
+  errorStrategy { task.attempt < 3 ? 'retry' : 'ignore'}
+  publishDir    "${params.outdir}", mode: 'copy'  
+  container     'staphb/ivar:1.3.1'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   when:
   params.ivar_variants
@@ -65,10 +56,9 @@ process ivar_variants {
   tuple val(sample), file(bam), file(reference_genome), file(gff_file)
 
   output:
-  tuple val(sample), file("ivar_variants/${sample}.variants.tsv"),        emit: variant_tsv
-  tuple val(sample), file("ivar_variants/${sample}.ivar_variants.vcf"),   emit: ivar_variant_file
+  path "ivar_variants/${sample}.variants.tsv",      emit: variant_tsv
+  path "ivar_variants/${sample}.ivar_variants.vcf", emit: ivar_variant_file
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
-  tuple val(sample), env(variants_num),                                   emit: ivar_variants_results
 
   shell:
   '''
@@ -82,10 +72,6 @@ process ivar_variants {
 
     samtools mpileup -A -d !{params.mpileup_depth} -B -Q 0 --reference !{reference_genome} !{bam} | \
       ivar variants -p ivar_variants/!{sample}.variants !{params.ivar_variants_options} -m !{params.minimum_depth} -r !{reference_genome} -g !{gff_file} | tee -a $log
-
-    variants_num=$(grep "TRUE" ivar_variants/!{sample}.variants.tsv | wc -l)
-
-    if [ -z "$variants_num" ] ; then variants_num="0" ; fi
 
     echo '##fileformat=VCFv4.2'                                                                               >  ivar_variants/!{sample}.ivar_variants.vcf
     echo '##source=iVar'                                                                                      >> ivar_variants/!{sample}.ivar_variants.vcf
@@ -108,7 +94,16 @@ process ivar_variants {
 }
 
 process ivar_trim {
-  tag "${sample}"
+  tag        "${sample}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'staphb/ivar:1.3.1'
+  
+  //#UPHLICA maxForks      10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
 
   input:
   tuple val(sample), file(bam), file(primer_bed)
@@ -118,7 +113,7 @@ process ivar_trim {
   tuple val(sample), file("ivar_trim/${sample}.primertrim.sorted.bam"), file("ivar_trim/${sample}.primertrim.sorted.bam.bai"),  emit: bam_bai
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
   path "ivar_trim/${sample}_ivar.log",                                                                                          emit: ivar_trim_files
-  tuple val(sample), env(trimmer_version),                                                                                      emit: trimmer_version
+  tuple val("${params.trimmer}"), env(trimmer_version),                                                                         emit: trimmer_version
 
   shell:
   '''
