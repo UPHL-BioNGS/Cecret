@@ -129,6 +129,12 @@
             "default": "png",
             "description": "Options for process"
         },
+        "freyja_update": { 
+            "type": "boolean",
+            "hidden": false,
+            "default": false,
+            "description": "Allows freyja to update"
+        },
         "freyja_variants_options": { 
             "type": "string",
             "hidden": true,
