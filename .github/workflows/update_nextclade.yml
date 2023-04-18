@@ -24,6 +24,7 @@ jobs:
         run: |
           git config --global user.email "erin.olde@gmail.com"
           git config --global user.name "Erin Young"
+          git status
           git add ./data/sars.zip
           git commit -m "update nextclade $(date -I)"
           git push
