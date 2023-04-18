@@ -22,6 +22,7 @@ jobs:
 
       - name: create pull request
         run: |
+          git checkout -b update_nextclade_$(date -I)
           git config --global user.email "erin.olde@gmail.com"
           git config --global user.name "Erin Young"
           git status
