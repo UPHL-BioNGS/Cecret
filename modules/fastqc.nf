@@ -17,8 +17,9 @@ process fastqc {
   tuple val(sample), file(fastq), val(type)
 
   output:
-  path "fastqc/*.html",       emit: files
-  path "fastqc/*_fastqc.zip", emit: fastqc_files
+  path "fastqc/*.html",                   emit: files
+  path "fastqc/*_fastqc.zip",             emit: fastqc_files
+  path "fastqc/${sample}_fastq_name.csv", emit: fastq_name
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
@@ -35,5 +36,8 @@ process fastqc {
       --threads !{task.cpus} \
       !{fastq} \
       | tee -a $log
+
+    echo "sample,fastq_1,fastq_2"             > fastqc/!{sample}_fastq_name.csv
+    echo "!{sample},!{fastq[0]},!{fastq[1]}" >> fastqc/!{sample}_fastq_name.csv
   '''
 }
