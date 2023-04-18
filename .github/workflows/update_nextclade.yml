@@ -15,7 +15,6 @@ jobs:
       - name: download nextclade
         run: |
           wget -q https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-gnu -O nextclade
-          ls 
           chmod +x nextclade
           ./nextclade --version
           ./nextclade dataset get --name sars-cov-2 --output-zip sars.zip
@@ -24,6 +23,7 @@ jobs:
       - name: create pull request
         run: |
           git config --global user.email "erin.olde@gmail.com"
+          git config --global user.name "Erin Young"
           git add ./data/sars.zip
           git commit -m "update nextclade $(date -I)"
           git push
