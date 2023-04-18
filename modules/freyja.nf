@@ -30,6 +30,8 @@ process freyja {
     date > $log
     freyja --version >> $log
 
+    if [ "!{params.freyja_update }" == "true" ]; then freyja update ; fi
+
     freyja variants !{params.freyja_variants_options} \
       !{bam} \
       --variants freyja/!{sample}_variants.tsv \
@@ -56,7 +58,7 @@ process freyja {
 process freyja_aggregate {
   tag        "Aggregating results from freyja"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/freyja:1.3.11'
+  container  'staphb/freyja:1.4.2'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
