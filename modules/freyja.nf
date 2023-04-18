@@ -1,7 +1,7 @@
 process freyja {
   tag           "${sample}"
   label         "medcpus"
-  errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
   container     'staphb/freyja:1.4.2'
 
@@ -29,8 +29,6 @@ process freyja {
 
     date > $log
     freyja --version >> $log
-
-    if [ "!{params.freyja_update }" == "true" ]; then freyja update ; fi
 
     freyja variants !{params.freyja_variants_options} \
       !{bam} \
