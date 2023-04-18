@@ -27,6 +27,8 @@ workflow qc {
     ch_for_summary = Channel.empty()
     
     fastqc(ch_raw_reads)
+    ch_for_summary = ch_for_summary.mix(fastqc.out.fastq_name.collectFile(name: "fastq_names.csv", keepHeader: true ))
+
     if ( ch_kraken2_db ) {
       kraken2(ch_clean_reads.combine(ch_kraken2_db))
       ch_for_multiqc = ch_for_multiqc.mix(kraken2.out.kraken2_files)
