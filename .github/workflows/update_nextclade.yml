@@ -19,6 +19,7 @@ jobs:
           ./nextclade --version
           ./nextclade dataset get --name sars-cov-2 --output-zip sars.zip
           mv sars.zip ./data/sars1.zip
+          rm -rf nextclade
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
