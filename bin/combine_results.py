@@ -13,6 +13,7 @@ pangolin_file           = 'multiqc_data/multiqc_pangolin.txt'
 nextclade_file          = 'multiqc_data/multiqc_nextclade.txt'
 vadr_file               = 'vadr.csv'
 fastp_file              = 'multiqc_data/multiqc_general_stats.txt'
+fastq_names_file        = 'fastq_names.csv'
 fastqc_file             = 'multiqc_data/multiqc_fastqc.txt'
 freyja_file             = 'aggregated-freyja.tsv'
 seqyclean_file          = 'multiqc_data/multiqc_seqyclean.txt'
@@ -22,22 +23,20 @@ columns = []
 summary_df = pd.DataFrame(columns=['sample_id'])
 min_depth = int(sys.argv[1])
 
-if exists(fastqc_file) :
+if exists(fastqc_file) and exists(fastq_names_file):
     print("Getting results from fastqc file " + fastqc_file)
     fastqc_df = pd.read_table(fastqc_file)
-    fastqc_df['sample_name'] = fastqc_df['Sample'].str.replace('_.*', '', regex = True)
-
-    fastqc_tmp1_df = fastqc_df.drop_duplicates(subset='sample_name', keep='first')
-    fastqc_tmp1_df['fastqc_raw_reads_1'] = fastqc_tmp1_df['Total Sequences']
+    names_df  = pd.read_csv(fastq_names_file)
+    fastq_R1_df = pd.merge(names_df, fastqc_df, left_on = 'fastq_1', right_on = 'Filename', how = 'inner' )
+    fastq_R1_df['fastqc_raw_reads_1'] = fastq_R1_df['Total Sequences']
+    fastq_R2_df = pd.merge(names_df, fastqc_df, left_on = 'fastq_2', right_on = 'Filename', how = 'inner' )
+    fastq_R2_df['fastqc_raw_reads_2'] = fastq_R1_df['Total Sequences']
+    fastq_both_df = pd.merge(fastq_R1_df, fastq_R2_df, left_on='sample',right_on='sample', how = 'outer')
+    fastqc_tmp_df = fastq_both_df[['sample', 'fastqc_raw_reads_1', 'fastqc_raw_reads_2']]
     
-    fastqc_tmp2_df = fastqc_df.drop_duplicates(subset='sample_name', keep='last')
-    fastqc_tmp2_df['fastqc_raw_reads_2'] = fastqc_tmp2_df['Total Sequences']
-    fastqc_tmp3_df = pd.merge(fastqc_tmp1_df, fastqc_tmp2_df, left_on='sample_name', right_on='sample_name')
-    fastqc_tmp_df = fastqc_tmp3_df[['sample_name', 'fastqc_raw_reads_1', 'fastqc_raw_reads_2']]
-    
-    summary_df = pd.merge(summary_df, fastqc_tmp_df, left_on = 'sample_id', right_on = 'sample_name', how = 'outer' )
-    summary_df['sample_id'].fillna(summary_df['sample_name'], inplace=True)
-    summary_df.drop('sample_name', axis=1, inplace=True)
+    summary_df = pd.merge(summary_df, fastqc_tmp_df, left_on = 'sample_id', right_on = 'sample', how = 'outer' )
+    summary_df['sample_id'].fillna(summary_df['sample'], inplace=True)
+    summary_df.drop('sample', axis=1, inplace=True)
     columns = columns + ['fastqc_raw_reads_1', 'fastqc_raw_reads_2']
 
 fasta_df = pd.DataFrame(columns=['fasta_sample', "fasta_line", "num_N", "num_total"])
