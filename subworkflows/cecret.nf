@@ -85,6 +85,7 @@ workflow cecret {
   }
 
   ivar(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_reference))
+  ch_for_version = ch_for_version.mix(ivar.out.ivar_version)
 
   if ( params.filter ) { filter(ch_sam) }
 
