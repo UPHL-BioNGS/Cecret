@@ -39,6 +39,12 @@ if (params.config_file) {
   exit 0
 }
 
+//# Warning people about legacy params for a few versions. This was put here 3.6.20230418
+params.kraken2_organism                     = false
+if (params.kraken2_organism ) {
+  println("WARNING : params.kraken2_organism no longer does anything!")
+}
+
 //# Starting the workflow --------------------------------------------------------------
 
 nextflow.enable.dsl = 2
@@ -186,7 +192,6 @@ params.predownloaded_nextclade_dataset      = workflow.projectDir + '/data/sars.
 
 //# organism specific
 params.freyja                               = true
-params.freyja_update                        = true
 params.freyja_aggregate                     = true
 params.nextclade                            = true
 params.pangolin                             = true
