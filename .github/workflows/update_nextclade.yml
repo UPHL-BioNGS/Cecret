@@ -18,7 +18,7 @@ jobs:
           chmod +x nextclade
           ./nextclade --version
           ./nextclade dataset get --name sars-cov-2 --output-zip sars.zip
-          mv sars.zip ./data/sars1.zip
+          mv sars.zip ./data/sars.zip
           rm -rf nextclade
 
       - name: Create Pull Request
