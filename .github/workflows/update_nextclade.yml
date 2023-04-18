@@ -1,0 +1,30 @@
+name: update nextclade dataset
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 4 * * TUE'
+
+jobs:
+  check-dependencies:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: download nextclade
+        run: |
+          wget https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-gnu -O nextclade
+          chmod +x nextclade
+
+      - name: download dataset
+        run: |
+            nextclade dataset get --name sars-cov-2 --output-zip sars.zip
+            mv sars.zip ./data/sars.zip
+
+      - name: create pull request
+        run: |
+          git config --global user.email "erin.olde@gmail.com"
+          git add ./data/sars.zip
+          git commit -m "update nextclade $(date -I)"
+          git push
