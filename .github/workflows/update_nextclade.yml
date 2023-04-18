@@ -14,11 +14,11 @@ jobs:
         
       - name: download nextclade
         run: |
-          wget https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-gnu -O nextclade
+          wget -q https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-x86_64-unknown-linux-gnu -O nextclade
           ls 
           chmod +x nextclade
-          nextclade --version
-          nextclade dataset get --name sars-cov-2 --output-zip sars.zip
+          ./nextclade --version
+          ./nextclade dataset get --name sars-cov-2 --output-zip sars.zip
           mv sars.zip ./data/sars.zip
 
       - name: create pull request
