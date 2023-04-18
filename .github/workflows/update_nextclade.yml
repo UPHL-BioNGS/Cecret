@@ -28,4 +28,4 @@ jobs:
           git status
           git add ./data/sars1.zip
           git commit -m "update nextclade $(date -I)"
-          git push
+          git push --set-upstream origin update_nextclade_$(date -I)
