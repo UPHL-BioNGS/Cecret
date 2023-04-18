@@ -149,21 +149,22 @@ params.snpdists                             = true
 params.iqtree2                              = true
 
 //# parameters for processes with their default values
-params.fastqc_options                       = ''
-params.seqyclean_contaminant_file           = '/Adapters_plus_PhiX_174.fasta'
-params.seqyclean_options                    = '-minlen 25 -qual'
-params.fastp_options                        = ''
-params.minimap2_options                     = '-K 20M'
-params.filter_options                       = ''
-params.ivar_trim_options                    = ''
-params.samtools_ampliconclip_options        = ''
-params.minimum_depth                        = 100
-params.mpileup_depth                        = 8000
-params.ivar_variants_options                = '-q 20 -t 0.6'
-params.ivar_consensus_options               = '-q 20 -t 0.6 -n N'
-params.kraken2_options                      = ''
 params.bedtools_multicov_options            = '-f .1'
 params.bcftools_variants_options            = ''
+params.fastp_options                        = ''
+params.fastqc_options                       = ''
+params.filter_options                       = ''
+params.iqtree2_options                      = '-ninit 2 -n 2 -me 0.05 -m GTR'
+params.ivar_consensus_options               = '-q 20 -t 0.6 -n N'
+params.ivar_trim_options                    = ''
+params.ivar_variants_options                = '-q 20 -t 0.6'
+params.minimap2_options                     = '-K 20M'
+params.minimum_depth                        = 100
+params.mpileup_depth                        = 8000
+params.multiqc_options                      = ''
+params.kraken2_options                      = ''
+params.mafft_options                        = '--maxambiguous 0.5'
+params.samtools_ampliconclip_options        = ''
 params.samtools_coverage_options            = ''
 params.samtools_flagstat_options            = ''
 params.samtools_depth_options               = ''
@@ -172,10 +173,9 @@ params.samtools_ampliconstats_options       = ''
 params.samtools_plot_ampliconstats_options  = '-size 1200,900 -size2 1200,900 -size3 1200,900'
 params.samtools_markdup_options             = ''
 params.samtools_fixmate_options             = ''
-params.mafft_options                        = '--maxambiguous 0.5'
+params.seqyclean_contaminant_file           = '/Adapters_plus_PhiX_174.fasta'
+params.seqyclean_options                    = '-minlen 25 -qual'
 params.snpdists_options                     = '-c'
-params.iqtree2_options                      = '-ninit 2 -n 2 -me 0.05 -m GTR'
-params.multiqc_options                      = ''
 
 //# for optional contamination determination
 params.kraken2_db                           = false
@@ -185,11 +185,12 @@ params.download_nextclade_dataset           = true
 params.predownloaded_nextclade_dataset      = workflow.projectDir + '/data/sars.zip'
 
 //# organism specific
+params.freyja                               = true
+params.freyja_update                        = true
+params.freyja_aggregate                     = true
 params.nextclade                            = true
 params.pangolin                             = true
 params.vadr                                 = true
-params.freyja                               = true
-params.freyja_aggregate                     = true
 
 params.pangolin_options                     = ''
 params.vadr_mdir                            = '/opt/vadr/vadr-models'
