@@ -29,9 +29,10 @@ if exists(fastqc_file) and exists(fastq_names_file):
     names_df  = pd.read_csv(fastq_names_file)
     fastq_R1_df = pd.merge(names_df, fastqc_df, left_on = 'fastq_1', right_on = 'Filename', how = 'inner' )
     fastq_R1_df['fastqc_raw_reads_1'] = fastq_R1_df['Total Sequences']
-    fastq_R2_df = pd.merge(names_df, fastqc_df, left_on = 'fastq_2', right_on = 'Filename', how = 'inner' )
+    names_tmp_df = names_df.dropna(subset = ['fastq_2'])
+    fastq_R2_df = pd.merge(names_tmp_df, fastqc_df, left_on = 'fastq_2', right_on = 'Filename', how = 'inner' )
     fastq_R2_df['fastqc_raw_reads_2'] = fastq_R1_df['Total Sequences']
-    fastq_both_df = pd.merge(fastq_R1_df, fastq_R2_df, left_on='sample',right_on='sample', how = 'outer')
+    fastq_both_df = pd.merge(fastq_R1_df, fastq_R2_df, left_on='sample',right_on='sample', how = 'left')
     fastqc_tmp_df = fastq_both_df[['sample', 'fastqc_raw_reads_1', 'fastqc_raw_reads_2']]
     
     summary_df = pd.merge(summary_df, fastqc_tmp_df, left_on = 'sample_id', right_on = 'sample', how = 'outer' )
