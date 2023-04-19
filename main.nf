@@ -110,6 +110,9 @@ if ( params.primer_set        == 'ncov_V3' ) {
 } else if ( params.primer_set == 'ncov_V4.1' ) {
   params.primer_bed                         = workflow.projectDir + '/schema/artic_V4.1_SARS-CoV-2.primer.bed'
   params.amplicon_bed                       = workflow.projectDir + '/schema/artic_V4.1_SARS-CoV-2.insert.bed'
+} else if ( params.primer_set == 'ncov_V5.3.2' ){
+  params.primer_bed                         = workflow.projectDir + '/schema/artic_V5.3.2_SARS-CoV-2.primer.bed'
+  params.amplicon_bed                       = workflow.projectDir + '/schema/artic_V5.3.2_SARS-CoV-2.insert.bed'
 } else if ( params.primer_set == 'mpx_idt' ) {
   params.primer_bed                         = workflow.projectDir + '/schema/mpx_idt_primer.bed'
   params.amplicon_bed                       = workflow.projectDir + '/schema/mpx_idt_insert.bed'
@@ -122,6 +125,7 @@ if ( params.primer_set        == 'ncov_V3' ) {
   println("SARS-CoV-2 artic primer V3 : 'params.primer_set' = 'ncov_V3'" )
   println("SARS-CoV-2 artic primer V4 : 'params.primer_set' = 'ncov_V4'" )
   println("SARS-CoV-2 artic primer V4.1 (Version 4 with spike in) : 'params.primer_set' = 'ncov_V4.1'" )
+  println("SARS-CoV-2 artic primer V5.3.2 : 'params.primer_set' = 'ncov_V5.3.2'" )
   println("Monkeypox IDT primer : 'params.primer_set' = 'mpx_idt'" )
   println("Monkeypox PrimalSeq primer : 'params.primer_set' = 'mpx_primalseq'" )
   exit 1
