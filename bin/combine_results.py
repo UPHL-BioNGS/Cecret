@@ -45,7 +45,7 @@ fasta_files = glob.glob("*.fa") + glob.glob("*.fasta") + glob.glob("*.fna")
 for file in fasta_files :
     print("Getting basic information from fasta " + file)
     if not ( os.stat(file).st_size==0 ) : 
-        sample              = str(file).replace(".fa", '').replace(".fna", '').replace('.fasta', '').replace('.consensus','')
+        sample              = str(file).replace(".fasta", '').replace(".fna", '').replace('.fa', '').replace('.consensus','')
         with open(file) as fasta : 
             fasta_line = ''
             sequence = ''
@@ -284,10 +284,18 @@ if exists(vadr_file) :
     vadr_columns.remove('vadr_name')
     vadr_columns.remove('vadr_p/f')
 
-    summary_df = pd.merge(summary_df, vadr_df, left_on = 'fasta_line', right_on = 'vadr_name', how = 'outer')
-    summary_df['sample_id'].fillna(summary_df['vadr_name'], inplace=True)
-    summary_df.drop('vadr_name', axis=1, inplace=True)
-    columns = ['vadr_p/f'] + columns + vadr_columns
+    if 'fasta_line' in summary_df.columns.tolist():
+        summary_df = pd.merge(summary_df, vadr_df, left_on = 'fasta_line', right_on = 'vadr_name', how = 'outer')
+        summary_df['sample_id'].fillna(summary_df['vadr_name'], inplace=True)
+        summary_df.drop('vadr_name', axis=1, inplace=True)
+        columns = ['vadr_p/f'] + columns + vadr_columns
+    else:
+        vadr_df['sample_match'] = vadr_df['vadr_name'].str.replace('Consensus_', '', regex =  False).str.split(".").str[0]
+        summary_df = pd.merge(summary_df, vadr_df, left_on = 'sample_id', right_on = 'sample_match', how = 'outer')
+        summary_df['sample_id'].fillna(summary_df['sample_match'], inplace=True)
+        summary_df.drop('vadr_name', axis=1, inplace=True)
+        summary_df.drop('sample_match', axis=1, inplace=True)
+        columns = ['vadr_p/f'] + columns + vadr_columns 
 
 if exists(nextclade_file) :
     print("Getting results from nextclade file " + nextclade_file)
