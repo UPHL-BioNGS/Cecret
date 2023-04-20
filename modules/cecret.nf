@@ -71,7 +71,7 @@ process summary {
   //#UPHLICA time '45m'
 
   input:
-  tuple file(files), val(versions), path(multiqc), file(summary_script), file(fasta)
+  tuple file(files), file(script), val(versions), file(multiqc)
 
   output:
   path "cecret_results.{csv,txt}", emit: summary_file
@@ -81,7 +81,13 @@ process summary {
     echo "!{versions}" | cut -f 1,3,5,7,9,11  -d ',' | sed 's/\\[//g' | sed 's/\\]//g' | sed 's/, /,/g' >  versions.csv
     echo "!{versions}" | cut -f 2,4,6,8,10,12 -d ',' | sed 's/\\[//g' | sed 's/\\]//g' | sed 's/, /,/g' | awk '{($1=$1); print $0}' >> versions.csv
 
-    echo "multiqc files are in !{multiqc}"    
+    echo "Summary files are !{files}"
+
+    mkdir multiqc_data
+    for file in !{multiqc}
+    do
+      if [ -f "$file" ]; then mv $file multiqc_data/. ; fi
+    done
 
     if [ -n "$(ls *_ampliconstats.txt | head -n 1)" ] 
     then
@@ -92,6 +98,6 @@ process summary {
 
     if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | grep -v "#-" | tr -s '[:blank:]' ',' > vadr.csv ; fi
 
-    python !{summary_script} !{params.minimum_depth}
+    python !{script} !{params.minimum_depth}
   '''
 }
