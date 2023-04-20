@@ -1,7 +1,7 @@
 process freyja {
   tag           "${sample}"
   label         "medcpus"
-  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
   container     'quay.io/uphl/freyja:1.4.2-20230420'
 
