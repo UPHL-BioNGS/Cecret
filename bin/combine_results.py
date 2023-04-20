@@ -13,6 +13,7 @@ pangolin_file           = 'multiqc_data/multiqc_pangolin.txt'
 nextclade_file          = 'multiqc_data/multiqc_nextclade.txt'
 vadr_file               = 'vadr.csv'
 fastp_file              = 'multiqc_data/multiqc_general_stats.txt'
+fastq_names_file        = 'fastq_names.csv'
 fastqc_file             = 'multiqc_data/multiqc_fastqc.txt'
 freyja_file             = 'aggregated-freyja.tsv'
 seqyclean_file          = 'multiqc_data/multiqc_seqyclean.txt'
@@ -22,22 +23,21 @@ columns = []
 summary_df = pd.DataFrame(columns=['sample_id'])
 min_depth = int(sys.argv[1])
 
-if exists(fastqc_file) :
+if exists(fastqc_file) and exists(fastq_names_file):
     print("Getting results from fastqc file " + fastqc_file)
     fastqc_df = pd.read_table(fastqc_file)
-    fastqc_df['sample_name'] = fastqc_df['Sample'].str.replace('_.*', '', regex = True)
-
-    fastqc_tmp1_df = fastqc_df.drop_duplicates(subset='sample_name', keep='first')
-    fastqc_tmp1_df['fastqc_raw_reads_1'] = fastqc_tmp1_df['Total Sequences']
+    names_df  = pd.read_csv(fastq_names_file)
+    fastq_R1_df = pd.merge(names_df, fastqc_df, left_on = 'fastq_1', right_on = 'Filename', how = 'inner' )
+    fastq_R1_df['fastqc_raw_reads_1'] = fastq_R1_df['Total Sequences']
+    names_tmp_df = names_df.dropna(subset = ['fastq_2'])
+    fastq_R2_df = pd.merge(names_tmp_df, fastqc_df, left_on = 'fastq_2', right_on = 'Filename', how = 'inner' )
+    fastq_R2_df['fastqc_raw_reads_2'] = fastq_R1_df['Total Sequences']
+    fastq_both_df = pd.merge(fastq_R1_df, fastq_R2_df, left_on='sample',right_on='sample', how = 'left')
+    fastqc_tmp_df = fastq_both_df[['sample', 'fastqc_raw_reads_1', 'fastqc_raw_reads_2']]
     
-    fastqc_tmp2_df = fastqc_df.drop_duplicates(subset='sample_name', keep='last')
-    fastqc_tmp2_df['fastqc_raw_reads_2'] = fastqc_tmp2_df['Total Sequences']
-    fastqc_tmp3_df = pd.merge(fastqc_tmp1_df, fastqc_tmp2_df, left_on='sample_name', right_on='sample_name')
-    fastqc_tmp_df = fastqc_tmp3_df[['sample_name', 'fastqc_raw_reads_1', 'fastqc_raw_reads_2']]
-    
-    summary_df = pd.merge(summary_df, fastqc_tmp_df, left_on = 'sample_id', right_on = 'sample_name', how = 'outer' )
-    summary_df['sample_id'].fillna(summary_df['sample_name'], inplace=True)
-    summary_df.drop('sample_name', axis=1, inplace=True)
+    summary_df = pd.merge(summary_df, fastqc_tmp_df, left_on = 'sample_id', right_on = 'sample', how = 'outer' )
+    summary_df['sample_id'].fillna(summary_df['sample'], inplace=True)
+    summary_df.drop('sample', axis=1, inplace=True)
     columns = columns + ['fastqc_raw_reads_1', 'fastqc_raw_reads_2']
 
 fasta_df = pd.DataFrame(columns=['fasta_sample', "fasta_line", "num_N", "num_total"])
@@ -45,7 +45,7 @@ fasta_files = glob.glob("*.fa") + glob.glob("*.fasta") + glob.glob("*.fna")
 for file in fasta_files :
     print("Getting basic information from fasta " + file)
     if not ( os.stat(file).st_size==0 ) : 
-        sample              = str(file).replace(".fa", '').replace(".fna", '').replace('.fasta', '').replace('.consensus','')
+        sample              = str(file).replace(".fasta", '').replace(".fna", '').replace('.fa', '').replace('.consensus','')
         with open(file) as fasta : 
             fasta_line = ''
             sequence = ''
@@ -284,10 +284,18 @@ if exists(vadr_file) :
     vadr_columns.remove('vadr_name')
     vadr_columns.remove('vadr_p/f')
 
-    summary_df = pd.merge(summary_df, vadr_df, left_on = 'fasta_line', right_on = 'vadr_name', how = 'outer')
-    summary_df['sample_id'].fillna(summary_df['vadr_name'], inplace=True)
-    summary_df.drop('vadr_name', axis=1, inplace=True)
-    columns = ['vadr_p/f'] + columns + vadr_columns
+    if 'fasta_line' in summary_df.columns.tolist():
+        summary_df = pd.merge(summary_df, vadr_df, left_on = 'fasta_line', right_on = 'vadr_name', how = 'outer')
+        summary_df['sample_id'].fillna(summary_df['vadr_name'], inplace=True)
+        summary_df.drop('vadr_name', axis=1, inplace=True)
+        columns = ['vadr_p/f'] + columns + vadr_columns
+    else:
+        vadr_df['sample_match'] = vadr_df['vadr_name'].str.replace('Consensus_', '', regex =  False).str.split(".").str[0]
+        summary_df = pd.merge(summary_df, vadr_df, left_on = 'sample_id', right_on = 'sample_match', how = 'outer')
+        summary_df['sample_id'].fillna(summary_df['sample_match'], inplace=True)
+        summary_df.drop('vadr_name', axis=1, inplace=True)
+        summary_df.drop('sample_match', axis=1, inplace=True)
+        columns = ['vadr_p/f'] + columns + vadr_columns 
 
 if exists(nextclade_file) :
     print("Getting results from nextclade file " + nextclade_file)

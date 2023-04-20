@@ -18,7 +18,7 @@ process ivar_consensus {
   path "consensus/${sample}.consensus.fa",                                                            emit: consensus
   path "consensus/${sample}.consensus.qual.txt",                                                      emit: qual
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
-  tuple val("iVar"), env(ivar_version),                                                               emit: ivar_version
+  tuple val("ivar consensus"), env(ivar_version),                                                     emit: ivar_version
 
   shell:
   '''

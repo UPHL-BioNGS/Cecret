@@ -309,7 +309,7 @@
             "hidden": true,
             "default": "ncov_V4",
             "description": "Specifies a primer set included in repo",
-            "enum": ["ncov_V3", "ncov_V4", "ncov_V4.1", "mpx_idt"]
+            "enum": ["ncov_V3", "ncov_V4", "ncov_V4.1", "ncov_V5.3.2", "mpx_idt"]
         },
         "reads": { 
             "type": "string",
