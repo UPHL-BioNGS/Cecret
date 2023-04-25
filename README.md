@@ -13,7 +13,7 @@ Location: 40.570°N 111.622°W , Elevation: 9,875 feet (3,010 m), [Hiking level:
 
 
 Table of Contents:
-- [Introduction](https://github.com/UPHL-BioNGS/Cecret#introduction)
+- [Introduction](https://github.com/UPHL-BioNGS/Cecret#)
 - [Dependencies](https://github.com/UPHL-BioNGS/Cecret#dependencies)
 - [Usage](https://github.com/UPHL-BioNGS/Cecret#usage)
   - [Using a sample sheet](https://github.com/UPHL-BioNGS/Cecret#using-a-sample-sheet)
