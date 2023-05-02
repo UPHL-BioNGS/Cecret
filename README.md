@@ -33,6 +33,7 @@ Table of Contents:
 - [Final file structure](https://github.com/UPHL-BioNGS/Cecret#final-file-structure)
 - [Config files](https://github.com/UPHL-BioNGS/Cecret#config-files)
    - [Using config files](https://github.com/UPHL-BioNGS/Cecret#using-config-files)
+- [Input and output directories](https://github.com/UPHL-BioNGS/Cecret#input-and-output-directories)
 - [Frequently Asked Questions (aka FAQ)](https://github.com/UPHL-BioNGS/Cecret#frequently-asked-questions-aka-faq)
 
 ## Introduction
@@ -762,7 +763,7 @@ In theory, the values specified in this config file will be used over the defaul
 
 If the **End User** is using some sort of cloud or HPC setup, it is highly recommended that this file is copied and edited appropriately. A limited list of parameters is listed below:
 
-### input and output directories
+### Input and output directories
 * params.reads = workflow.launchDir + '/reads'
 * params.single_reads = workflow.launchDir + '/single_reads'
 * params.fastas = workflow.launchDir + '/fastas'
