@@ -1,4 +1,4 @@
-version: "v.3.6.20230425"
+version: "v.3.6.20230502"
 workflows:
    - name: Cecret
      subclass: NFL
