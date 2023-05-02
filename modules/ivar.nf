@@ -3,7 +3,7 @@ process ivar_consensus {
   memory        { 2.GB * task.attempt }
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    params.outdir, mode: 'copy'
-  container     'staphb/ivar:1.3.1'
+  container     'staphb/ivar:1.4.2'
 
   //#UPHLICA maxForks      10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
@@ -40,7 +40,7 @@ process ivar_variants {
   memory        { 2.GB * task.attempt }
   errorStrategy { task.attempt < 3 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'  
-  container     'staphb/ivar:1.3.1'
+  container     'staphb/ivar:1.4.2'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -96,7 +96,7 @@ process ivar_variants {
 process ivar_trim {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/ivar:1.3.1'
+  container  'staphb/ivar:1.4.2'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
