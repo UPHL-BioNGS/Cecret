@@ -67,14 +67,14 @@ workflow cecret {
   }
 
   if ( params.trimmer == 'ivar' ) {
-    ivar_trim(ch_bam.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
+    ivar_trim(ch_bam.filter{ it -> it[1].size() > 500 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
 
     ch_trim_bam    = ivar_trim.out.bam_bai
     ch_for_version = ch_for_version.mix(ivar_trim.out.trimmer_version)
     ch_for_multiqc = ch_for_multiqc.mix(ivar_trim.out.ivar_trim_files)
 
   } else if ( params.trimmer == 'samtools' || params.trimmer == 'ampliconclip' ) {
-    ampliconclip(ch_bam.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
+    ampliconclip(ch_bam.filter{ it -> it[1].size() > 500 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
     
     ch_trim_bam    = ampliconclip.out.bam_bai
     ch_for_version = ch_for_version.mix(ampliconclip.out.trimmer_version)
