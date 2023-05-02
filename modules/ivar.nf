@@ -3,7 +3,7 @@ process ivar_consensus {
   memory        { 2.GB * task.attempt }
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    params.outdir, mode: 'copy'
-  container     'staphb/ivar:1.3.1'
+  container     'staphb/ivar:1.4.2'
 
   //#UPHLICA maxForks      10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
@@ -40,7 +40,7 @@ process ivar_variants {
   memory        { 2.GB * task.attempt }
   errorStrategy { task.attempt < 3 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'  
-  container     'staphb/ivar:1.3.1'
+  container     'staphb/ivar:1.4.2'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -96,7 +96,7 @@ process ivar_variants {
 process ivar_trim {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/ivar:1.3.1'
+  container  'staphb/ivar:1.4.2'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -124,12 +124,12 @@ process ivar_trim {
     date > $log
     ivar version >> $log
     trimmer_version="ivar : $(ivar version | grep version)"
-
+    
     # trimming the reads
     ivar trim !{params.ivar_trim_options} -e -i !{bam} -b !{primer_bed} -p ivar_trim/!{sample}.primertrim | tee -a $log
 
-    grep "Found" -A 10000 $log | grep -A 10000 "primers in BED file" > ivar_trim/!{sample}_ivar.log
-
+    if [ -S "$log" ] ; then grep "Found" -A 10000 $log | grep -A 10000 "primers in BED file" > ivar_trim/!{sample}_ivar.log ; else touch ivar_trim/!{sample}_ivar.log ; fi
+    
     # sorting and indexing the trimmed bams
     samtools sort ivar_trim/!{sample}.primertrim.bam -o ivar_trim/!{sample}.primertrim.sorted.bam | tee -a $log
     samtools index ivar_trim/!{sample}.primertrim.sorted.bam | tee -a $log

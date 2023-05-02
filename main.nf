@@ -456,13 +456,11 @@ workflow {
 
     multiqc_combine(ch_for_multiqc.collect())
 
-    multiqc_combine.out.files.ifEmpty([]).map{it -> tuple([it])}.view()
-
     summary(
       ch_for_summary.mix(fasta_prep.out.fastas).mix(cecret.out.consensus).collect().map{it -> tuple([it])}
         .combine(ch_combine_results_script)
         .combine(ch_for_version.mix(cecret.out.for_version).collect().map{it -> tuple([it])})
-        .combine(multiqc_combine.out.files.ifEmpty([]).map{it -> tuple([it])}.view()))
+        .combine(multiqc_combine.out.files.ifEmpty([]).map{it -> tuple([it])}))
 
   emit:
     bam       = cecret.out.trim_bam
