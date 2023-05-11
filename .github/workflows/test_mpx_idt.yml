@@ -35,5 +35,3 @@ jobs:
           ls cecret*
             
           head cecret*/cecret_results.txt
-
-          head cecret*/iqtree2/iqtree2.treefile
