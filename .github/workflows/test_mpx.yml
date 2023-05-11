@@ -1,0 +1,34 @@
+name: Test SARS-CoV-2 mpx workflow
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+          
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+      
+      - name: Download reads
+        run: |
+          mkdir reads
+          cd reads
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR195/026/SRR19536726/SRR19536726_1.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR195/026/SRR19536726/SRR19536726_2.fastq.gz
+          cd ../
+
+      - name: Run Cecret
+        run: |
+          nextflow run . -profile docker,mpx -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2
+
+          ls cecret*
+            
+          head cecret*/cecret_results.txt
+
+          head cecret*/iqtree2/iqtree2.treefile

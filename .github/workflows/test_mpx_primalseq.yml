@@ -1,0 +1,39 @@
+name: Test SARS-CoV-2 mpx workflow with primalseq primers
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+
+      - name: Checkout LFS objects
+        run: git lfs checkout
+          
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+      
+      - name: Download reads
+        run: |
+          mkdir reads
+          cd reads
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_1.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_2.fastq.gz
+          cd ../
+
+      - name: Run Cecret
+        run: |
+          nextflow run . -profile docker,mpx_primalseq -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2
+
+          ls cecret*
+            
+          head cecret*/cecret_results.txt
+
+          head cecret*/iqtree2/iqtree2.treefile
