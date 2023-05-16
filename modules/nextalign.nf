@@ -2,7 +2,7 @@ process nextalign {
   tag        "Multiple Sequence Alignment"
   label      "maxcpus"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'nextstrain/nextalign:2.13.1'
+  container  'nextstrain/nextalign:2.14.0'
 
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
