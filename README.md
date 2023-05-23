@@ -17,12 +17,14 @@ Table of Contents:
 - [Dependencies](https://github.com/UPHL-BioNGS/Cecret#dependencies)
 - [Usage](https://github.com/UPHL-BioNGS/Cecret#usage)
   - [Using a sample sheet](https://github.com/UPHL-BioNGS/Cecret#using-a-sample-sheet)
+- [Input and output directories](https://github.com/UPHL-BioNGS/Cecret#input-and-output-directories)
 - [Full workflow](https://github.com/UPHL-BioNGS/Cecret#full-workflow)
 - [Determining primer and amplicon bedfiles](https://github.com/UPHL-BioNGS/Cecret#determining-primer-and-amplicon-bedfiles)
 - [Using the included nextclade dataset](https://github.com/UPHL-BioNGS/Cecret#using-the-included-nextclade-dataset)
 - [Determining CPU usage](https://github.com/UPHL-BioNGS/Cecret#determining-cpu-usage)
 - [Determining depth for base calls](https://github.com/UPHL-BioNGS/Cecret#determining-depth-for-base-calls)
 - [Determining if duplicates should be taken into account](https://github.com/UPHL-BioNGS/Cecret#determining-if-duplicates-should-be-taken-into-account)
+- [SARS-CoV-2 Wastewater](https://github.com/UPHL-BioNGS/Cecret#wastewater)
 - [Monkeypox](https://github.com/UPHL-BioNGS/Cecret#monkeypox)
 - [Updating Cecret](https://github.com/UPHL-BioNGS/Cecret#updating-cecret)
 - [Optional toggles:](https://github.com/UPHL-BioNGS/Cecret#optional-toggles)
@@ -33,7 +35,6 @@ Table of Contents:
 - [Final file structure](https://github.com/UPHL-BioNGS/Cecret#final-file-structure)
 - [Config files](https://github.com/UPHL-BioNGS/Cecret#config-files)
    - [Using config files](https://github.com/UPHL-BioNGS/Cecret#using-config-files)
-- [Input and output directories](https://github.com/UPHL-BioNGS/Cecret#input-and-output-directories)
 - [Frequently Asked Questions (aka FAQ)](https://github.com/UPHL-BioNGS/Cecret#frequently-asked-questions-aka-faq)
 
 ## Introduction
@@ -244,6 +245,11 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_primalseq
 ### Other library prep methods
 
 There are amplicon-based methods, bait, and amplicon-bait hybrid library preparation methods which increases the portion of reads for a relevant organism. If there is a common preparation for the **End User**, please submit an [issue](https://github.com/UPHL-BioNGS/Cecret/issues), and we can create a profile or config file. Remember that the bedfiles for the primer schemes and amplicons MUST match the reference. 
+
+## Wastewater
+Admitedly, this section needs to be expanded. 
+
+This workflow has also been used with primer-amplified Illumina sequencing of wastewater. Patient samples conceptually are different than wastewater samples, but many of the bioinformatic steps are the same. The files from [Freyja](https://github.com/andersen-lab/Freyja) are likely the most significant for this analysis. Pangolin, Nextclade, and any analysis that evaluates the consensus fasta are not as useful in the context of wastewater. Still, many of the QC metrics (such as coverage) can still be useful as they evaluate library preparation and sequencing quality.
 
 ## Updating Cecret
 ```
