@@ -2,9 +2,11 @@ name: Test SARS-CoV-2 mpx workflow
 
 on: [pull_request, workflow_dispatch]
 
+run-name: MPX
+
 jobs:
 
-  build:
+  test:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -19,8 +21,8 @@ jobs:
         run: |
           mkdir reads
           cd reads
-          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR195/026/SRR19536726/SRR19536726_1.fastq.gz
-          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR195/026/SRR19536726/SRR19536726_2.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_1.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_2.fastq.gz
           cd ../
 
       - name: Run Cecret

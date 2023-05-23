@@ -2,9 +2,11 @@ name: Test SARS-CoV-2 workflow
 
 on: [pull_request, workflow_dispatch]
 
+run-name: Download fastq and fasta and run
+
 jobs:
 
-  build:
+  test:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout

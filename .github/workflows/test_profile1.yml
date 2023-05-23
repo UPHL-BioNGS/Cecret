@@ -2,9 +2,11 @@ name: Test SARS-CoV-2 profile 1 workflow
 
 on: [pull_request, workflow_dispatch]
 
+run-name: Profile 1
+
 jobs:
 
-  build:
+  test:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
