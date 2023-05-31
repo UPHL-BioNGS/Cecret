@@ -70,10 +70,13 @@ process freyja_aggregate {
 
   input:
   file(demix)
+  file(graphs)
 
   output:
   path "freyja/aggregated*",                                                   emit: files
   path "freyja/aggregated-freyja.tsv",                                         emit: aggregated_freyja_file
+  path "freyja/*mqc.png",                                                       emit: for_multiqc
+  path "freyja/*png"
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
@@ -94,5 +97,7 @@ process freyja_aggregate {
       freyja/aggregated-freyja.tsv \
       --output freyja/aggregated-freyja.!{params.freyja_plot_filetype} \
       | tee -a $log
+
+    python3 !{graphs}
   '''
 }

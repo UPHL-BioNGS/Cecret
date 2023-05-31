@@ -377,6 +377,7 @@ if ( ! params.download_nextclade_dataset ) {
 
 //# getting scripts
 ch_combine_results_script = Channel.fromPath("${workflow.projectDir}/bin/combine_results.py", type:'file')
+ch_freyja_script          = Channel.fromPath("${workflow.projectDir}/bin/freyja_graphs.py",   type:'file')
 
 // This is where the results will be
 println('The files and directory for results is ' + params.outdir)
@@ -419,7 +420,7 @@ workflow {
     ch_for_summary = qc.out.for_summary
 
     if ( params.species == 'sarscov2' ) {
-      sarscov2(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), cecret.out.trim_bam, ch_reference_genome, ch_nextclade_dataset)
+      sarscov2(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), cecret.out.trim_bam, ch_reference_genome, ch_nextclade_dataset, ch_freyja_script)
       
       ch_for_multiqc = ch_for_multiqc.mix(sarscov2.out.for_multiqc)
       ch_for_dataset = sarscov2.out.dataset
