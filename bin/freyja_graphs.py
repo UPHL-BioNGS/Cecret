@@ -15,7 +15,6 @@ def makePieCharts_simple(agg_df, lineages, outputFnBase):
     for k in range(0, agg_df.shape[0]):
         sample                  = agg_df['sample'].iloc[k]
         sample_df               = agg_df[agg_df['sample' ] == sample ].copy()
-        print(sample_df)
         try:
             sample_df['lineages']   = sample_df['lineages'].str.split(" ")
             sample_df['abundances'] = sample_df['abundances'].str.split(" ")
@@ -23,7 +22,6 @@ def makePieCharts_simple(agg_df, lineages, outputFnBase):
         except:
             print(sample_df)
         
-        print(sample_df)
         sample_df['abundances'] = sample_df['abundances'].astype(float)
         
         # reducing noise to lineages with 3% or more
