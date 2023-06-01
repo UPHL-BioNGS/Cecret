@@ -15,10 +15,13 @@ def makePieCharts_simple(agg_df, lineages, outputFnBase):
     for k in range(0, agg_df.shape[0]):
         sample                  = agg_df['sample'].iloc[k]
         sample_df               = agg_df[agg_df['sample' ] == sample ].copy()
-        sample_df['lineages']   = sample_df['lineages'].str.split(" ")
-        sample_df['abundances'] = sample_df['abundances'].str.split(" ")
-        sample_df               = sample_df.explode(['lineages', 'abundances'])
-        sample_df['abundances'] = sample_df['abundances'].astype(float)
+        try:
+            sample_df['lineages']   = sample_df['lineages'].str.split(" ")
+            sample_df['abundances'] = sample_df['abundances'].str.split(" ")
+            sample_df               = sample_df.explode(['lineages', 'abundances'])
+            sample_df['abundances'] = sample_df['abundances'].astype(float)
+        except:
+            sample_df = {'sample': [sample], 'lineages': ['unknown'], 'abundances': 1.0 }
         
         # reducing noise to lineages with 3% or more
         sample_df               = sample_df[sample_df['abundances' ] >= 0.03 ]
