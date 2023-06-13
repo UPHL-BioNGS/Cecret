@@ -18,6 +18,7 @@ Table of Contents:
 - [Usage](https://github.com/UPHL-BioNGS/Cecret#usage)
   - [Using a sample sheet](https://github.com/UPHL-BioNGS/Cecret#using-a-sample-sheet)
 - [Input and output directories](https://github.com/UPHL-BioNGS/Cecret#input-and-output-directories)
+- [Quality Assessment](https://github.com/UPHL-BioNGS/Cecret#quality-assessment)
 - [Full workflow](https://github.com/UPHL-BioNGS/Cecret#full-workflow)
 - [Determining primer and amplicon bedfiles](https://github.com/UPHL-BioNGS/Cecret#determining-primer-and-amplicon-bedfiles)
 - [Using the included nextclade dataset](https://github.com/UPHL-BioNGS/Cecret#using-the-included-nextclade-dataset)
@@ -247,14 +248,42 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_primalseq
 There are amplicon-based methods, bait, and amplicon-bait hybrid library preparation methods which increases the portion of reads for a relevant organism. If there is a common preparation for the **End User**, please submit an [issue](https://github.com/UPHL-BioNGS/Cecret/issues), and we can create a profile or config file. Remember that the bedfiles for the primer schemes and amplicons MUST match the reference. 
 
 ## Wastewater
-Admitedly, this section needs to be expanded. 
+This workflow has also been used with primer-amplified Illumina sequencing of wastewater. Patient samples conceptually are different than wastewater samples, but many of the bioinformatic steps are the same. The files from [Freyja](https://github.com/andersen-lab/Freyja) are likely the most significant for this analysis. Freyja uses the bam files after primer trimming has been completed to look for variants and their proportions to assign expected pangolin lineages.
 
-This workflow has also been used with primer-amplified Illumina sequencing of wastewater. Patient samples conceptually are different than wastewater samples, but many of the bioinformatic steps are the same. The files from [Freyja](https://github.com/andersen-lab/Freyja) are likely the most significant for this analysis. Pangolin, Nextclade, and any analysis that evaluates the consensus fasta are not as useful in the context of wastewater. Still, many of the QC metrics (such as coverage) can still be useful as they evaluate library preparation and sequencing quality.
+Recommended parameter adjustements for wastewater
+```
+params.species           = 'sarscov2' //this is the default, but it is required for the subworkflow that involves freyja
+params.bcftools_variants = false
+params.ivar_variants     = false
+params.pangolin          = false
+params.nextclade         = false
+params.vadr              = false
+```
+
+Pangolin, Nextclade, and any analysis that evaluates the consensus fasta are not as useful in the context of wastewater. There is currently not a way to remove consensus sequence generation from Cecret, but an option may be available in the future if there is "enough" demand.
 
 ## Updating Cecret
 ```
 nextflow pull UPHL-BioNGS/Cecret
 ```
+
+## Quality Assessment
+The quality of a sequencing run is very important. As such, many values are recorded so that the **End User** can assess the quality of the results produced from a sequencing run.
+
+- `fastqc_raw_reads_1` and `fastqc_raw_reads_2` are the number of reads prior to cleaning by either seqyclean or fastp.
+- `seqyclean_Perc_Kept` (params.cleaner = 'seqyclean') or `fastp_pct_surviving` (params.cleaner = 'fastp') indicate how many reads remain after removal of low-quality reads (more = better). 
+- `num_N` is the number of uncalled bases in the generated consensus sequence (less = better).
+- `num_total` is the total number of called bases in the generated consensus sequequence (more = better). As many consensus sequences are generated with this workflow via amplicon sequencing, the intitial and end of the reference often has little coverage. This means that the number of bases in the consensus sequence is less than the length of the reference sequence.
+- `num_pos_${params.minimum_depth}X` (which is `num_pos_100X` by default) is the number of positions for which there is sufficient depth to call variants (more = better). Any sequence below this value will be an `N`.
+- `bedtools_num_failed_amplicons` uses the amplicon file to give a rough estimate as to which primer pairs are not getting enough coverage (less = better).
+- `samtools_num_failed_amplicons` uses the primer file to detect primer pairs and estimates coverages based on this (less = better).
+
+More imformation on evaluating amplicon/primer failure can be found in the [FAQ](https://github.com/UPHL-BioNGS/Cecret#is-there-a-way-to-determine-if-certain-amplicons-are-failing) under the question 'Is there a way to determine if certain amplicons are failing?'
+
+Kraken2 is optional for this workflow, but can provide additional quality assessment metrics:
+- `top_organism` is the most common organism identified in the reads.
+- `percent_reads_top_organism` is the percentage of reads assigned that organism (more = better).
+- `%_human_reads` is the percentage of human reads reads (less = better).
 
 ## Optional toggles:
 
@@ -881,7 +910,8 @@ This is standard bedtools multicov output, so it doesn't have a header.
 - Column 7 : (Column G) is the depth observed for that amplicon for that sample.
 
 #### With samtools ampliconstats :
-`cecret/samtools_ampliconstats` has a file for each sample
+`cecret/samtools_ampliconstats` has a file for each sample.
+
 Row number 126 (FDEPTH) has a column for each amplicon (also without a header). To get this row for all of the samples, `grep` the keyword "FDEPTH" from each sample.
 
 ```
