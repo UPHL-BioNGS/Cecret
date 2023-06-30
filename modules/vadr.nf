@@ -33,7 +33,7 @@ process vadr {
 
     for fasta in !{fasta}
     do
-      lines=$(cat $fasta | fold -w 75 | wc -l | awk '{print $1}' )
+      lines=$(grep -v ">" $fasta | fold -w 75 | grep -e A -e G -e C -e T | wc -l | awk '{print $1}' )
       if [ "$lines" -gt 2 ] ; then cat $fasta >> ultimate_fasta.fasta ; fi
     done
 
