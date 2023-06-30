@@ -101,3 +101,28 @@ process summary {
     python !{script} !{params.minimum_depth}
   '''
 }
+
+process graph_primer_assessement {
+  tag        "Graphing amplicon meandepths"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'quay.io/biocontainers/pandas:1.1.5'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
+  //#UPHLICA memory 1.GB
+  //#UPHLICA cpus 3
+  //#UPHLICA time '45m'
+
+  input:
+  tuple file(file), file(script)
+
+  output:
+  path "primerassessment/primerassessment.png"
+  path "primerassessment/primerassessment_mqc.png", emit: mqc
+
+  shell:
+  '''
+  python !{script}
+  '''
+}
