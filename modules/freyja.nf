@@ -5,6 +5,7 @@ process freyja {
   publishDir    "${params.outdir}", mode: 'copy'
   container     'quay.io/uphl/freyja:1.4.4-20230711'
 
+
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
   //#UPHLICA memory 60.GB
@@ -57,6 +58,7 @@ process freyja_aggregate {
   tag        "Aggregating results from freyja"
   publishDir "${params.outdir}", mode: 'copy'
   container  'quay.io/uphl/freyja:1.4.4-20230711'
+
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
