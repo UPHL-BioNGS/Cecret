@@ -1,4 +1,4 @@
-include { download } from '../modules/download' addParams(params)
+include { download } from '../modules/cecret' addParams(params)
 
 workflow test {
     take:
