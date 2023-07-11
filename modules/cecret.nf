@@ -2,7 +2,7 @@
 process fasta_prep {
   tag        "${fasta}"
   //# nothing to publish in publishDir
-  container  'quay.io/biocontainers/pandas:1.1.5'
+  container  'quay.io/uphl/seaborn:0.12.2'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -32,7 +32,7 @@ process fasta_prep {
 process unzip {
   tag        "unzipping nextclade dataset"
   //# nothing to publish in publishDir
-  container  'quay.io/biocontainers/pandas:1.1.5'
+  container  'quay.io/uphl/seaborn:0.12.2'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -61,7 +61,7 @@ process unzip {
 process summary {
   tag        "Creating summary files"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'quay.io/biocontainers/pandas:1.1.5'
+  container  'quay.io/uphl/seaborn:0.12.2'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -99,5 +99,71 @@ process summary {
     if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | grep -v "#-" | tr -s '[:blank:]' ',' > vadr.csv ; fi
 
     python !{script} !{params.minimum_depth}
+  '''
+}
+
+process graph_primer_assessement {
+  tag        "Graphing amplicon meandepths"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'quay.io/uphl/seaborn:0.12.2'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
+  //#UPHLICA memory 1.GB
+  //#UPHLICA cpus 3
+  //#UPHLICA time '45m'
+
+  input:
+  tuple file(file), file(script)
+
+  output:
+  path "primer_assessment/primerassessment.png"
+  path "primer_assessment/primerassessment_mqc.png", emit: mqc
+
+  shell:
+  '''
+  python !{script}
+  '''
+}
+
+process download {
+  tag        "${sra}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'quay.io/uphl/seaborn:0.12.2'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
+  //#UPHLICA memory 1.GB
+  //#UPHLICA cpus 3
+  //#UPHLICA time '45m'
+
+  input:
+  val(sra)
+
+  output:
+  tuple val(sra), file("sra/paired/${sra}*fastq.gz"), val("paired"), optional: true, emit: paired
+  tuple val(sra), file("sra/single/${sra}*fastq.gz"), val("single"), optional: true, emit: single
+
+  shell:
+  '''
+    mkdir -p sra/{paired,single}
+
+    sra=!{sra}
+
+    wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2}/!{sra}/!{sra}_1.fastq.gz || \
+        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2}/!{sra}/!{sra}.fastq.gz
+
+    if [ -f !{sra}_1.fastq.gz ]
+    then
+        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2 }/!{sra}/!{sra}_2.fastq.gz
+        mv !{sra}_*.fastq.gz sra/paired/.
+    elif [ -f !{sra}.fastq.gz ]
+    then
+        mv !{sra}.fastq.gz sra/single/.
+    else
+        echo "Could not download file for SRA accession !{sra}"
+    fi
   '''
 }

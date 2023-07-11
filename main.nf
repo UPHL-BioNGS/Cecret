@@ -374,10 +374,10 @@ if ( ! params.download_nextclade_dataset ) {
   ch_nextclade_dataset = Channel.empty()
 }
 
-
 //# getting scripts
-ch_combine_results_script = Channel.fromPath("${workflow.projectDir}/bin/combine_results.py", type:'file')
-ch_freyja_script          = Channel.fromPath("${workflow.projectDir}/bin/freyja_graphs.py",   type:'file')
+ch_combine_results_script   = Channel.fromPath("${workflow.projectDir}/bin/combine_results.py",  type:'file')
+ch_freyja_script            = Channel.fromPath("${workflow.projectDir}/bin/freyja_graphs.py",    type:'file')
+ch_primer_assessment_script = Channel.fromPath("${workflow.projectDir}/bin/primerassessment.py", type:'file')
 
 // This is where the results will be
 println('The files and directory for results is ' + params.outdir)
@@ -414,7 +414,8 @@ workflow {
       ch_reference_genome,
       ch_gff_file,
       ch_amplicon_bed,
-      ch_primer_bed)
+      ch_primer_bed,
+      ch_primer_assessment_script)
 
     ch_for_multiqc = cecret.out.for_multiqc.mix(qc.out.for_multiqc)
     ch_for_summary = qc.out.for_summary

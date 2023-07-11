@@ -2,7 +2,7 @@ process kraken2 {
   tag        "${sample}"
   label      "maxcpus"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/kraken2:2.1.2-no-db'
+  container  'staphb/kraken2:2.1.3'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
