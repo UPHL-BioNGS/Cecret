@@ -398,7 +398,7 @@ process samtools_primerassessment {
   tuple val(sample), file(bam), file(bai), file(bed)
 
   output:
-  tuple val(sample), file("primer_assessment/${sample}_primerassessment.csv"),  emit: cov
+  path "primer_assessment/${sample}_primerassessment.csv",  emit: cov
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
   
   shell:
