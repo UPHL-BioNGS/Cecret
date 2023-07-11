@@ -118,8 +118,8 @@ process graph_primer_assessement {
   tuple file(file), file(script)
 
   output:
-  path "primerassessment/primerassessment.png"
-  path "primerassessment/primerassessment_mqc.png", emit: mqc
+  path "primer_assessment/primerassessment.png"
+  path "primer_assessment/primerassessment_mqc.png", emit: mqc
 
   shell:
   '''
