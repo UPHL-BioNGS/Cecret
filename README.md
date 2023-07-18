@@ -29,9 +29,9 @@ Table of Contents:
 - [Monkeypox](https://github.com/UPHL-BioNGS/Cecret#monkeypox)
 - [Updating Cecret](https://github.com/UPHL-BioNGS/Cecret#updating-cecret)
 - [Optional toggles:](https://github.com/UPHL-BioNGS/Cecret#optional-toggles)
-- [Determining relatedness](https://github.com/UPHL-BioNGS/Cecret#determining-relatedness)
+- [Determining relatedness or creating trees](https://github.com/UPHL-BioNGS/Cecret#determining-relatedness)
 - [Classified reads with Kraken2](https://github.com/UPHL-BioNGS/Cecret#classify-reads-with-kraken2)
-- [The main components of Cecret are:](https://github.com/UPHL-BioNGS/Cecret#the-main-components-of-cecret-are)
+- [Main components](https://github.com/UPHL-BioNGS/Cecret#the-main-components-of-cecret-are)
 - [Turning off unneeded processes](https://github.com/UPHL-BioNGS/Cecret#turning-off-unneeded-processes)
 - [Final file structure](https://github.com/UPHL-BioNGS/Cecret#final-file-structure)
 - [Config files](https://github.com/UPHL-BioNGS/Cecret#config-files)
@@ -322,14 +322,6 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --msa ne
 ```
 Or set `params.msa = 'nextalign'` and `params.relatedness = true` in a config file
 
-### Using the aligned fasta from nextclade to for multiple sequence alignement instead of mafft or nextalign
-```
-nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --msa nextclade
-```
-Or set `params.msa = 'nextclade'` and `params.relatedness = true` in a config file.
-
-WARNING : the aligned fasta from nextclade does not include a reference sequence. If this is desired for iqtree2, a fasta of the reference MUST be included with the input files and the outgroup CAN be specified with `params.iqtree2_options = '-ninit 2 -n 2 -me 0.05 -m GTR -o <YOUR OUTGROUP>'`. Specifying the outgroup via `'params.iqtree2_outgroup'` will not be used.
-
 And then you get trees like this which can visualized with [itol](https://itol.embl.de/) or [ggtree](https://github.com/YuLab-SMU/ggtree).
 ![alt text](images/w5IMLiHfkMm3fS3kgJVpRg.png)
 
@@ -339,7 +331,7 @@ To classify reads with kraken2 to identify reads from human or the organism of c
 ```
 mkdir kraken2_db
 cd kraken2_db
-wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20230314.tar.gz
+wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20230605.tar.gz
 tar -zxvf minikraken2_v2_8GB_201904.tgz
 ```
 #### Step 2. Set the paramaters accordingly
@@ -349,26 +341,24 @@ params.kraken2_db = 'kraken2_db'
 ```
 
 ## The main components of Cecret are:
-
-- [seqyclean](https://github.com/ibest/seqyclean) - for cleaning reads
-- [fastp](https://github.com/OpenGene/fastp) - for cleaning reads ; optional, faster alternative to seqyclean
-- [bwa](http://bio-bwa.sourceforge.net/) - for aligning reads to the reference
-- [minimap2](https://github.com/lh3/minimap2) - an alternative to bwa
-- [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - calling variants and creating a consensus fasta; optional primer trimmer
-- [samtools](http://www.htslib.org/) - for QC metrics and sorting; optional primer trimmer; optional converting bam to fastq files; optional duplication marking
-- [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics
 - [bedtools](https://bedtools.readthedocs.io/en/latest/) - for depth estimation over amplicons
-- [kraken2](https://ccb.jhu.edu/software/kraken2/) - for read classification
-- [pangolin](https://github.com/cov-lineages/pangolin) - for SARS-CoV-2 lineage classification
+- [bwa](http://bio-bwa.sourceforge.net/) - for aligning reads to the reference
+- [fastp](https://github.com/OpenGene/fastp) - for cleaning reads ; optional, faster alternative to seqyclean
+- [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics
 - [freyja](https://github.com/andersen-lab/Freyja) - for multiple SARS-CoV-2 lineage classifications
-- [nextclade](https://clades.nextstrain.org/) - for SARS-CoV-2 clade classification
-- [vadr](https://github.com/ncbi/vadr) - for annotating fastas like NCBI
-- [mafft](https://mafft.cbrc.jp/alignment/software/) - for multiple sequence alignment (optional, relatedness must be set to "true")
-- [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
 - [iqtree2](http://www.iqtree.org/) - for phylogenetic tree generation (optional, relatedness must be set to "true")
-- [nextalign](https://github.com/neherlab/nextalign) - for phylogenetic tree generation (optional, relatedness must be set to "true", and msa must be set to "nextalign")
-- [bamsnap](https://github.com/parklab/bamsnap) - no longer supported
+- [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - calling variants and creating a consensus fasta; optional primer trimmer
+- [kraken2](https://ccb.jhu.edu/software/kraken2/) - for read classification
+- [mafft](https://mafft.cbrc.jp/alignment/software/) - for multiple sequence alignment (optional, relatedness must be set to "true")
+- [minimap2](https://github.com/lh3/minimap2) - an alternative to bwa
 - [multiqc](https://multiqc.info/) - summary of results
+- [nextalign](https://github.com/neherlab/nextalign) - for phylogenetic tree generation (optional, relatedness must be set to "true", and msa must be set to "nextalign")
+- [nextclade](https://clades.nextstrain.org/) - for SARS-CoV-2 clade classification
+- [pangolin](https://github.com/cov-lineages/pangolin) - for SARS-CoV-2 lineage classification
+- [samtools](http://www.htslib.org/) - for QC metrics and sorting; optional primer trimmer; optional converting bam to fastq files; optional duplication marking
+- [seqyclean](https://github.com/ibest/seqyclean) - for cleaning reads
+- [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
+- [vadr](https://github.com/ncbi/vadr) - for annotating fastas like NCBI
 
 ### Turning off unneeded processes
 It came to my attention that some processes (like bcftools) do not work consistently. Also, they might take longer than wanted and might not even be needed for the end user. Here's the processes that can be turned off with their default values:
