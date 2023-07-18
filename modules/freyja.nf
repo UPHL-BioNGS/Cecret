@@ -3,7 +3,7 @@ process freyja {
   label         "medcpus"
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
-  container     'quay.io/uphl/freyja:1.4.4-20230711'
+  container     'quay.io/uphl/freyja:1.4.4-20230718'
 
 
   //#UPHLICA maxForks 10
