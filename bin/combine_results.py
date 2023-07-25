@@ -7,6 +7,7 @@ import sys
 from os.path import exists
 
 # Entire sample set already in one file
+aci_file                = 'amplicon_depth.csv'
 ampliconstats_file      = 'ampliconstats.summary'
 samtools_coverage_file  = 'samtools_coverage_summary.tsv'
 pangolin_file           = 'multiqc_data/multiqc_pangolin.txt'
@@ -167,22 +168,19 @@ if not depth_df.empty :
     depth_columns.remove('samtools_sample')
     columns                 = columns + depth_columns
 
-multicov_df = pd.DataFrame(columns=['multicov_sample', 'bedtools_num_failed_amplicons'])
-multicov_files = glob.glob("*.multicov.txt")
-for file in multicov_files :
-    print("Determining failed amplicons from " + file)
-    if not (os.stat(file).st_size == 0 ) : 
-        ind_multicov_df     = pd.read_table(file, header=None)
-        depth               = ind_multicov_df.iloc[:,-1][ind_multicov_df.iloc[:,-1] < min_depth ].count()
-        sample              = str(file).replace('.multicov.txt', '')
-        tmp_multicov_df     = pd.DataFrame({'multicov_sample': [sample], 'bedtools_num_failed_amplicons': [depth]})
-        multicov_df         = pd.concat([multicov_df, tmp_multicov_df], axis=0 )
+aci_df = pd.DataFrame(columns=['aci_name', 'aci_num_failed_amplicons'])
+if exists(aci_file) :
+    print("Getting results from ACI " + aci_file)
+    aci_df = pd.read_csv(aci_file, dtype = str)
+    aci_df = aci_df.add_prefix('aci_')    
+    tmp_df = aci_df.iloc[:,aci_df.columns != 'aci_bam'].astype('float').copy()
+    aci_df['aci_num_failed_amplicons'] = tmp_df.apply(lambda x: x[x < min_depth ].count(), axis=1)
+    aci_df['aci_name'] = aci_df['aci_bam'].str.replace(".primertrim.sorted.bam", "", regex = False).str.replace('.sorted.bam', '', regex = False)
 
-if not multicov_df.empty :
-    summary_df               = pd.merge(summary_df, multicov_df, left_on = 'sample_id', right_on = 'multicov_sample', how = 'outer')
-    summary_df['sample_id']  = summary_df['sample_id'].fillna(summary_df['multicov_sample'])
-    summary_df               = summary_df.drop('multicov_sample', axis=1)
-    columns                  = columns + ['bedtools_num_failed_amplicons']
+    summary_df = pd.merge(summary_df, aci_df[['aci_name', 'aci_num_failed_amplicons']], left_on = 'sample_id', right_on = 'aci_name', how = 'outer')
+    summary_df['sample_id'].fillna(summary_df['aci_name'], inplace=True)
+    summary_df.drop('aci_name', axis=1, inplace=True)
+    columns = columns + ['aci_num_failed_amplicons']
 
 if not ( os.stat(ampliconstats_file).st_size==0 ) : 
     print("Getting results from samtools ampliconstats file " + ampliconstats_file)

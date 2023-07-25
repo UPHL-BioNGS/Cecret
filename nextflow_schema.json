@@ -5,6 +5,12 @@
     "description": "Cecret is a workflow for reference-based sequencing of organisms with small genomes, such as SARS-CoV-2",
     "type": "object",
     "properties": {
+        "aci": {
+            "type": "boolean",
+            "description": "Specifies if process should be used",
+            "hidden": true,
+            "default": true
+        },
         "aligner": { 
             "type": "string", 
             "description": "Specifies which aligner is going to be used.",
@@ -26,18 +32,6 @@
         "bcftools_variants_options": { 
             "type": "string",
             "hidden": true,
-            "description": "Options for process"
-        },
-        "bedtools_multicov": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "bedtools_multicov_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "-f .1",
             "description": "Options for process"
         },
         "cleaner": { 
