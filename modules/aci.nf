@@ -38,6 +38,7 @@ process aci {
             --bam !{bam} \
             --bed !{bed} \
             --threads !{task.cpus} \
+            -s \
             --out aci
 
         cp aci/amplicon_depth.png aci/amplicon_depth_mqc.png
