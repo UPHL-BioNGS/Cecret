@@ -1,3 +1,44 @@
+process download {
+  tag        "${sra}"
+  publishDir "${params.outdir}", mode: 'copy'
+  container  'quay.io/uphl/seaborn:0.12.2'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
+  //#UPHLICA memory 1.GB
+  //#UPHLICA cpus 3
+  //#UPHLICA time '45m'
+
+  input:
+  val(sra)
+
+  output:
+  tuple val(sra), file("sra/paired/${sra}*fastq.gz"), val("paired"), optional: true, emit: paired
+  tuple val(sra), file("sra/single/${sra}*fastq.gz"), val("single"), optional: true, emit: single
+
+  shell:
+  '''
+    mkdir -p sra/{paired,single}
+
+    sra=!{sra}
+
+    wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2}/!{sra}/!{sra}_1.fastq.gz || \
+        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2}/!{sra}/!{sra}.fastq.gz
+
+    if [ -f !{sra}_1.fastq.gz ]
+    then
+        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2 }/!{sra}/!{sra}_2.fastq.gz
+        mv !{sra}_*.fastq.gz sra/paired/.
+    elif [ -f !{sra}.fastq.gz ]
+    then
+        mv !{sra}.fastq.gz sra/single/.
+    else
+        echo "Could not download file for SRA accession !{sra}"
+    fi
+  '''
+}
+
 //# some fastas are created with the header of >reference, so this changes the header
 process fasta_prep {
   tag        "${fasta}"
@@ -26,35 +67,6 @@ process fasta_prep {
 
     echo ">!{sample}" > fasta_prep/!{fasta}
     grep -v ">" !{fasta} | fold -w 75 >> fasta_prep/!{fasta}
-  '''
-}
-
-process unzip {
-  tag        "unzipping nextclade dataset"
-  //# nothing to publish in publishDir
-  container  'quay.io/uphl/seaborn:0.12.2'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-  //#UPHLICA memory 1.GB
-  //#UPHLICA cpus 3
-  //#UPHLICA time '45m'
-
-  when:
-  params.nextclade || params.msa == 'nextalign'
-
-  input:
-  file(input)
-
-  output:
-  path "dataset", emit: dataset
-
-  shell:
-  '''
-    mkdir dataset
-    
-    unzip !{input} -d dataset
   '''
 }
 
@@ -102,9 +114,9 @@ process summary {
   '''
 }
 
-process graph_primer_assessement {
-  tag        "Graphing amplicon meandepths"
-  publishDir "${params.outdir}", mode: 'copy'
+process unzip {
+  tag        "unzipping nextclade dataset"
+  //# nothing to publish in publishDir
   container  'quay.io/uphl/seaborn:0.12.2'
 
   //#UPHLICA maxForks 10
@@ -114,56 +126,19 @@ process graph_primer_assessement {
   //#UPHLICA cpus 3
   //#UPHLICA time '45m'
 
+  when:
+  params.nextclade || params.msa == 'nextalign'
+
   input:
-  tuple file(file), file(script)
+  file(input)
 
   output:
-  path "primer_assessment/primerassessment.png"
-  path "primer_assessment/primerassessment_mqc.png", emit: mqc
+  path "dataset", emit: dataset
 
   shell:
   '''
-  python !{script}
-  '''
-}
-
-process download {
-  tag        "${sra}"
-  publishDir "${params.outdir}", mode: 'copy'
-  container  'quay.io/uphl/seaborn:0.12.2'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-  //#UPHLICA memory 1.GB
-  //#UPHLICA cpus 3
-  //#UPHLICA time '45m'
-
-  input:
-  val(sra)
-
-  output:
-  tuple val(sra), file("sra/paired/${sra}*fastq.gz"), val("paired"), optional: true, emit: paired
-  tuple val(sra), file("sra/single/${sra}*fastq.gz"), val("single"), optional: true, emit: single
-
-  shell:
-  '''
-    mkdir -p sra/{paired,single}
-
-    sra=!{sra}
-
-    wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2}/!{sra}/!{sra}_1.fastq.gz || \
-        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2}/!{sra}/!{sra}.fastq.gz
-
-    if [ -f !{sra}_1.fastq.gz ]
-    then
-        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2 }/!{sra}/!{sra}_2.fastq.gz
-        mv !{sra}_*.fastq.gz sra/paired/.
-    elif [ -f !{sra}.fastq.gz ]
-    then
-        mv !{sra}.fastq.gz sra/single/.
-    else
-        echo "Could not download file for SRA accession !{sra}"
-    fi
+    mkdir dataset
+    
+    unzip !{input} -d dataset
   '''
 }

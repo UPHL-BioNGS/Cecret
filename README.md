@@ -275,7 +275,7 @@ The quality of a sequencing run is very important. As such, many values are reco
 - `num_N` is the number of uncalled bases in the generated consensus sequence (less = better).
 - `num_total` is the total number of called bases in the generated consensus sequequence (more = better). As many consensus sequences are generated with this workflow via amplicon sequencing, the intitial and end of the reference often has little coverage. This means that the number of bases in the consensus sequence is less than the length of the reference sequence.
 - `num_pos_${params.minimum_depth}X` (which is `num_pos_100X` by default) is the number of positions for which there is sufficient depth to call variants (more = better). Any sequence below this value will be an `N`.
-- `bedtools_num_failed_amplicons` uses the amplicon file to give a rough estimate as to which primer pairs are not getting enough coverage (less = better).
+- `aci_num_failed_amplicons` uses the amplicon file to give a rough estimate as to which primer pairs are not getting enough coverage (less = better).
 - `samtools_num_failed_amplicons` uses the primer file to detect primer pairs and estimates coverages based on this (less = better).
 
 More imformation on evaluating amplicon/primer failure can be found in the [FAQ](https://github.com/UPHL-BioNGS/Cecret#is-there-a-way-to-determine-if-certain-amplicons-are-failing) under the question 'Is there a way to determine if certain amplicons are failing?'
@@ -341,7 +341,7 @@ params.kraken2_db = 'kraken2_db'
 ```
 
 ## The main components of Cecret are:
-- [bedtools](https://bedtools.readthedocs.io/en/latest/) - for depth estimation over amplicons
+- [aci](https://github.com/erinyoung/ACI) - for depth estimation over amplicons
 - [bwa](http://bio-bwa.sourceforge.net/) - for aligning reads to the reference
 - [fastp](https://github.com/OpenGene/fastp) - for cleaning reads ; optional, faster alternative to seqyclean
 - [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics
@@ -373,7 +373,7 @@ params.samtools_flagstat = true           # stats about the bam files
 params.samtools_ampliconstats = true      # stats about the amplicons
 params.samtools_plot_ampliconstats = true # images related to amplicon performance
 params.kraken2 = false                    # used to classify reads and needs a corresponding params.kraken2_db and organism if not SARS-CoV-2
-params.bedtools_multicov = true           # bedtools multicov for coverage approximation of amplicons
+params.aci = true                         # coverage approximation of amplicons
 params.nextclade = true                   # SARS-CoV-2 clade determination
 params.pangolin = true                    # SARS-CoV-2 lineage determination
 params.freyja = true                      # multiple SARS-CoV-2 lineage determination
@@ -519,10 +519,6 @@ cecret                                # results from this workflow
 │   ├── SRR13957177.markdup.sorted.bam
 │   ├── SRR13957177.markdup.sorted.bam.bai
 │   └── SRR13957177_markdupstats.txt
-├── multicov                         # bedtools multicov over the amplicons
-│   ├── SRR13957125.multicov.txt
-│   ├── SRR13957170.multicov.txt
-│   └── SRR13957177.multicov.txt
 ├── multiqc                          # aggregates data into single report
 │   ├── multiqc_data
 │   │   ├── multiqc_citations.txt
@@ -888,16 +884,10 @@ nextflow run UPHL-BioNGS/Cecret -c <path to custom config file>
 
 There are two ways to do this.
 
-#### With bedtools multicov :
-`cecret/bedtools_multicov` has a file for each sample.
-This is standard bedtools multicov output, so it doesn't have a header.
+#### With ACI :
+`cecret/aci` has two files : amplicon_depth.csv and amplicon_depth.png. There is a row for each sample in 'amplicon_depth.csv', and a column for each primer in the amplicon bedfile. The values contained within are reads that only map to the region specified in the amplicon bedfile and excludes reads that do not. A boxplot of these values is visualized in amplicon_depth.png.
 
-- Column 1 : The reference
-- Column 2 : Start of amplicon
-- Column 3 : End of amplicon
-- Column 4 : Amplicon number
-- Column 5-6 : version number and strand from bedfile
-- Column 7 : (Column G) is the depth observed for that amplicon for that sample.
+![alt text](images/amplicon_depth.png)
 
 #### With samtools ampliconstats :
 `cecret/samtools_ampliconstats` has a file for each sample.
@@ -954,7 +944,7 @@ In a config file, change the following relevant parameters:
 ```
 params.reference_genome
 params.primer_bed
-params.amplicon_bed #or set params.bedtools_multicov = false
+params.amplicon_bed #or set params.aci = false
 params.gff_file #or set params.ivar_variants = false
 ```
 And set
@@ -981,10 +971,9 @@ params.samtools_stats = false
 params.samtools_coverage = false
 params.samtools_depth = false
 params.samtools_flagstat = false
-params.bedtools_multicov = false
 params.samtools_ampliconstats = false
 params.samtools_plot_ampliconstats = false
-params.bedtools_multicov = false
+params.aci = false
 params.pangolin = false
 params.freyja = false
 params.nextclade = false

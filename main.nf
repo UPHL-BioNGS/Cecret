@@ -44,6 +44,14 @@ params.kraken2_organism                     = false
 if (params.kraken2_organism ) {
   println("WARNING : params.kraken2_organism no longer does anything!")
 }
+params.bedtools_multicov                    = false
+if (params.bedtools_multicov ) {
+  println("WARNING : params.bedtools_multicov no longer does anything!")
+}
+params.bedtools_multicov_options            = false
+if (params.bedtools_multicov_options ) {
+  println("WARNING : params.bedtools_multicov_options no longer does anything!")
+}
 
 //# Starting the workflow --------------------------------------------------------------
 
@@ -138,6 +146,7 @@ params.aligner                              = 'bwa'
 params.msa                                  = 'mafft'
 
 //# to toggle off processes
+params.aci                                  = true
 params.bcftools_variants                    = true
 params.fastqc                               = true
 params.ivar_variants                        = true
@@ -148,7 +157,6 @@ params.samtools_flagstat                    = true
 params.samtools_ampliconstats               = true
 params.samtools_plot_ampliconstats          = true
 params.markdup                              = false
-params.bedtools_multicov                    = true
 params.kraken2                              = false
 params.filter                               = false
 params.multiqc                              = true
@@ -159,7 +167,6 @@ params.snpdists                             = true
 params.iqtree2                              = true
 
 //# parameters for processes with their default values
-params.bedtools_multicov_options            = '-f .1'
 params.bcftools_variants_options            = ''
 params.fastp_options                        = ''
 params.fastqc_options                       = ''
@@ -335,7 +342,7 @@ if ( params.trimmer != 'none' ) {
     .view { "Primer BedFile : $it"}
     .set { ch_primer_bed }
 
-  if ( params.bedtools_multicov ) {
+  if ( params.aci ) {
     Channel
       .fromPath(params.amplicon_bed, type:'file')
       .view { "Amplicon BedFile : $it"}
@@ -377,7 +384,6 @@ if ( ! params.download_nextclade_dataset ) {
 //# getting scripts
 ch_combine_results_script   = Channel.fromPath("${workflow.projectDir}/bin/combine_results.py",  type:'file')
 ch_freyja_script            = Channel.fromPath("${workflow.projectDir}/bin/freyja_graphs.py",    type:'file')
-ch_primer_assessment_script = Channel.fromPath("${workflow.projectDir}/bin/primerassessment.py", type:'file')
 
 // This is where the results will be
 println('The files and directory for results is ' + params.outdir)
@@ -414,8 +420,7 @@ workflow {
       ch_reference_genome,
       ch_gff_file,
       ch_amplicon_bed,
-      ch_primer_bed,
-      ch_primer_assessment_script)
+      ch_primer_bed)
 
     ch_for_multiqc = cecret.out.for_multiqc.mix(qc.out.for_multiqc)
     ch_for_summary = qc.out.for_summary
