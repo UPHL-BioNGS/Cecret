@@ -2,7 +2,7 @@ process aci {
     tag        "Graphing ampicon depths"
     label      "maxcpus"
     publishDir "${params.outdir}", mode: 'copy'
-    container  'quay.io/erinyoung/aci:0.0.20230715'
+    container  'quay.io/erinyoung/aci:0.1.20230815'
   
     //#UPHLICA maxForks      10
     //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -38,7 +38,6 @@ process aci {
             --bam !{bam} \
             --bed !{bed} \
             --threads !{task.cpus} \
-            -s \
             --out aci
 
         cp aci/amplicon_depth.png aci/amplicon_depth_mqc.png
