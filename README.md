@@ -1000,3 +1000,11 @@ Personally, we liked having `stderr` saved to a file because some of the tools u
 - https://github.com/chrisruis/bammix
 - https://github.com/lenaschimmel/sc2rf
 - masking options for phylogenetic relatedness
+
+### What processes take the longest?
+
+Bedtools multicov was replaced by ACI due to processing times, but there are other processes that take longer.
+
+Right now, the processes that take the most time are
+- ivar trim
+- freyja
