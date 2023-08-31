@@ -101,7 +101,7 @@ process summary {
       if [ -f "$file" ]; then mv $file multiqc_data/. ; fi
     done
 
-    if [ -n "$(ls *_ampliconstats.txt | head -n 1)" ] 
+    if [ -n "$(find . -iname *ampliconstats.txt | head -n 1)" ] 
     then
       cat *_ampliconstats.txt | grep -h ^FREADS > ampliconstats.summary
     else
