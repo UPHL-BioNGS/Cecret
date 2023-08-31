@@ -130,7 +130,7 @@ params.snpdists                             = true
 params.iqtree2                              = true
 
 //# parameters for processes with their default values
-params.artic_options                        = '--normalise 200 --skip-nanopolish'
+params.artic_options                        = '--normalise 200 --skip-nanopolish --medaka --medaka-model r941_min_high_g360'
 params.artic_read_filtering_options         = '--min-length 400 --max-length 700'
 params.bcftools_variants_options            = ''
 params.fastp_options                        = ''
@@ -274,6 +274,7 @@ ch_paired_reads
   .mix(ch_fastas)
   .mix(ch_multifastas)
   .mix(ch_sra_accessions)
+  .mix(ch_nanopore)
   .ifEmpty{
     println('FATAL : No input files were found!')
     println("No paired-end fastq files were found at ${params.reads}. Set 'params.reads' to directory with paired-end reads")
@@ -368,7 +369,10 @@ if ( params.trimmer != 'none' ) {
   } else if ( params.primer_set in available_primer_sets ) {
     Channel
       .fromPath( included_primers )
-      .filter( ~/^${params.primer_set}_.*/ )
+      .branch{ 
+        match : it =~ /${params.primer_set}_*/
+        }
+      .first()
       .set { ch_primer_bed } 
   } else {
     println("No primers were found!")
@@ -393,7 +397,10 @@ if ( params.trimmer != 'none' ) {
     } else if ( params.primer_set in available_primer_sets ) {
       Channel
         .fromPath( included_amplicons )
-        .filter( ~/^${params.primer_set}_.*/ )
+        .branch{ 
+          match : it =~ /${params.primer_set}_*/
+          }
+        .first()
         .set { ch_amplicon_bed } 
     } else {
       println("An amplicon bedfile wasn't found!")
