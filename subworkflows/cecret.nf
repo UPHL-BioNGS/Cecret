@@ -1,13 +1,18 @@
-include { seqyclean }                                                                                                             from '../modules/seqyclean' addParams(params)
-include { fastp }                                                                                                                 from '../modules/fastp'     addParams(params)
-include { bwa }                                                                                                                   from '../modules/bwa'       addParams(params)
-include { minimap2 }                                                                                                              from '../modules/minimap2'  addParams(params)
-include { ivar_trim ; ivar_consensus as ivar }                                                                                    from '../modules/ivar'      addParams(params)
-include { samtools_sort as sort; samtools_ampliconclip as ampliconclip; samtools_filter as filter; samtools_markdup as markdup }  from '../modules/samtools'  addParams(params)
+include { artic ; artic_read_filtering }          from '../modules/artic'     addParams(params)
+include { bwa }                                   from '../modules/bwa'       addParams(params)
+include { fastp }                                 from '../modules/fastp'     addParams(params)
+include { ivar_trim ; ivar_consensus as ivar }    from '../modules/ivar'      addParams(params)
+include { minimap2 }                              from '../modules/minimap2'  addParams(params)
+include { samtools_sort as sort }                 from '../modules/samtools'  addParams(params)
+include { samtools_ampliconclip as ampliconclip } from '../modules/samtools'  addParams(params)
+include { samtools_filter as filter }             from '../modules/samtools'  addParams(params)
+include { samtools_markdup as markdup }           from '../modules/samtools'  addParams(params)
+include { seqyclean }                             from '../modules/seqyclean' addParams(params)
 
 workflow cecret {
   take:
     ch_reads
+    ch_nanopore
     ch_reference
     ch_primer_bed
 
@@ -89,8 +94,12 @@ workflow cecret {
 
   if ( params.filter ) { filter(ch_sam) }
 
+  artic_read_filtering(ch_nanopore)
+  artic(artic_read_filtering.out.fastq.combine(ch_reference).combine(ch_primer_bed))
+  ch_for_version = ch_for_version.mix(artic.out.artic_version)
+
   emit:
-    consensus        = ivar.out.consensus
+    consensus        = ivar.out.consensus.mix(artic.out.consensus)
     trim_bam         = ch_trim_bam
     clean_reads      = ch_clean_reads
     sam              = ch_sam
