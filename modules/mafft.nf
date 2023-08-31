@@ -1,6 +1,6 @@
 process mafft {
   tag           "Multiple Sequence Alignment"
-  label         "maxcpus"
+  label         "process_high"
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
   container     'staphb/mafft:7.505'

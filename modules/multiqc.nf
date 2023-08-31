@@ -1,5 +1,6 @@
 process multiqc_combine {
   tag        "multiqc"
+  label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
   container  'quay.io/biocontainers/multiqc:1.14--pyhdfd78af_0'
 

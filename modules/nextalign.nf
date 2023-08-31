@@ -1,6 +1,6 @@
 process nextalign {
   tag        "Multiple Sequence Alignment"
-  label      "maxcpus"
+  label      "process_high"
   publishDir "${params.outdir}", mode: 'copy'
   container  'nextstrain/nextalign:2.14.0'
 

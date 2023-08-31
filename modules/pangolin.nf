@@ -1,6 +1,6 @@
 process pangolin {
   tag        "SARS-CoV-2 lineage Determination"
-  label      "medcpus"
+  label      "process_medium"
   publishDir "${params.outdir}", mode: 'copy'
   container  'staphb/pangolin:4.3.1-pdata-1.22'
 

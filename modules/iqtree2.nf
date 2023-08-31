@@ -1,6 +1,6 @@
 process iqtree2 {
   tag        "Creating phylogenetic tree with iqtree"
-  label      "maxcpus"
+  label      "process_high"
   publishDir "${params.outdir}", mode: 'copy'
   container  'staphb/iqtree2:2.2.2.6'
 

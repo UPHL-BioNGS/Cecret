@@ -1,5 +1,6 @@
 process seqyclean {
   tag        "${sample}"
+  label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
   container  'staphb/seqyclean:1.10.09'
 

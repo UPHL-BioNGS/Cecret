@@ -1,6 +1,6 @@
 process nextclade_dataset {
   tag        "Downloading NextClade Dataset"
-  label      "medcpus"
+  label      "process_medium"
   publishDir "${params.outdir}", mode: 'copy'
   container  'nextstrain/nextclade:2.14.0'
 
@@ -36,7 +36,7 @@ process nextclade_dataset {
 
 process nextclade {
   tag        "Clade Determination"
-  label      "medcpus"
+  label      "process_medium"
   publishDir "${params.outdir}", mode: 'copy'
   container  'nextstrain/nextclade:2.14.0'
 

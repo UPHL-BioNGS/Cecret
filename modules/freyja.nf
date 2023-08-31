@@ -1,6 +1,6 @@
 process freyja {
   tag           "${sample}"
-  label         "medcpus"
+  label         "process_medium"
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
   container     'quay.io/uphl/freyja:1.4.5-20230831'
@@ -55,6 +55,7 @@ process freyja {
 
 process freyja_aggregate {
   tag        "Aggregating results from freyja"
+  label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
   container  'quay.io/uphl/freyja:1.4.5-20230831'
 

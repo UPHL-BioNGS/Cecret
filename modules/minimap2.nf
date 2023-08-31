@@ -1,6 +1,6 @@
 process minimap2 {
   tag        "${sample}"
-  label      "maxcpus"
+  label      "process_high"
   publishDir = [ path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log' ]
   container  'staphb/minimap2:2.25'
 

@@ -1,5 +1,6 @@
 process ivar_consensus {
   tag           "${sample}"
+  label         "process_medium"
   memory        { 2.GB * task.attempt }
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    params.outdir, mode: 'copy'
@@ -37,6 +38,7 @@ process ivar_consensus {
 
 process ivar_variants {
   tag           "${sample}"
+  label         "process_medium"
   memory        { 2.GB * task.attempt }
   errorStrategy { task.attempt < 3 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'  
@@ -95,6 +97,7 @@ process ivar_variants {
 
 process ivar_trim {
   tag        "${sample}"
+  label      "process_medium"
   publishDir "${params.outdir}", mode: 'copy'
   container  'staphb/ivar:1.4.2'
   

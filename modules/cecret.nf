@@ -2,6 +2,7 @@ process download {
   tag        "${sra}"
   publishDir "${params.outdir}", mode: 'copy'
   container  'quay.io/uphl/seaborn:0.12.2'
+  label      "process_single"
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -44,6 +45,7 @@ process fasta_prep {
   tag        "${fasta}"
   //# nothing to publish in publishDir
   container  'quay.io/uphl/seaborn:0.12.2'
+  label      "process_single"
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -72,6 +74,7 @@ process fasta_prep {
 
 process summary {
   tag        "Creating summary files"
+  label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
   container  'quay.io/uphl/seaborn:0.12.2'
 
@@ -116,6 +119,7 @@ process summary {
 
 process unzip {
   tag        "unzipping nextclade dataset"
+  label      "process_single"
   //# nothing to publish in publishDir
   container  'quay.io/uphl/seaborn:0.12.2'
 

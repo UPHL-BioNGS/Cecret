@@ -1,6 +1,6 @@
 process vadr {
   tag        "QC metrics"
-  label      "medcpus"
+  label      "process_medium"
   publishDir "${params.outdir}", mode: 'copy'
   container  'staphb/vadr:1.5.1'
 

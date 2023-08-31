@@ -1,5 +1,6 @@
 process fastp {
   tag        "${sample}"
+  label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
   container  'staphb/fastp:0.23.4'
 
