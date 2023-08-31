@@ -379,7 +379,6 @@ if ( params.trimmer != 'none' ) {
     println("Set primer schema with 'params.primer_bed'")
     println("Or use included primer set by setting 'params.primer_set' to one of $available_primer_sets")
     exit 1
-  } else {
     ch_primer_bed = Channel.empty()
   }
   ch_primer_bed.view { "Primer BedFile : $it"}
@@ -414,7 +413,7 @@ if ( params.trimmer != 'none' ) {
   }
   ch_amplicon_bed.view { "Amplicon BedFile : $it"}
 } else {
-  ch_primer_bed  = Channel.empty()
+  ch_primer_bed   = Channel.empty()
   ch_amplicon_bed = Channel.empty()
 }
 
