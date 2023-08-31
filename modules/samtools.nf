@@ -1,7 +1,7 @@
 process samtools_stats {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/samtools:1.17'
+  container  'staphb/ivar:1.4.2'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -35,7 +35,7 @@ process samtools_stats {
 process samtools_coverage {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/samtools:1.17'
+  container  'staphb/ivar:1.4.2'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -71,7 +71,7 @@ process samtools_coverage {
 process samtools_flagstat {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/samtools:1.17'
+  container  'staphb/ivar:1.4.2'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -107,7 +107,7 @@ process samtools_flagstat {
 process samtools_depth {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/samtools:1.17'
+  container  'staphb/ivar:1.4.2'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -142,7 +142,7 @@ process samtools_depth {
 process samtools_ampliconstats {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/samtools:1.17'
+  container  'staphb/ivar:1.4.2'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -179,7 +179,7 @@ process samtools_plot_ampliconstats {
   tag           "${sample}"
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
-  container     'staphb/samtools:1.17'
+  container     'staphb/ivar:1.4.2'
 
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
@@ -215,7 +215,7 @@ process samtools_sort {
   tag        "${sample}"
   label      "maxcpus"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/samtools:1.17'
+  container  'staphb/ivar:1.4.2'
 
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -251,7 +251,7 @@ process samtools_sort {
 process samtools_filter {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/samtools:1.17'
+  container  'staphb/ivar:1.4.2'
 
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -292,7 +292,7 @@ process samtools_filter {
 process samtools_ampliconclip {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/samtools:1.17'
+  container  'staphb/ivar:1.4.2'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -331,7 +331,7 @@ process samtools_ampliconclip {
 process samtools_markdup {
   tag        "${sample}"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/samtools:1.17'
+  container  'staphb/ivar:1.4.2'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
