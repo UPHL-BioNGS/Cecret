@@ -1,33 +1,33 @@
 #!/usr/bin/env nextflow
 
 //# For aesthetics - and, yes, we are aware that there are better ways to write this than a bunch of 'println' statements
-println("") 
-println("  ____ _____ ____ ____  _____ _____")
-println(" / ___| ____/ ___|  _ \\| ____|_   _|")
-println("| |   |  _|| |   | |_) |  _|   | |")
-println("| |___| |__| |___|  _ <| |___  | |")
-println(" \\____|_____\\____|_| \\_\\_____| |_|")
+println('') 
+println('  ____ _____ ____ ____  _____ _____')
+println(' / ___| ____/ ___|  _ \\| ____|_   _|')
+println('| |   |  _|| |   | |_) |  _|   | |')
+println('| |___| |__| |___|  _ <| |___  | |')
+println(' \\____|_____\\____|_| \\_\\_____| |_|')
 
-println("Version: ${workflow.manifest.version}")
-println("")
-println("Currently using the Cecret workflow for use with amplicon Illumina library prep on MiSeq with a corresponding reference genome.\n")
-println("Author: Erin Young")
-println("email: eriny@utah.gov")
-println("")
+println('Version: ' + workflow.manifest.version)
+println('')
+println('Currently using the Cecret workflow for use with amplicon Illumina library prep on MiSeq with a corresponding reference genome.\n')
+println('Author: Erin Young')
+println('email: eriny@utah.gov')
+println('')
 
-println("Cecret is named after a real lake!")
-println("Visit https://www.alltrails.com/trail/us/utah/cecret-lake-trail to learn more.")
-println("Not everyone can visit in person, so here is some ASCII art of nucleotides in lake forming a consensus sequence.")
-println("                    _________ ______")
-println("               _ /      G    A   T   \\_____")
-println("          __/    C      C A    G      T  C \\")
-println("        /    G     A   T   T  A   G  G    T  \\_")
-println("        | G       G  C   A            G   T     \\")  
-println("        \\      A     C     G   A   T    A  G  T  \\__")
-println("         \\_           C       G    ____ _____ __ C  \\________")
-println("            \\__T______ ___________/                \\ C T G A G G T C G A T A") 
-println("")
-println("")
+println('Cecret is named after a real lake!')
+println('Visit https://www.alltrails.com/trail/us/utah/cecret-lake-trail to learn more.')
+println('Not everyone can visit in person, so here is some ASCII art of nucleotides in lake forming a consensus sequence.')
+println('                    _________ ______')
+println('               _ /      G    A   T   \\_____')
+println('          __/    C      C A    G      T  C \\')
+println('        /    G     A   T   T  A   G  G    T  \\_')
+println('        | G       G  C   A            G   T     \\')  
+println('        \\      A     C     G   A   T    A  G  T  \\__')
+println('         \\_           C       G    ____ _____ __ C  \\________')
+println('            \\__T______ ___________/                \\ C T G A G G T C G A T A') 
+println('')
+println('')
 
 //# copying the confit template and ending the workflow
 params.config_file                          = false
@@ -35,22 +35,22 @@ if (params.config_file) {
   def src = new File("${workflow.projectDir}/configs/cecret_config_template.config")
   def dst = new File("${workflow.launchDir}/edit_me.config")
   dst << src.text
-  println("A config file can be found at ${workflow.launchDir}/edit_me.config")
+  println('A config file can be found at ' + workflow.launchDir + '/edit_me.config')
   exit 0
 }
 
 //# Warning people about legacy params for a few versions. This was put here 3.6.20230418
 params.kraken2_organism                     = false
 if (params.kraken2_organism ) {
-  println("WARNING : params.kraken2_organism no longer does anything!")
+  println('WARNING : params.kraken2_organism no longer does anything!')
 }
 params.bedtools_multicov                    = false
 if (params.bedtools_multicov ) {
-  println("WARNING : params.bedtools_multicov no longer does anything!")
+  println('WARNING : params.bedtools_multicov no longer does anything!')
 }
 params.bedtools_multicov_options            = false
 if (params.bedtools_multicov_options ) {
-  println("WARNING : params.bedtools_multicov_options no longer does anything!")
+  println('WARNING : params.bedtools_multicov_options no longer does anything!')
 }
 
 //# Starting the workflow --------------------------------------------------------------
@@ -60,84 +60,48 @@ nextflow.enable.dsl = 2
 //# params and their default values
 
 //# params for inputs including fasta and fastq files
-params.sample_sheet                         = ""
+params.sample_sheet                         = ''
 params.reads                                = workflow.launchDir + '/reads'
 params.single_reads                         = workflow.launchDir + '/single_reads'
 params.fastas                               = workflow.launchDir + '/fastas'
 params.multifastas                          = workflow.launchDir + '/multifastas'
+params.nanopore                             = workflow.launchDir + '/ont'
 params.sra_accessions                       = []
+params.primer_bed                           = ''
+params.amplicon_bed                         = ''
+params.primer_set                           = 'ncov_V4'
+params.reference_genome                     = ''
+params.gff                                  = ''
 
 //# input checks ---------------------------------------------------------------------
 
 //# Ensuring that reads and single_reads are not set to the same directory
 if ( params.reads == params.single_reads ) {
-  println("'params.reads' and 'params.single_reads' cannot point to the same directory!")
-  println("'params.reads' is set to " + params.reads)
-  println("'params.single_reads' is set to " + params.single_reads)
+  println('\'params.reads\' and \'params.single_reads\' cannot point to the same directory!')
+  println('\'params.reads\' is set to ' + params.reads)
+  println('\'params.single_reads\' is set to ' + params.single_reads)
   exit 1
 }
 
 if ( params.fastas == params.multifastas ) {
-  println("'params.fastas' and 'params.multifastas' cannot point to the same directory!")
-  println("'params.fastas' is set to " + params.fastas)
-  println("'params.multifastas' is set to " + params.multifastas)
+  println('\'params.fastas\' and \'params.multifastas\' cannot point to the same directory!')
+  println('\'params.fastas\' is set to ' + params.fastas)
+  println('\'params.multifastas\' is set to ' + params.multifastas)
   exit 1
 }
 
+//# run params ---------------------------------------------------------------------
+
 //# outdir params
 params.outdir                               = workflow.launchDir + '/cecret'
+println('The files and directory for results is ' + params.outdir)
+params.species                              = 'sarscov2'
+println('The species used to determine default variables and subworkflows is ' + params.species)
 
 //# roughly grouping cpu usage
 params.maxcpus                              = 8
 params.medcpus                              = 4
-println("The maximum number of CPUS used in this workflow is ${params.maxcpus}")
-
-//# default reference files for SARS-CoV-2 or MPX (part of the github repository)
-params.species                              = 'sarscov2'
-if (params.species        == 'sarscov2' ) {
-  params.reference_genome                   = workflow.projectDir + '/genomes/MN908947.3.fasta'
-  params.gff                                = workflow.projectDir + '/genomes/MN908947.3.gff'
-  println("Using the subworkflow for SARS-CoV-2")
-} else if (params.species == 'mpx') {
-  params.reference_genome                   = workflow.projectDir + '/genomes/NC_063383.1.fasta'
-  params.gff                                = workflow.projectDir + '/genomes/NC_063383.1.gff3'
-  println("Using the subworkflow for Monkeypox Virus")
-} else {
-  params.reference_genome                   = ''
-  params.gff                                = ''
-}
-
-//# Yes, there are a LOT of primer sets that are included in the workflow. And, yes, there could be more.
-params.primer_set                           = 'ncov_V4'
-if ( params.primer_set        == 'ncov_V3' ) {
-  params.primer_bed                         = workflow.projectDir + '/schema/artic_V3_nCoV-2019.primer.bed'
-  params.amplicon_bed                       = workflow.projectDir + '/schema/artic_V3_nCoV-2019.insert.bed'
-} else if ( params.primer_set == 'ncov_V4' ) {
-  params.primer_bed                         = workflow.projectDir + '/schema/artic_V4_SARS-CoV-2.primer.bed'
-  params.amplicon_bed                       = workflow.projectDir + '/schema/artic_V4_SARS-CoV-2.insert.bed'
-} else if ( params.primer_set == 'ncov_V4.1' ) {
-  params.primer_bed                         = workflow.projectDir + '/schema/artic_V4.1_SARS-CoV-2.primer.bed'
-  params.amplicon_bed                       = workflow.projectDir + '/schema/artic_V4.1_SARS-CoV-2.insert.bed'
-} else if ( params.primer_set == 'ncov_V5.3.2' ){
-  params.primer_bed                         = workflow.projectDir + '/schema/artic_V5.3.2_SARS-CoV-2.primer.bed'
-  params.amplicon_bed                       = workflow.projectDir + '/schema/artic_V5.3.2_SARS-CoV-2.insert.bed'
-} else if ( params.primer_set == 'mpx_idt' ) {
-  params.primer_bed                         = workflow.projectDir + '/schema/mpx_idt_primer.bed'
-  params.amplicon_bed                       = workflow.projectDir + '/schema/mpx_idt_insert.bed'
-} else if ( params.primer_set == 'mpx_primalseq' ) {
-  params.primer_bed                         = workflow.projectDir + '/schema/mpx_primalseq_primer.bed'
-  params.amplicon_bed                       = workflow.projectDir + '/schema/mpx_primalseq_insert.bed'
-} else {
-  println("!{params.primer_set} has not been defined as an acceptable value for 'params.primer_set'.")
-  println('Current acceptable values are' )
-  println("SARS-CoV-2 artic primer V3 : 'params.primer_set' = 'ncov_V3'" )
-  println("SARS-CoV-2 artic primer V4 : 'params.primer_set' = 'ncov_V4'" )
-  println("SARS-CoV-2 artic primer V4.1 (Version 4 with spike in) : 'params.primer_set' = 'ncov_V4.1'" )
-  println("SARS-CoV-2 artic primer V5.3.2 : 'params.primer_set' = 'ncov_V5.3.2'" )
-  println("Monkeypox IDT primer : 'params.primer_set' = 'mpx_idt'" )
-  println("Monkeypox PrimalSeq primer : 'params.primer_set' = 'mpx_primalseq'" )
-  exit 1
-}
+println('The maximum number of CPUS used in this workflow is ' + params.maxcpus)
 
 //# specifying the core workflow
 params.trimmer                              = 'ivar'
@@ -157,7 +121,6 @@ params.samtools_flagstat                    = true
 params.samtools_ampliconstats               = true
 params.samtools_plot_ampliconstats          = true
 params.markdup                              = false
-params.kraken2                              = false
 params.filter                               = false
 params.multiqc                              = true
 
@@ -167,6 +130,8 @@ params.snpdists                             = true
 params.iqtree2                              = true
 
 //# parameters for processes with their default values
+params.artic_options                        = '--normalise 200 --skip-nanopolish'
+params.artic_read_filtering_options         = '--min-length 400 --max-length 700'
 params.bcftools_variants_options            = ''
 params.fastp_options                        = ''
 params.fastqc_options                       = ''
@@ -179,7 +144,6 @@ params.minimap2_options                     = '-K 20M'
 params.minimum_depth                        = 100
 params.mpileup_depth                        = 8000
 params.multiqc_options                      = ''
-params.kraken2_options                      = ''
 params.mafft_options                        = '--maxambiguous 0.5'
 params.samtools_ampliconclip_options        = ''
 params.samtools_coverage_options            = ''
@@ -195,11 +159,12 @@ params.seqyclean_options                    = '-minlen 25 -qual'
 params.snpdists_options                     = '-c'
 
 //# for optional contamination determination
+params.kraken2                              = false
 params.kraken2_db                           = false
+params.kraken2_options                      = ''
 
 //# for using an included version of nextclade dataset
 params.download_nextclade_dataset           = true
-params.predownloaded_nextclade_dataset      = workflow.projectDir + '/data/sars.zip'
 
 //# organism specific
 params.freyja                               = true
@@ -237,6 +202,7 @@ if ( params.species == 'sarscov2' ) {
   params.vadr_options                       = ''
   params.vadr_reference                     = ''
   params.vadr_trim_options                  = ''
+  params.iqtree2_outgroup                   = ''
 }
 
 //# Adding in subworkflows
@@ -251,39 +217,44 @@ include { sarscov2 }             from './subworkflows/sarscov2'  addParams(param
 include { test }                 from './subworkflows/test'      addParams(params) 
 
 //# Now that everything is defined (phew!), the workflow can begin ---------------------------------------------------
-
 //# getting input files
 if ( params.sample_sheet ) { 
   Channel
-    .fromPath("${params.sample_sheet}", type: "file")
+    .fromPath(params.sample_sheet, type: 'file')
     .view { "Sample sheet found : ${it}" }
     .splitCsv( header: true, sep: ',' )
     .map { row -> tuple( "${row.sample}", [ file("${row.fastq_1}"), file("${row.fastq_2}") ]) }
     .branch {
-      single :     it[1] =~ /single/
+      single     : it[1] =~ /single/
       multifasta : it[1] =~ /multifasta/
-      fasta  :     it[1] =~ /fasta/
-      paired :     true 
+      fasta      : it[1] =~ /fasta/
+      ont        : it[1] =~ /ont/       
+      paired     : true 
     }
     .set { inputs }
   
-  ch_paired_reads = inputs.paired.map{ it -> tuple(it[0], it[1], "paired")}
-  ch_single_reads = inputs.single.map{ it -> tuple(it[0], it[1][0], "single")}
-  ch_fastas       = inputs.fasta.map{  it -> tuple(it[0], it[1])}
-  ch_multifastas  = inputs.fasta.map{  it -> tuple(it[1])}
-
+  ch_paired_reads = inputs.paired.map{     it -> tuple(it[0], it[1],    'paired')}
+  ch_single_reads = inputs.single.map{     it -> tuple(it[0], it[1][0], 'single')}
+  ch_fastas       = inputs.fasta.map{      it -> tuple(it[0], it[1])}
+  ch_multifastas  = inputs.multifasta.map{ it -> tuple(it[1])}
+  ch_nanopore     = inputs.ont.map{        it -> tuple(it[0], it[1])}
 } else {
   Channel
     .fromFilePairs(["${params.reads}/*_R{1,2}*.{fastq,fastq.gz,fq,fq.gz}",
                     "${params.reads}/*{1,2}*.{fastq,fastq.gz,fq,fq.gz}"], size: 2 )
     .unique()
-    .map { reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], "paired" ) }
+    .map { reads -> tuple(reads[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), reads[1], 'paired' ) }
     .set { ch_paired_reads }
 
   Channel
     .fromPath("${params.single_reads}/*.{fastq,fastq.gz,fq,fq.gz}")
-    .map { reads -> tuple(reads.simpleName, reads, "single" ) }
+    .map { reads -> tuple(reads.simpleName, reads, 'single' ) }
     .set { ch_single_reads }
+
+    Channel
+    .fromPath("${params.nanopore}/*.{fastq,fastq.gz,fq,fq.gz}")
+    .map { reads -> tuple(reads.simpleName, reads ) }
+    .set { ch_nanopore }
 
   Channel
     .fromPath("${params.fastas}/*{.fa,.fasta,.fna}", type:'file')
@@ -313,59 +284,140 @@ ch_paired_reads
     exit 1
 }
 
-//# getting reference files
-Channel
-  .fromPath(params.reference_genome, type:'file')
-  .ifEmpty{
-    println("No reference genome was selected. Set with 'params.reference_genome'")
-    exit 1
-  }
-  .view { "Reference Genome : $it"}
-  .set { ch_reference_genome }
-
-if ( params.ivar_variants ) {
+//# getting a reference genome file
+if (params.reference_genome){
   Channel
-    .fromPath(params.gff, type:'file')
-    .view { "GFF file for Reference Genome : $it"}
-    .set { ch_gff_file }
-} else {
-  ch_gff_file = Channel.empty()
-}
-
-if ( params.trimmer != 'none' ) {
-  Channel
-    .fromPath(params.primer_bed, type:'file')
+    .fromPath(params.reference_genome, type:'file')
     .ifEmpty{
-      println("A bedfile for primers is required. Set with 'params.primer_bed'.")
+      println("No reference genome was selected. Set with 'params.reference_genome'")
       exit 1
     }
-    .view { "Primer BedFile : $it"}
-    .set { ch_primer_bed }
-
-  if ( params.aci ) {
-    Channel
-      .fromPath(params.amplicon_bed, type:'file')
-      .view { "Amplicon BedFile : $it"}
-      .set {ch_amplicon_bed }
-  } else {
-    ch_amplicon_bed = Channel.empty()  
-  }
-
+    .set { ch_reference_genome }
 } else {
-  ch_primer_bed = Channel.empty()
-  ch_amplicon_bed = Channel.empty()
-
+  if ( params.species == 'sarscov2' ) {
+    ch_reference_genome = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.fasta', type: 'file')
+  } else if ( params.species == 'mpx') {
+    ch_reference_genome = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.fasta', type: 'file')
+  } else {
+    println("No reference genome was selected. Set with 'params.reference_genome'")
+    println("Or set species to one with an included genome ('sarscov2' or 'mpx')")
+    exit 1
+    ch_reference_genome = Channel.empty()
+  } 
 }
+ch_reference_genome.view { "Reference Genome : $it"}
+
+//# getting the gff file for ivar variants
+if ( params.ivar_variants ) {
+  if (params.gff) {
+    Channel
+      .fromPath(params.gff, type:'file')
+      .ifEmpty{
+        println("No gff file was selected. Set with 'params.reference_genome'")
+        exit 1
+      }
+      .set { ch_gff_file }
+  } else {
+    if ( params.species == 'sarscov2' ) {
+      ch_gff_file = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.gff', type: 'file')
+    } else if ( params.species == 'mpx') {
+      ch_gff_file = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.gff3', type: 'file')
+    } else {
+      println("No gff file was selected. Set with 'params.gff'")
+      println("Or set 'params.species' to one with an included genome ('sarscov2' or 'mpx')")
+      println("Or bypass this message completely by setting 'params.ivar_variants = False'")
+      exit 1
+      ch_gff_file = Channel.empty()
+    } 
+  }
+}
+ch_gff_file.view { "GFF file : $it"}
+
+//# channels of included files
+included_primers     = [
+  workflow.projectDir + '/schema/ncov_V3_nCoV-2019.primer.bed',
+  workflow.projectDir + '/schema/ncov_V4_SARS-CoV-2.primer.bed',
+  workflow.projectDir + '/schema/ncov_V4.1_SARS-CoV-2.primer.bed',
+  workflow.projectDir + '/schema/ncov_V5.3.2_SARS-CoV-2.primer.bed',
+  workflow.projectDir + '/schema/mpx_idt_primer.bed',
+  workflow.projectDir + '/schema/mpx_primalseq_primer.bed'
+  ]
+included_amplicons = [
+  workflow.projectDir + '/schema/ncov_V3_nCoV-2019.insert.bed',
+  workflow.projectDir + '/schema/ncov_V4_SARS-CoV-2.insert.bed',
+  workflow.projectDir + '/schema/ncov_V4.1_SARS-CoV-2.insert.bed',
+  workflow.projectDir + '/schema/ncov_V5.3.2_SARS-CoV-2.insert.bed',
+  workflow.projectDir + '/schema/mpx_idt_insert.bed',
+  workflow.projectDir + '/schema/mpx_primalseq_insert.bed'
+]
+
+ch_primers                = Channel.fromPath(included_primers,   type: 'file')
+ch_amplicons              = Channel.fromPath(included_amplicons, type: 'file')
+
+available_primer_sets = ['ncov_V3', 'ncov_V4', 'ncov_V4.1', 'ncov_V5.3.2', 'mpx_primalseq', 'mpx_idt']
+if ( params.trimmer != 'none' ) {
+  //# Getting the primer file
+  if (params.primer_bed) {
+    Channel
+      .fromPath(params.primer_bed, type:'file')
+      .ifEmpty{
+        println("A bedfile for primers is required. Set with 'params.primer_bed'.")
+        exit 1
+      }
+      .set { ch_primer_bed } 
+  } else if ( params.primer_set in available_primer_sets ) {
+    Channel
+      .fromPath( included_primers )
+      .filter( ~/^${params.primer_set}_.*/ )
+      .set { ch_primer_bed } 
+  } else {
+    println("No primers were found!")
+    println("Set primer schema with 'params.primer_bed'")
+    println("Or use included primer set by setting 'params.primer_set' to one of $available_primer_sets")
+    exit 1
+    ch_primer_bed = Channel.empty()
+  }
+  ch_primer_bed.view { "Primer BedFile : $it"}
+
+  //# Getting the amplicon bedfile
+  if ( params.aci ) {
+    if (params.amplicon_bed) {
+      Channel
+        .fromPath(params.amplicon_bed, type:'file')
+        .ifEmpty{
+          println("A bedfile for amplicons is required. Set with 'params.amplicon_bed'.")
+          println("Or set params.aci = False to skip this.")
+          exit 1
+        }
+        .set { ch_amplicon_bed } 
+    } else if ( params.primer_set in available_primer_sets ) {
+      Channel
+        .fromPath( included_amplicons )
+        .filter( ~/^${params.primer_set}_.*/ )
+        .set { ch_amplicon_bed } 
+    } else {
+      println("An amplicon bedfile wasn't found!")
+      println("Set amplicon schema with 'params.amplicon_bed'")
+      println("Or use included primer set by setting 'params.primer_set' to one of $available_primer_sets")
+      println("Or set params.aci = False to skip this.")
+      exit 1
+      ch_amplicon_bed = Channel.empty()
+    }
+  }
+  ch_amplicon_bed.view { "Amplicon BedFile : $it"}
+}
+
+//# scripts for legacy reasons
+ch_combine_results_script = Channel.fromPath("${workflow.projectDir}/bin/combine_results.py",  type:'file')
+ch_freyja_script          = Channel.fromPath("${workflow.projectDir}/bin/freyja_graphs.py",    type:'file')
 
 if ( params.kraken2_db ) {
   Channel
     .fromPath(params.kraken2_db, type:'dir')
     .view { "Kraken2 database : $it" }
     .set{ ch_kraken2_db }
-
 } else {
   ch_kraken2_db = Channel.empty()
-
 }
 
 if ( ! params.download_nextclade_dataset ) {
@@ -381,25 +433,18 @@ if ( ! params.download_nextclade_dataset ) {
   ch_nextclade_dataset = Channel.empty()
 }
 
-//# getting scripts
-ch_combine_results_script   = Channel.fromPath("${workflow.projectDir}/bin/combine_results.py",  type:'file')
-ch_freyja_script            = Channel.fromPath("${workflow.projectDir}/bin/freyja_graphs.py",    type:'file')
-
-// This is where the results will be
-println('The files and directory for results is ' + params.outdir)
-
 ch_paired_reads
   .mix(ch_single_reads)
   .unique()
   .set { ch_reads }
 
-workflow {
-    ch_paired_reads.view { "Paired-end Fastq files found : ${it[0]}" }
-    ch_single_reads.view { "Fastq files found : ${it[0]}" }
-    ch_fastas.view       { "Fasta file found : ${it[0]}" }
-    ch_multifastas.view  { "MultiFasta file found : ${it}" }
-    ch_reads.ifEmpty     { println("No fastq or fastq.gz files were found at ${params.reads} or ${params.single_reads}") }
+ch_paired_reads.view { "Paired-end Fastq files found : ${it[0]}" }
+ch_single_reads.view { "Fastq files found : ${it[0]}" }
+ch_fastas.view       { "Fasta file found : ${it[0]}" }
+ch_multifastas.view  { "MultiFasta file found : ${it}" }
+ch_reads.ifEmpty     { println("No fastq or fastq.gz files were found at ${params.reads} or ${params.single_reads}") }
 
+workflow CECRET {
     ch_for_dataset = Channel.empty()
     ch_for_version = Channel.from("Cecret version", workflow.manifest.version).collect()
 
@@ -410,7 +455,7 @@ workflow {
 
     fasta_prep(ch_fastas)
 
-    cecret(ch_reads, ch_reference_genome, ch_primer_bed)
+    cecret(ch_reads, ch_nanopore, ch_reference_genome, ch_primer_bed)
 
     qc(ch_reads,
       cecret.out.clean_reads,
@@ -475,6 +520,10 @@ workflow {
     tree      = tree
     alignment = alignment
     matrix    = matrix
+}
+
+workflow {
+  CECRET ()
 }
 
 workflow.onComplete {
