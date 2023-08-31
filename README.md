@@ -125,7 +125,7 @@ directory
 WARNING : fastas and multifastas **cannot** be in the same directory. If no fasta preprocessing is necessary, put the single fastas in the multifastas directory.
 
 ### Using a sample sheet
-Cecret can also use a sample sheet for input with the sample name and reads separated by commas. The header must be `sample,fastq_1,fastq_1`. The general rule is the identifier for the file(s), the file locations, and the type if not paired-end fastq files.
+Cecret can also use a sample sheet for input with the sample name and reads separated by commas. The header must be `sample,fastq_1,fastq_2`. The general rule is the identifier for the file(s), the file locations, and the type if not paired-end fastq files.
 
 Rows match files with their processing needs.
 - paired-end reads: `sample,read1.fastq.gz,read2.fastq.gz`
