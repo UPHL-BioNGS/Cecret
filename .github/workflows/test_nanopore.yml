@@ -1,0 +1,37 @@
+name: Test SARS-CoV-2 nanopore workflow
+
+on: [pull_request, workflow_dispatch]
+
+run-name: nanopore
+
+jobs:
+
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+          
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+      
+      - name: Download reads
+        run: |
+          mkdir nanopore
+          cd nanopore
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR224/050/SRR22452250/SRR22452250_1.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR224/031/SRR22452231/SRR22452231_1.fastq.gz
+          cd ../
+
+      - name: Run Cecret
+        run: |
+          nextflow run . -profile docker -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2
+
+          ls cecret*
+            
+          head cecret*/cecret_results.txt
+
+      - name: Clean
+        run: nextflow clean
