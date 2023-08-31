@@ -37,4 +37,4 @@ jobs:
           cat cecret*/cecret_results.txt
 
       - name: Clean
-        run: nextflow clean
+        run: rm -rf work .nextflow*

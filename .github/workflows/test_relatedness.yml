@@ -58,4 +58,4 @@ jobs:
           head cecret*/iqtree2/iqtree2.treefile
 
       - name: Clean
-        run: nextflow clean
+        run: rm -rf work .nextflow*
