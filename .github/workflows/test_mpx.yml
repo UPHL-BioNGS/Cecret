@@ -1,4 +1,4 @@
-name: Test SARS-CoV-2 mpx workflow
+name: Test mpx workflow
 
 on: [pull_request, workflow_dispatch]
 
@@ -33,3 +33,5 @@ jobs:
             
           head cecret*/cecret_results.txt
 
+      - name: Clean
+        run: nextflow clean

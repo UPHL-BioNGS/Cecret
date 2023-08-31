@@ -1,4 +1,4 @@
-name: Test SARS-CoV-2 mpx workflow with idt primers
+name: Test mpx workflow with idt primers
 
 on: [pull_request, workflow_dispatch]
 
@@ -32,3 +32,6 @@ jobs:
           ls cecret*
             
           head cecret*/cecret_results.txt
+
+      - name: Clean
+        run: nextflow clean

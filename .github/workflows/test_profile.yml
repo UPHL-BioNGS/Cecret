@@ -29,3 +29,6 @@ jobs:
           ls cecret*
             
           cat cecret*/cecret_results.txt
+
+      - name: Clean
+        run: nextflow clean
