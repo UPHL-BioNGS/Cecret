@@ -16,12 +16,27 @@
             "description": "Specifies which aligner is going to be used.",
             "hidden": true,
             "default": "bwa",
-            "enum": ["bwa", "minimap2"]
+            "enum": [
+                "bwa", 
+                "minimap2"
+            ]
         },
         "amplicon_bed": { 
             "type": "string",
             "hidden": true,
             "description": "Bedfile for amplicons"
+        },
+        "artic_options": {
+            "type": "string",
+            "description": "Options for process",
+            "hidden": true,
+            "default": "--normalise 200 --skip-nanopolish"
+        },
+        "artic_read_filtering_options": {
+            "type": "string",
+            "description": "Options for process",
+            "hidden": true,
+            "default": "--min-length 400 --max-length 700"
         },
         "bcftools_variants": { 
             "type": "boolean",
@@ -39,7 +54,10 @@
             "hidden": true,
             "default": "seqyclean",
             "description": "Specifies what tool to use to remove low quality reads",
-            "enum": ["seqyclean", "fastp"]
+            "enum": [
+                "seqyclean", 
+                "fastp"
+            ]
         },
         "config_file": {
             "type": "boolean",
@@ -115,7 +133,10 @@
             "type": "string",
             "hidden": true,
             "description": "Specifies filetype for freyja plot",
-            "enum": [".pdf", ".png"]
+            "enum": [
+                ".pdf", 
+                ".png"
+            ]
         },
         "freyja_plot_options": { 
             "type": "string",
@@ -234,7 +255,10 @@
             "hidden": true,
             "default": "mafft",
             "description": "Specifies what tool to use for multiple sequence alignment. Current options are nextalign and mafft.",
-            "enum": ["nextalign", "mafft"]
+            "enum": [
+                "nextalign", 
+                "mafft"
+            ]
         },
         "multifastas": { 
             "type": "string",
@@ -250,6 +274,11 @@
             "type": "string",
             "hidden": true,
             "description": "Options for process"
+        },
+        "nanopore": { 
+            "type": "string",
+            "hidden": true,
+            "description": "Directory with nanopore fastq files"
         },
         "nextalign_options": { 
             "type": "string",
@@ -303,7 +332,13 @@
             "hidden": true,
             "default": "ncov_V4",
             "description": "Specifies a primer set included in repo",
-            "enum": ["ncov_V3", "ncov_V4", "ncov_V4.1", "ncov_V5.3.2", "mpx_idt"]
+            "enum": [
+                "ncov_V3", 
+                "ncov_V4", 
+                "ncov_V4.1", 
+                "ncov_V5.3.2", 
+                "mpx_idt"
+            ]
         },
         "reads": { 
             "type": "string",
@@ -433,7 +468,11 @@
             "type": "string", 
             "default": "sarscov2",
             "description": "specifies SARS-CoV-2 or MPX options",
-            "enum": ["other", "mpx", "sarscov2"]
+            "enum": [
+                "other", 
+                "mpx", 
+                "sarscov2"
+            ]
         },
         "sra_accessions":{
             "type": "string",
@@ -446,7 +485,11 @@
             "hidden": true,
             "default": "ivar",
             "description": "Specifies which tool to use to trim primers from primerbedfile",
-            "enum": ["samtools", "ivar", "none"]
+            "enum": [
+                "samtools", 
+                "ivar", 
+                "none"
+            ]
         },
         "vadr": { 
             "type": "boolean",
