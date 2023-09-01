@@ -2,7 +2,7 @@ process artic {
     tag        "${sample}"
     label      "process_high"
     publishDir "${params.outdir}", mode: 'copy'
-    container  'quay.io/biocontainers/artic:1.2.3--pyhdfd78af_0'
+    container  'quay.io/uphl/artic:1.2.4-1.9.1'
   
     //#UPHLICA maxForks      10
     //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -15,15 +15,15 @@ process artic {
     tuple val(sample), file(fastq), file(reference), file(bed)
 
     output:
-    tuple val(sample), file("artic/${sample}.primertrimmed.rg.sorted.bam"), file("artic/${sample}.primertrimmed.rg.sorted.bam.bai"), emit: bam
-    path "artic/${sample}.consensus.fasta", emit: consensus
+    tuple val(sample), file("artic/${sample}.primertrim.sorted.bam"), file("artic/${sample}.primertrim.sorted.bam.bai"), emit: bam
+    path "consensus/${sample}.consensus.fa", emit: consensus
     tuple val("artic"), env(artic_version), emit: artic_version
     path "artic/${sample}*"
     path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
   
     shell:
     '''
-        mkdir -p artic schema/cecret/V1 logs/!{task.process}
+        mkdir -p artic consensus schema/cecret/V1 logs/!{task.process}
         log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
         # time stamp + capturing tool versions
@@ -44,14 +44,24 @@ process artic {
             artic/!{sample} \
             | tee -a $log
 
-        if [ -f "artic/!{sample}.rg.primertrimmed.bam" ] ; then samtools index artic/!{sample}.rg.primertrimmed.bam ; fi
+        if [ -f "artic/!{sample}.consensus.fasta" ]
+        then
+            echo ">!{sample}"                            > consensus/!{sample}.consensus.fa
+            grep -v ">" artic/!{sample}.consensus.fasta >> consensus/!{sample}.consensus.fa
+        fi
+
+        if [ -f "artic/!{sample}.rg.primertrimmed.bam" ]
+        then
+            cp artic/!{sample}.rg.primertrimmed.bam artic/!{sample}.primertrim.sorted.bam
+            samtools index artic/!{sample}.primertrim.sorted.bam
+        fi
     '''
 }
 
 process artic_read_filtering {
     tag        "${sample}"
     publishDir "${params.outdir}", mode: 'copy'
-    container  'quay.io/biocontainers/artic:1.2.3--pyhdfd78af_0'
+    container  'quay.io/uphl/artic:1.2.4-1.9.1'
     label      "process_single"
   
     //#UPHLICA maxForks      10
