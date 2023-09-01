@@ -17,13 +17,14 @@ process ivar_consensus {
 
   output:
   path "consensus/${sample}.consensus.fa",                                                            emit: consensus
-  path "consensus/${sample}.consensus.qual.txt",                                                      emit: qual
+  path "ivar_consensus/${sample}.consensus.qual.txt",                                                 emit: qual
+  path "ivar_consensus/*"
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
   tuple val("ivar consensus"), env(ivar_version),                                                     emit: ivar_version
 
   shell:
   '''
-    mkdir -p consensus logs/!{task.process}
+    mkdir -p ivar_consensus consensus logs/!{task.process}
     log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
     date > $log
@@ -32,7 +33,13 @@ process ivar_consensus {
     ivar_version=$(ivar version | grep "version")
 
     samtools mpileup -A -d !{params.mpileup_depth} -B -Q 0 --reference !{reference_genome} !{bam} | \
-      ivar consensus !{params.ivar_consensus_options} -m !{params.minimum_depth} -p consensus/!{sample}.consensus | tee -a $log
+      ivar consensus !{params.ivar_consensus_options} -m !{params.minimum_depth} -p ivar_consensus/!{sample}.consensus | tee -a $log
+
+    if [ -f "ivar_consensus/!{sample}.consensus.fa" ]
+    then
+      echo ">!{sample}"                                               > consensus/!{sample}.consensus.fa
+      grep -v ">" ivar_consensus/!{sample}.consensus.fa | fold -w 75 >> consensus/!{sample}.consensus.fa
+    fi
   '''
 }
 
