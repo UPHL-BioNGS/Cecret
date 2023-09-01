@@ -33,7 +33,7 @@ process artic {
 
         cp !{reference} schema/cecret/V1/cecret.reference.fasta
         cp !{bed}       schema/cecret/V1/cecret.scheme.bed
-        samtools faidx schema/cecret/V1/cecret.reference.fasta
+        samtools faidx  schema/cecret/V1/cecret.reference.fasta
 
         artic minion !{params.artic_options} \
             --threads !{task.cpus} \
@@ -50,9 +50,9 @@ process artic {
             grep -v ">" artic/!{sample}.consensus.fasta >> consensus/!{sample}.consensus.fa
         fi
 
-        if [ -f "artic/!{sample}.rg.primertrimmed.bam" ]
+        if [ -f "artic/!{sample}.primertrimmed.rg.sorted.bam" ]
         then
-            cp artic/!{sample}.rg.primertrimmed.bam artic/!{sample}.primertrim.sorted.bam
+            cp artic/!{sample}.primertrimmed.rg.sorted.bam artic/!{sample}.primertrim.sorted.bam
             samtools index artic/!{sample}.primertrim.sorted.bam
         fi
     '''
