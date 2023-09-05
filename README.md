@@ -80,7 +80,7 @@ A file summarizing all results is found in `'params.outdir'/cecret_results.csv` 
 Consensus sequences can be found in `'params.outdir'/consensus` and end with `*.consensus.fa`.
 
 ### Getting files from directories
-(can be adjusted with 'params.reads', 'params.single_reads', and 'params.fastas')
+(can be adjusted with 'params.reads', 'params.single_reads', 'params.fastas', and 'params.nanopore')
 
 Paired-end fastq.gz (ending with 'fastq', 'fastq.gz', 'fq', or 'fq.gz') reads as follows or designate directory with 'params.reads' or '--reads'
 ```
@@ -101,6 +101,13 @@ directory
 
 WARNING : single and paired-end reads **cannot** be in the same directory
 
+Nanopore/ONT reads as follows or designate directory with 'params.nanopore' or '--nanopore'
+```
+directory
+└── nanopore
+     └── *fastq.gz
+```
+
 Fasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.fastas' or '--fastas'
 ```
 directory
@@ -118,11 +125,12 @@ directory
 WARNING : fastas and multifastas **cannot** be in the same directory. If no fasta preprocessing is necessary, put the single fastas in the multifastas directory.
 
 ### Using a sample sheet
-Cecret can also use a sample sheet for input with the sample name and reads separated by commas. The header must be `sample,fastq_1,fastq_1`. The general rule is the identifier for the file(s), the file locations, and the type if not paired-end fastq files.
+Cecret can also use a sample sheet for input with the sample name and reads separated by commas. The header must be `sample,fastq_1,fastq_2`. The general rule is the identifier for the file(s), the file locations, and the type if not paired-end fastq files.
 
 Rows match files with their processing needs.
 - paired-end reads: `sample,read1.fastq.gz,read2.fastq.gz`
-- single-reads reads: `sample,read1.fastq.gz,single`
+- single-reads reads: `sample,sample.fastq.gz,single`
+- nanopore reads : `sample,sample.fastq.gz,nanopore`
 - fasta files: `sample,sample.fasta,fasta`
 - multifasta files: `multifasta,multifasta.fasta,multifasta`
 
@@ -133,6 +141,7 @@ SRR13957125,/home/eriny/sandbox/test_files/cecret/reads/SRR13957125_1.fastq.gz,/
 SRR13957170,/home/eriny/sandbox/test_files/cecret/reads/SRR13957170_1.fastq.gz,/home/eriny/sandbox/test_files/cecret/reads/SRR13957170_2.fastq.gz
 SRR13957177S,/home/eriny/sandbox/test_files/cecret/single_reads/SRR13957177_1.fastq.gz,single
 OQ255990.1,/home/eriny/sandbox/test_files/cecret/fastas/OQ255990.1.fasta,fasta
+SRR22452244,/home/eriny/sandbox/test_files/cecret/nanopore/SRR22452244.fastq.gz,nanopore
 ```
 
 Example usage with sample sheet using docker to manage containers
@@ -342,6 +351,7 @@ params.kraken2_db = 'kraken2_db'
 
 ## The main components of Cecret are:
 - [aci](https://github.com/erinyoung/ACI) - for depth estimation over amplicons
+- [artic network](https://github.com/artic-network) - for aligning and consensus creation of nanopore reads
 - [bwa](http://bio-bwa.sourceforge.net/) - for aligning reads to the reference
 - [fastp](https://github.com/OpenGene/fastp) - for cleaning reads ; optional, faster alternative to seqyclean
 - [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics

@@ -1,4 +1,4 @@
-name: Test SARS-CoV-2 mpx workflow
+name: Test mpx workflow
 
 on: [pull_request, workflow_dispatch]
 
@@ -21,8 +21,8 @@ jobs:
         run: |
           mkdir reads
           cd reads
-          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_1.fastq.gz
-          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_2.fastq.gz
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_1.fastq.gz
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_2.fastq.gz
           cd ../
 
       - name: Run Cecret
@@ -33,3 +33,5 @@ jobs:
             
           head cecret*/cecret_results.txt
 
+      - name: Clean
+        run: rm -rf work .nextflow*

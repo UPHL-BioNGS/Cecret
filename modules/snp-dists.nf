@@ -1,5 +1,6 @@
 process snpdists {
   tag        "creating snp matrix with snp-dists"
+  label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
   container  'staphb/snp-dists:0.8.2'
 

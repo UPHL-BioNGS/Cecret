@@ -1,8 +1,8 @@
-name: Test mpx workflow with primalseq primers
+name: Test SARS-CoV-2 nanopore workflow
 
 on: [pull_request, workflow_dispatch]
 
-run-name: mpx_primalseq
+run-name: nanopore
 
 jobs:
 
@@ -19,18 +19,19 @@ jobs:
       
       - name: Download reads
         run: |
-          mkdir reads
-          cd reads
-          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_1.fastq.gz
-          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_2.fastq.gz
+          mkdir nanopore
+          cd nanopore
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR224/050/SRR22452250/SRR22452250_1.fastq.gz
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR224/031/SRR22452231/SRR22452231_1.fastq.gz
           cd ../
 
       - name: Run Cecret
         run: |
-          nextflow run . -profile docker,mpx_primalseq -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2
+          nextflow run . -profile docker -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2
 
           ls cecret*
             
           head cecret*/cecret_results.txt
+
       - name: Clean
         run: rm -rf work .nextflow*

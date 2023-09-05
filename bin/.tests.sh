@@ -1,7 +1,7 @@
 #/bin/bash
-#nextflow run ~/sandbox/Cecret -profile singularity --reads /home/eriny/sandbox/test_files/cecret/reads --outdir tests -with-tower -resume
+# nextflow run ~/sandbox/Cecret -profile singularity --reads /home/eriny/sandbox/test_files/cecret/reads --outdir tests -with-tower -resume
 # nextflow run ~/sandbox/Cecret -profile singularity,mpx --reads /home/eriny/sandbox/test_files/cecret/mpx --outdir tests --cleaner 'fastp' -with-tower -resume
-
+# nextflow run ~/sandbox/Cecret -profile singularity --nanopore /home/eriny/sandbox/test_files/cecret/nanopore --outdir tests -with-tower -resume
 
 test=$1
 
@@ -27,7 +27,7 @@ then
     -resume \
     -with-tower
 
-  options=("reads" "single_reads" "fastas")
+  options=("reads" "single_reads" "fastas" "nanopore")
 
   for option in ${options[@]}
   do

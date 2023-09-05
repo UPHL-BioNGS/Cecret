@@ -1,5 +1,6 @@
 process fastqc {
   tag        "${sample}"
+  label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
   container  'staphb/fastqc:0.12.1'
 

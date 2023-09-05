@@ -67,6 +67,8 @@ if not fasta_df.empty :
     summary_df              = summary_df.drop('fasta_sample', axis=1)
     columns                 = ['fasta_line'] + columns + ['num_N', 'num_total']
 
+summary_df['sample_id'] = summary_df['sample_id'].astype(object)
+
 if exists(fastp_file) :
     with open(fastp_file) as file:
         contents = file.read()
@@ -359,7 +361,8 @@ if exists(versions_file) :
         summary_df[version] = software_version
     columns = columns + version_columns
 
-summary_df['sample'] = summary_df['sample_id'].str.split("_").str[0]
+summary_df['sample']    = summary_df['sample_id'].str.split("_").str[0]
+summary_df['sample_id'] = summary_df['sample_id'].astype('string')
 summary_df = summary_df.replace([" ", ",", "\t", "\n"], [" ", " ", " ", " "], regex=True)
 summary_df = summary_df.sort_values(by=['sample_id'], ascending=True)
 summary_df = summary_df.replace([" ", ",", "\t", "\n"], [" ", " ", " ", " "], regex=True)

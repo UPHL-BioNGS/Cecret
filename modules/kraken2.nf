@@ -1,6 +1,6 @@
 process kraken2 {
   tag        "${sample}"
-  label      "maxcpus"
+  label      "process_high"
   publishDir "${params.outdir}", mode: 'copy'
   container  'staphb/kraken2:2.1.3'
 

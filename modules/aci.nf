@@ -1,6 +1,6 @@
 process aci {
-    tag        "Graphing ampicon depths"
-    label      "maxcpus"
+    tag        "Graphing amplicon depths"
+    label      "process_high"
     publishDir "${params.outdir}", mode: 'copy'
     container  'quay.io/erinyoung/aci:0.1.20230815'
   
@@ -27,8 +27,6 @@ process aci {
     '''
         mkdir -p logs/!{task.process}
         log=logs/!{task.process}/aci.!{workflow.sessionId}.log
-        echo !{bam}
-        echo !{bed}
 
         # time stamp + capturing tool versions
         date > $log
