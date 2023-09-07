@@ -410,8 +410,10 @@ if ( params.trimmer != 'none' ) {
       exit 1
       ch_amplicon_bed = Channel.empty()
     }
+    ch_amplicon_bed.view { "Amplicon BedFile : $it"}
+  } else {
+    ch_amplicon_bed = Channel.empty()
   }
-  ch_amplicon_bed.view { "Amplicon BedFile : $it"}
 } else {
   ch_primer_bed   = Channel.empty()
   ch_amplicon_bed = Channel.empty()
