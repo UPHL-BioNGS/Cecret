@@ -18,8 +18,8 @@ process vadr {
   file(fasta)
 
   output:
-  path "vadr/*",              emit: vadr_files
-  path "vadr/vadr.vadr.sqa",  emit: vadr_file
+  path "vadr/*",              emit: vadr_files, optional: true
+  path "vadr/vadr.vadr.sqa",  emit: vadr_file,  optional: true
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
@@ -37,21 +37,24 @@ process vadr {
       if [ "$lines" -gt 2 ] ; then cat $fasta >> ultimate_fasta.fasta ; fi
     done
 
-    fasta-trim-terminal-ambigs.pl !{params.vadr_trim_options} \
-      ultimate_fasta.fasta > trimmed_ultimate_fasta.fasta
+    if [ -f "ultimate_fasta.fasta" ]
+    then
+      fasta-trim-terminal-ambigs.pl !{params.vadr_trim_options} \
+        ultimate_fasta.fasta > trimmed_ultimate.fasta
+    fi
 
-    if [ -s "trimmed_ultimate_fasta.fasta" ]
+    if [ -s "trimmed_ultimate.fasta" ] &&  [ -f "trimmed_ultimate.fasta" ]
     then
       v-annotate.pl !{params.vadr_options} \
         --cpu !{task.cpus} \
         --noseqnamemax \
         --mkey !{params.vadr_reference} \
         --mdir !{params.vadr_mdir} \
-        trimmed_ultimate_fasta.fasta \
+        trimmed_ultimate.fasta \
         vadr \
         | tee -a $log
     fi
-    cp ultimate_fasta.fasta vadr/combined.fasta
-    cp trimmed_ultimate_fasta.fasta vadr/trimmed.fasta
+    if [ -f "ultimate_fasta.fasta" ]   ; then cp ultimate_fasta.fasta vadr/combined.fasta  ; fi
+    if [ -f "trimmed_ultimate.fasta" ] ; then cp trimmed_ultimate.fasta vadr/trimmed.fasta ; fi
   '''
 }
