@@ -183,7 +183,7 @@ process samtools_ampliconstats {
 process samtools_plot_ampliconstats {
   tag           "${sample}"
   label      "process_single"
-  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
   container     'staphb/samtools:1.18'
 
