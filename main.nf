@@ -94,8 +94,8 @@ if ( params.fastas == params.multifastas ) {
 
 //# outdir params
 params.outdir                               = workflow.launchDir + '/cecret'
-println('The files and directory for results is ' + params.outdir)
 params.species                              = 'sarscov2'
+println('The files and directory for results is ' + params.outdir)
 println('The species used to determine default variables and subworkflows is ' + params.species)
 
 //# roughly grouping cpu usage
@@ -150,7 +150,7 @@ params.samtools_coverage_options            = ''
 params.samtools_flagstat_options            = ''
 params.samtools_depth_options               = ''
 params.samtools_stats_options               = ''
-params.samtools_ampliconstats_options       = ''
+params.samtools_ampliconstats_options       = '--max-amplicon-length 3000 --max-amplicons 3000'
 params.samtools_plot_ampliconstats_options  = '-size 1200,900 -size2 1200,900 -size3 1200,900'
 params.samtools_markdup_options             = ''
 params.samtools_fixmate_options             = ''
@@ -336,6 +336,10 @@ ch_gff_file.view { "GFF file : $it"}
 
 //# channels of included files
 included_primers     = [
+  workflow.projectDir + '/schema/midnight_idt_V1_SARS-CoV-2.primer.bed',
+  workflow.projectDir + '/schema/midnight_ont_V1_SARS-CoV-2.primer.bed',
+  workflow.projectDir + '/schema/midnight_ont_V2_SARS-CoV-2.primer.bed',
+  workflow.projectDir + '/schema/midnight_ont_V3_SARS-CoV-2.primer.bed',
   workflow.projectDir + '/schema/ncov_V3_nCoV-2019.primer.bed',
   workflow.projectDir + '/schema/ncov_V4_SARS-CoV-2.primer.bed',
   workflow.projectDir + '/schema/ncov_V4.1_SARS-CoV-2.primer.bed',
@@ -344,6 +348,10 @@ included_primers     = [
   workflow.projectDir + '/schema/mpx_primalseq_primer.bed'
   ]
 included_amplicons = [
+  workflow.projectDir + '/schema/midnight_idt_V1_SARS-CoV-2.insert.bed',
+  workflow.projectDir + '/schema/midnight_ont_V1_SARS-CoV-2.insert.bed',
+  workflow.projectDir + '/schema/midnight_ont_V2_SARS-CoV-2.insert.bed',
+  workflow.projectDir + '/schema/midnight_ont_V3_SARS-CoV-2.insert.bed',
   workflow.projectDir + '/schema/ncov_V3_nCoV-2019.insert.bed',
   workflow.projectDir + '/schema/ncov_V4_SARS-CoV-2.insert.bed',
   workflow.projectDir + '/schema/ncov_V4.1_SARS-CoV-2.insert.bed',
@@ -355,7 +363,19 @@ included_amplicons = [
 ch_primers                = Channel.fromPath(included_primers,   type: 'file')
 ch_amplicons              = Channel.fromPath(included_amplicons, type: 'file')
 
-available_primer_sets = ['ncov_V3', 'ncov_V4', 'ncov_V4.1', 'ncov_V5.3.2', 'mpx_primalseq', 'mpx_idt']
+available_primer_sets = [
+  'midnight_idt_V1', 
+  'midnight_ont_V1', 
+  'midnight_ont_V2', 
+  'midnight_ont_V3', 
+  'ncov_V3', 
+  'ncov_V4', 
+  'ncov_V4.1', 
+  'ncov_V5.3.2', 
+  'mpx_primalseq', 
+  'mpx_idt'
+  ]
+
 if ( params.trimmer != 'none' ) {
   //# Getting the primer file
   if (params.primer_bed) {
@@ -376,7 +396,7 @@ if ( params.trimmer != 'none' ) {
       .set { ch_primer_bed } 
   } else {
     println("No primers were found!")
-    println("Set primer schema with 'params.primer_bed'")
+    println("Set primer schema with 'params.primer_bed' or specify to 'none' if primers were not used")
     println("Or use included primer set by setting 'params.primer_set' to one of $available_primer_sets")
     exit 1
     ch_primer_bed = Channel.empty()
