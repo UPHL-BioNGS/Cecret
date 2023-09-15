@@ -331,6 +331,8 @@ if ( params.ivar_variants ) {
       ch_gff_file = Channel.empty()
     } 
   }
+} else {
+  ch_gff_file = Channel.empty()
 }
 ch_gff_file.view { "GFF file : $it"}
 
