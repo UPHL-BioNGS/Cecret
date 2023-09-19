@@ -90,11 +90,10 @@ workflow cecret {
   }
 
   ivar(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_reference))
-  ch_for_version = ch_for_version.mix(ivar.out.ivar_version)
 
   artic_read_filtering(ch_nanopore)
   artic(artic_read_filtering.out.fastq.combine(ch_reference).combine(ch_primer_bed))
-  ch_for_version = ch_for_version.mix(artic.out.artic_version)
+  ch_for_version = ch_for_version.mix(artic.out.artic_version).mix(ivar.out.ivar_version)
 
   if ( params.filter ) { filter(ch_sam.mix(artic.out.bam)) }
 
