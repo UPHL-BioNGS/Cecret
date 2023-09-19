@@ -315,7 +315,7 @@ process samtools_ampliconclip {
   output:
   tuple val(sample), file("ampliconclip/${sample}.primertrim.sorted.bam"), file("ampliconclip/${sample}.primertrim.sorted.bam.bai"), emit: bam_bai
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"                                                         
-  tuple val(sample), env(trimmer_version),                                                                                           emit: trimmer_version
+  tuple val("samtools ampliconclip"), env(trimmer_version),                                                                          emit: trimmer_version
 
   shell:
   '''
