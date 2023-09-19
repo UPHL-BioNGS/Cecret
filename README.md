@@ -155,21 +155,6 @@ nextflow run UPHL-BioNGS/Cecret -profile docker --sample_sheet SampleSheet.csv
 ## Determining primer and amplicon bedfiles
 The default primer scheme of the 'Cecret' workflow is the 'V4' primer scheme developed by [artic network for SARS-CoV-2](https://artic.network/ncov-2019). Releases prior to and including '2.2.20211221' used the 'V3' primer scheme as the default. As many public health laboratories are still using 'V3', the 'V3' files are still in this repo, but now the 'V4', 'V4.1' ('V4' with a spike-in of additional primers), and 'V5.3.2' are also included. The original primer and amplicon bedfiles can be found at [artic's github repo](https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019). 
 
-Setting primers sets is with the corresponding profile.
-```
-# using artic V3 primers
-nextflow run UPHL-BioNGS/Cecret -profile singularity,artic_V3
-
-# using artic V4 primers
-nextflow run UPHL-BioNGS/Cecret -profile singularity,artic_V4
-
-# using artic V4.1 primers
-nextflow run UPHL-BioNGS/Cecret -profile singularity,artic_V4_1
-
-# using artic V5.3.2 primers
-nextflow run UPHL-BioNGS/Cecret -profile singularity,artic_V5_3_2
-```
-
 Setting primers with a parameter on the command line (these can also be defined in a config file)
 ```
 # using artic V3 primers
@@ -184,6 +169,8 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --primer_set 'ncov_V4.1'
 # using artic V5.3.2 primers
 nextflow run UPHL-BioNGS/Cecret -profile singularity --primer_set 'ncov_V5.3.2'
 ```
+
+Some "Midnight" primers are also included and can be set with `midnight_idt_V1`, `midnight_ont_V1`, `midnight_ont_V2`, `midnight_ont_V3`.
 
 It is still possible to set 'params.primer_bed' and 'params.amplicon_bed' via the command line or in a config file with the path to the corresponding file.
 
