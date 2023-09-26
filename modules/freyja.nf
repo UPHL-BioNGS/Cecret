@@ -3,7 +3,7 @@ process freyja {
   label         "process_medium"
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
-  container     'quay.io/uphl/freyja:1.4.7-20230915'
+  container     'quay.io/uphl/freyja:1.4.7-2023-09-26'
 
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
@@ -44,7 +44,7 @@ process freyja {
       --output freyja/!{sample}_demix.tsv \
       | tee -a $log
 
-    freyja boot \
+    freyja boot !{params.freyja_boot_options} \
       freyja/!{sample}_variants.tsv \
       freyja/!{sample}_depths.tsv \
       --nt !{task.cpus} \
@@ -57,7 +57,7 @@ process freyja_aggregate {
   tag        "Aggregating results from freyja"
   label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'quay.io/uphl/freyja:1.4.7-20230915'
+  container  'quay.io/uphl/freyja:1.4.7-2023-09-26'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
