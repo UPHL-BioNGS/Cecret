@@ -30,7 +30,7 @@
             "type": "string",
             "description": "Options for process",
             "hidden": true,
-            "default": "--normalise 200 --skip-nanopolish"
+            "default": "--normalise 200 --skip-nanopolish --medaka --medaka-model r941_min_high_g360"
         },
         "artic_read_filtering_options": {
             "type": "string",
@@ -62,13 +62,14 @@
         "config_file": {
             "type": "boolean",
             "hidden": true,
+            "default": false,
             "description" : "Specifies if a config file is copied for the end user. Ends script."
         },
         "download_nextclade_dataset": {
             "type": "boolean",
             "hidden": false,
             "description" : "Specifies if nextclade should download its dataset. Set to false to use included dataset.",
-            "default" : true
+            "default" : false
         },
         "fastas": { 
             "type": "string",
@@ -121,17 +122,19 @@
         "freyja_boot_options": { 
             "type": "string",
             "hidden": true,
-            "default": "--nb 1000",
+            "default": "--nb 1000 --depthcutoff 100",
             "description": "Options for process"
         },
         "freyja_demix_options": { 
             "type": "string",
             "hidden": true,
+            "default": "--depthcutoff 100",
             "description": "Options for process"
         },
         "freyja_plot_filetype": { 
             "type": "string",
             "hidden": true,
+            "default": "png",
             "description": "Specifies filetype for freyja plot",
             "enum": [
                 ".pdf", 
@@ -141,7 +144,7 @@
         "freyja_plot_options": { 
             "type": "string",
             "hidden": true,
-            "default": "png",
+            "default": "--mincov 100",
             "description": "Options for process"
         },
         "freyja_variants_options": { 
@@ -169,6 +172,7 @@
         "iqtree2_outgroup": { 
             "type": "string",
             "hidden": true,
+            "default": "MN908947",
             "description": "outgroup for multiple sequence alignment"
         },
         "ivar_consensus_options": { 
@@ -200,7 +204,8 @@
             "description": "Specifies if process should be used"
         },
         "kraken2_db": { 
-            "type": "string", 
+            "type": "string",
+            "default": "false",
             "description": "directory to kraken2 database"
         },
         "kraken2_options": { 
@@ -295,6 +300,7 @@
         "nextclade_dataset": { 
             "type": "string",
             "hidden": true,
+            "default": "sars-cov-2",
             "description": "Specifies nextclade dataset"
         },
         "nextclade_options": { 
@@ -303,7 +309,8 @@
             "description": "Options for process"
         },
         "outdir": { 
-            "type": "string", 
+            "type": "string",
+            "default": "cecret",
             "description": "Specifies where results are saved"
         },
         "pangolin": { 
@@ -408,6 +415,12 @@
             "hidden": true,
             "description": "Options for process"
         },
+        "samtools_flagstat": {
+            "type": "boolean",
+            "hidden": true,
+            "default": true,
+            "description": "Specifies if process should be used"
+        },
         "samtools_flagstat_options": { 
             "type": "string",
             "hidden": true,
@@ -439,7 +452,6 @@
         "samtools_stats_options": { 
             "type": "string",
             "hidden": true,
-            "default": true,
             "description": "Options for process"
         },
         "seqyclean_contaminant_file": { 
@@ -500,6 +512,7 @@
         "vadr": { 
             "type": "boolean",
             "hidden": true,
+            "default": true,
             "description": "Specifies if process should be used"
         },
         "vadr_mdir": { 
@@ -511,15 +524,18 @@
         "vadr_options": { 
             "type": "string",
             "hidden": true,
+            "default": "--split --glsearch -s -r --nomisc --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn",
             "description": "Options for process"
         },
         "vadr_reference": { 
             "type": "string",
             "hidden": true,
+            "default": "sarscov2",
             "description": "Specifies reference for vadr in container"
         },
         "vadr_trim_options": { 
             "type": "string",
+            "default": "--minlen 50 --maxlen 30000",
             "hidden": true,
             "description": "Options for process"
         }
