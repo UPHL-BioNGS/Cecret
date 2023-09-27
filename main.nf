@@ -10,7 +10,7 @@ println(' \\____|_____\\____|_| \\_\\_____| |_|')
 
 println('Version: ' + workflow.manifest.version)
 println('')
-println('Currently using the Cecret workflow for use with amplicon Illumina library prep on MiSeq with a corresponding reference genome.\n')
+println('Currently using the Cecret workflow for use with corresponding reference genome.\n')
 println('Author: Erin Young')
 println('email: eriny@utah.gov')
 println('')
