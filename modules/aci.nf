@@ -18,9 +18,9 @@ process aci {
     tuple file(bam), file(bed)
 
     output:
-    path "aci/amplicon_depth.csv",     emit: cov
-    path "aci/amplicon_depth.png"
-    path "aci/amplicon_depth_mqc.png", emit: for_multiqc
+    path "aci/amplicon_depth.csv",     emit: cov, optional: true
+    path "aci/amplicon_depth.png",     optional: true
+    path "aci/amplicon_depth_mqc.png", emit: for_multiqc, optional: true
     path "logs/${task.process}/aci.${workflow.sessionId}.log"
   
     shell:
