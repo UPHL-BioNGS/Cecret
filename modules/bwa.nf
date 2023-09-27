@@ -1,8 +1,8 @@
 process bwa {
-  tag        "${sample}"
-  label      "process_high"
-  publishDir = [ path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log' ]
-  container  'staphb/bwa:0.7.17'
+  tag         "${sample}"
+  label       "process_high"
+  publishDir  path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log'
+  container   'staphb/bwa:0.7.17'
   
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}

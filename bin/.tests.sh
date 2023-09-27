@@ -3,6 +3,8 @@
 # nextflow run ~/sandbox/Cecret -profile singularity,mpx --reads /home/eriny/sandbox/test_files/cecret/mpx --outdir tests --cleaner 'fastp' -with-tower -resume
 # nextflow run ~/sandbox/Cecret -profile singularity --nanopore /home/eriny/sandbox/test_files/cecret/nanopore --outdir tests -with-tower -resume
 
+echo "usage : bash .test.sh {small,primers,else}"
+
 test=$1
 
 if [ -z "$test" ]; then test="small" ; fi
@@ -36,6 +38,7 @@ then
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir singularity_defaults_$option \
+      -resume \
       -with-tower
 
     # removed test for bamsnap and rename because of lack of interest
@@ -95,6 +98,83 @@ then
     --fastas shouldntexit \
     --outdir empty  \
     -with-tower
+
+elif [ "$test" == "primers" ]
+then
+
+  nanopore_primers=("midnight_idt_V1" "midnight_ont_V1" "midnight_ont_V2" "midnight_ont_V3")
+  for primer in ${nanopore_primers[@]}
+  do
+    nextflow run ~/sandbox/Cecret \
+      -profile singularity \
+      --nanopore /home/eriny/sandbox/test_files/cecret/nanopore \
+      --outdir primer_${primer}_artic \
+      --primer_set $primer \
+      --bcftools_variants false \
+      --fastqc false \
+      --ivar_variants false \
+      --samtools_stats false \
+      --samtools_coverage false \
+      --samtools_depth false \
+      --nextclade false \
+      --pangolin false \
+      --freyja false \
+      --vadr false \
+      -resume \
+      -with-tower
+  done
+
+  trimmers=("samtools" "ivar")
+  for trimmer in ${trimmers[@]}
+  do
+    illumina_primers=("ncov_V3" "ncov_V4" "ncov_V4.1" "ncov_V5.3.2")
+    for primer in ${illumina_primers[@]}
+    do
+      nextflow run ~/sandbox/Cecret \
+        -profile singularity \
+        --reads /home/eriny/sandbox/test_files/cecret/reads \
+        --outdir primer_${primer}_${trimmer} \
+        --trimmer $trimmer \
+        --cleaner 'fastp' \
+        --primer_set $primer \
+        --bcftools_variants false \
+        --fastqc false \
+        --ivar_variants false \
+        --samtools_stats false \
+        --samtools_coverage false \
+        --samtools_depth false \
+        --nextclade false \
+        --pangolin false \
+        --freyja false \
+        --vadr false \
+        -resume \
+        -with-tower
+    done
+
+    mpx_primers=("mpx_primalseq" "mpx_idt")
+    for primer in ${mpx_primers[@]}
+    do
+      nextflow run ~/sandbox/Cecret \
+        -profile singularity \
+        --reads /home/eriny/sandbox/test_files/cecret/mpx_idt \
+        --outdir primer_${primer}_${trimmer} \
+        --trimmer $trimmer \
+        --cleaner 'fastp' \
+        --primer_set $primer \
+        --bcftools_variants false \
+        --fastqc false \
+        --ivar_variants false \
+        --samtools_stats false \
+        --samtools_coverage false \
+        --samtools_depth false \
+        --nextclade false \
+        --pangolin false \
+        --freyja false \
+        --vadr false \
+        -with-tower \
+        -resume
+    done
+  done
 
 else
   # CDC's test data with relatedness

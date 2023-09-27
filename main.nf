@@ -10,7 +10,7 @@ println(' \\____|_____\\____|_| \\_\\_____| |_|')
 
 println('Version: ' + workflow.manifest.version)
 println('')
-println('Currently using the Cecret workflow for use with amplicon Illumina library prep on MiSeq with a corresponding reference genome.\n')
+println('Currently using the Cecret workflow for use with corresponding reference genome.\n')
 println('Author: Erin Young')
 println('email: eriny@utah.gov')
 println('')
@@ -178,10 +178,10 @@ params.vadr_mdir                            = '/opt/vadr/vadr-models'
 params.nextclade_options                    = ''
 params.nextalign_options                    = '--include-reference'
 params.freyja_variants_options              = ''
-params.freyja_demix_options                 = ''
-params.freyja_boot_options                  = '--nb 1000'
+params.freyja_demix_options                 = "--depthcutoff ${params.minimum_depth}"
+params.freyja_boot_options                  = "--nb 1000 --depthcutoff ${params.minimum_depth}"
 params.freyja_aggregate_options             = ''
-params.freyja_plot_options                  = ''
+params.freyja_plot_options                  = "--mincov ${params.minimum_depth}"
 params.freyja_plot_filetype                 = 'png'
 
 //# Specifying some species-specific params

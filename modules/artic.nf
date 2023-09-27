@@ -15,8 +15,8 @@ process artic {
     tuple val(sample), file(fastq), file(reference), file(bed)
 
     output:
-    tuple val(sample), file("artic/${sample}.primertrim.sorted.bam"), file("artic/${sample}.primertrim.sorted.bam.bai"), emit: bam
-    path "consensus/${sample}.consensus.fa", emit: consensus
+    tuple val(sample), file("artic/${sample}.primertrim.sorted.bam"), file("artic/${sample}.primertrim.sorted.bam.bai"), emit: bam, optional: true
+    path "consensus/${sample}.consensus.fa", emit: consensus, optional: true
     tuple val("artic"), env(artic_version), emit: artic_version
     path "artic/${sample}*"
     path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
