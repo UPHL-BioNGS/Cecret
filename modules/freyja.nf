@@ -3,7 +3,7 @@ process freyja {
   label         "process_medium"
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
-  container     'quay.io/uphl/freyja:1.4.7-2023-10-10'
+  container     'quay.io/uphl/freyja:1.4.7-2023-10-17'
 
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
@@ -57,7 +57,7 @@ process freyja_aggregate {
   tag        "Aggregating results from freyja"
   label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'quay.io/uphl/freyja:1.4.7-2023-10-10'
+  container  'quay.io/uphl/freyja:1.4.7-2023-10-17'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
