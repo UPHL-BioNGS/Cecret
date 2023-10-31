@@ -2,7 +2,7 @@ process pangolin {
   tag        "SARS-CoV-2 lineage Determination"
   label      "process_medium"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/pangolin:4.3.1-pdata-1.22'
+  container  'staphb/pangolin:4.3.1-pdata-1.23.1'
 
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}

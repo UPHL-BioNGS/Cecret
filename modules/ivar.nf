@@ -138,7 +138,7 @@ process ivar_trim {
     # trimming the reads
     ivar trim !{params.ivar_trim_options} -e -i !{bam} -b !{primer_bed} -p ivar_trim/!{sample}.primertrim | tee -a $log
 
-    if [ -S "$log" ] ; then grep "Found" -A 10000 $log | grep -A 10000 "primers in BED file" > ivar_trim/!{sample}_ivar.log ; else touch ivar_trim/!{sample}_ivar.log ; fi
+    if [ -S "$log" ] ; then grep "Found" -A 10000 $log | grep -A 10000 "primers in BED file" 2> ivar_trim/!{sample}_ivar.log ; else touch ivar_trim/!{sample}_ivar.log ; fi
     
     # sorting and indexing the trimmed bams
     samtools sort ivar_trim/!{sample}.primertrim.bam -o ivar_trim/!{sample}.primertrim.sorted.bam | tee -a $log
