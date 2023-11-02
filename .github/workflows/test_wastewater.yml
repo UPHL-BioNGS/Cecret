@@ -36,5 +36,7 @@ jobs:
             
           cat cecret*/cecret_results.txt
 
+          head cecret/freyja/aggregated-freyja.tsv
+
       - name: Clean
         run: rm -rf work .nextflow*

@@ -1,7 +1,7 @@
-process freyja {
+process freyja_variants {
   tag           "${sample}"
   label         "process_medium"
-  errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
   container     'quay.io/uphl/freyja:1.4.7-2023-10-31'
 
@@ -18,8 +18,8 @@ process freyja {
   tuple val(sample), file(bam), file(reference_genome)
 
   output:
-  path "freyja/${sample}_demix.tsv", optional: true, emit: freyja_demix
-  path "freyja/${sample}*",                          emit: files
+  tuple val(sample), file("freyja/${sample}_{depths,variants}.tsv"), optional: true, emit: variants
+  path "freyja/${sample}*",                                          optional: true, emit: files
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
@@ -36,17 +36,84 @@ process freyja {
       --depths freyja/!{sample}_depths.tsv \
       --ref !{reference_genome} \
       | tee -a $log
+  '''
+}
+
+process freyja_demix {
+  tag           "${sample}"
+  label         "process_medium"
+  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  publishDir    "${params.outdir}", mode: 'copy'
+  container     'quay.io/uphl/freyja:1.4.7-2023-10-31'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
+
+  when:
+  params.freyja
+
+  input:
+  tuple val(sample), file(variants)
+
+  output:
+  path "freyja/${sample}_demix.tsv", optional: true, emit: demix
+  path "freyja/${sample}*",          optional: true, emit: files
+  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+
+  shell:
+  '''
+    mkdir -p freyja logs/!{task.process}
+    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+
+    date > $log
+    freyja --version >> $log
 
     freyja demix \
       !{params.freyja_demix_options} \
-      freyja/!{sample}_variants.tsv \
-      freyja/!{sample}_depths.tsv \
+      !{variants[1]} \
+      !{variants[0]} \
       --output freyja/!{sample}_demix.tsv \
       | tee -a $log
+  '''
+}
+
+process freyja_boot {
+  tag           "${sample}"
+  label         "process_medium"
+  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  publishDir    "${params.outdir}", mode: 'copy'
+  container     'quay.io/uphl/freyja:1.4.7-2023-10-31'
+
+  //#UPHLICA maxForks 10
+  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
+  //#UPHLICA memory 60.GB
+  //#UPHLICA cpus 14
+  //#UPHLICA time '45m'
+
+  when:
+  params.freyja
+
+  input:
+  tuple val(sample), file(variants)
+
+  output:
+  path "freyja/${sample}*", emit: files
+  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+
+  shell:
+  '''
+    mkdir -p freyja logs/!{task.process}
+    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+
+    date > $log
+    freyja --version >> $log
 
     freyja boot !{params.freyja_boot_options} \
-      freyja/!{sample}_variants.tsv \
-      freyja/!{sample}_depths.tsv \
+      !{variants[1]} \
+      !{variants[0]} \
       --nt !{task.cpus} \
       --output_base freyja/!{sample}_boot.tsv \
       | tee -a $log
@@ -76,7 +143,7 @@ process freyja_aggregate {
   output:
   path "freyja/aggregated*",                                                   emit: files
   path "freyja/aggregated-freyja.tsv",                                         emit: aggregated_freyja_file
-  path "freyja/*mqc.png",                                                       emit: for_multiqc
+  path "freyja/*mqc.png",                                                      emit: for_multiqc
   path "freyja/*png"
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 

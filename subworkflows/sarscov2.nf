@@ -1,4 +1,6 @@
-include { freyja; freyja_aggregate }     from '../modules/freyja'    addParams(params)
+include { freyja_aggregate }             from '../modules/freyja'    addParams(params)
+include { freyja_demix }                 from '../modules/freyja'    addParams(params)
+include { freyja_variants }              from '../modules/freyja'    addParams(params)
 include { pangolin }                     from '../modules/pangolin'  addParams(params)
 include { nextclade }                    from '../modules/nextclade' addParams(params)
 include { nextclade_dataset as dataset } from '../modules/nextclade' addParams(params)
@@ -26,8 +28,9 @@ workflow sarscov2 {
         }
         
         nextclade(ch_fastas.collect(), ch_dataset)
-        freyja(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
-        freyja_aggregate(freyja.out.freyja_demix.collect(), ch_freyja_script)
+        freyja_variants(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
+        freyja_demix(freyja_variants.out.variants)
+        freyja_aggregate(freyja_demix.out.demix.collect(), ch_freyja_script)
 
     emit:
         dataset     = ch_dataset
