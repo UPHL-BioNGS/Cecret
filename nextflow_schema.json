@@ -119,12 +119,6 @@
             "hidden": true,
             "description": "Options for process"
         },
-        "freyja_boot_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "--nb 1000 --depthcutoff 100",
-            "description": "Options for process"
-        },
         "freyja_demix_options": { 
             "type": "string",
             "hidden": true,
@@ -144,7 +138,6 @@
         "freyja_plot_options": { 
             "type": "string",
             "hidden": true,
-            "default": "--mincov 100",
             "description": "Options for process"
         },
         "freyja_variants_options": { 
