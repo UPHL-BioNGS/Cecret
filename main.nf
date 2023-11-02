@@ -52,6 +52,10 @@ params.bedtools_multicov_options            = false
 if (params.bedtools_multicov_options ) {
   println('WARNING : params.bedtools_multicov_options no longer does anything!')
 }
+params.freyja_boot_options                  = false
+if (params.freyja_boot_options  ) {
+  println('WARNING : params.freyja_boot_options no longer does anything!')
+}
 
 //# Starting the workflow --------------------------------------------------------------
 
@@ -179,9 +183,9 @@ params.nextclade_options                    = ''
 params.nextalign_options                    = '--include-reference'
 params.freyja_variants_options              = ''
 params.freyja_demix_options                 = "--depthcutoff ${params.minimum_depth}"
-params.freyja_boot_options                  = "--nb 1000 --depthcutoff ${params.minimum_depth}"
+
 params.freyja_aggregate_options             = ''
-params.freyja_plot_options                  = "--mincov ${params.minimum_depth}"
+params.freyja_plot_options                  = ""
 params.freyja_plot_filetype                 = 'png'
 
 //# Specifying some species-specific params
