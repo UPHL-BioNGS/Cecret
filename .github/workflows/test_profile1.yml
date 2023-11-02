@@ -24,7 +24,7 @@ jobs:
           
       - name: Run Cecret
         run: |
-          nextflow run . -profile docker,test1 -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200 --vadr false --aci false --freyja false
+          nextflow run . -profile docker,test1 -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200 --vadr false
 
           ls cecret*
             
