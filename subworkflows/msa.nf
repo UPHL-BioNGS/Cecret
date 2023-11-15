@@ -1,7 +1,8 @@
-include { mafft }     from '../modules/mafft'     addParams(params)
-include { nextalign } from '../modules/nextalign' addParams(params)
-include { iqtree2 }   from '../modules/iqtree2'   addParams(params)
-include { snpdists }  from '../modules/snp-dists' addParams(params)
+include { mafft }       from '../modules/mafft'       addParams(params)
+include { nextalign }   from '../modules/nextalign'   addParams(params)
+include { heatcluster } from '../modules/heatcluster' addParams(params)
+include { iqtree2 }     from '../modules/iqtree2'     addParams(params)
+include { snpdists }    from '../modules/snp-dists'   addParams(params)
 
 workflow msa {
   take:
@@ -18,10 +19,13 @@ workflow msa {
       ch_msa = mafft.out.msa
     }
     iqtree2(ch_msa)
+    phytreeviz(iqtree2.out.newick)
     snpdists(ch_msa)
+    heatcluster(snpdists.out.matrix)
 
   emit:
-    tree   = iqtree2.out.tree
-    matrix = snpdists.out.matrix
-    msa    = ch_msa
+    tree    = iqtree2.out.tree
+    matrix  = snpdists.out.matrix
+    msa     = ch_msa
+    multiqc = phytreeviz.out.for_multiqc.mix(heatcluster.out.for_multiqc)
 }
