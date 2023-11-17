@@ -10,6 +10,9 @@ process phytreeviz {
   //#UPHLICA memory 60.GB
   //#UPHLICA time '24h'
   
+  when:
+  params.phytreeviz
+
   input:
   file(newick)
 
@@ -32,7 +35,8 @@ process phytreeviz {
 
     phytreeviz !{params.phytreeviz_options} \
         -i !{newick} \
-        -o phytreeviz/tree.png
+        -o phytreeviz/tree.png \
+      | tee -a $log_file
 
     if [ -f "phytreeviz/tree.png" ] ; then cp phytreeviz/tree.png phytreeviz/tree_mqc.png ; fi 
   '''
