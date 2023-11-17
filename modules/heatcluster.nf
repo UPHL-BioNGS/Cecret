@@ -9,18 +9,21 @@ process heatcluster {
   //#UPHLICA cpus 3
   //#UPHLICA time '10m'
 
+  when:
+  params.heatcluster
+
   input:
   file(matrix)
 
   output:
   path "heatcluster/heatcluster*"       , optional : true
-  path "heatcluster/heatcluster_mqc.png", optional : true         , emit: for_multiqc
-  path "logs/${task.process}/snp_matrix.${workflow.sessionId}.log", emit: log_files
+  path "heatcluster/heatcluster_mqc.png", optional : true              , emit: for_multiqc
+  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log", emit: log_files
 
   shell:
   '''
-    mkdir -p snp-dists logs/!{task.process}
-    log_file=logs/!{task.process}/snp_matrix.!{workflow.sessionId}.log
+    mkdir -p heatcluster logs/!{task.process}
+    log_file=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
     # time stamp + capturing tool versions
     date > $log_file
