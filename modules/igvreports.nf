@@ -11,6 +11,9 @@ process igv_reports {
   //#UPHLICA cpus 14
   //#UPHLICA time '45m'
 
+  when:
+  params.igv_reports
+
   input:
   tuple val(sample), file(bam), file(reference_genome), file(vcf)
 
@@ -28,10 +31,10 @@ process igv_reports {
     create_report -v >> $log
 
     create_report !{params.igv_reports_options} \
-        !{vcf} \
         --fasta !{reference_genome} \
         --tracks !{vcf} !{bam} \
         --output igv_reports/!{sample}/igvjs_viewer.html \
+        !{vcf} \
         | tee -a $log
   '''
 }
