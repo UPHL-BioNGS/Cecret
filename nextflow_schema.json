@@ -150,6 +150,30 @@
             "hidden": true,
             "description": "File used in ivar variants. Must correspond with reference genome."
         },
+        "heatcluster": { 
+            "type": "boolean",
+            "hidden": true,
+            "default": true,
+            "description": "Specifies if process should be used"
+        },
+        "heatcluster_options": { 
+            "type": "string",
+            "hidden": true,
+            "default": "-t png",
+            "description": "Options for process"
+        },
+        "igv_reports": { 
+            "type": "boolean",
+            "hidden": true,
+            "default": true,
+            "description": "Specifies if process should be used"
+        },
+        "igv_reports_options": { 
+            "type": "string",
+            "hidden": true,
+            "default": "--flanking 1000",
+            "description": "Options for process"
+        },
         "iqtree2": { 
             "type": "boolean",
             "hidden": true,
@@ -313,6 +337,17 @@
             "description": "Specifies if process should be used"
         },
         "pangolin_options": { 
+            "type": "string",
+            "hidden": true,
+            "description": "Options for process"
+        },
+        "phytreeviz": { 
+            "type": "boolean",
+            "hidden": true,
+            "default": true,
+            "description": "Specifies if process should be used"
+        },
+        "phytreeviz_options": { 
             "type": "string",
             "hidden": true,
             "description": "Options for process"
