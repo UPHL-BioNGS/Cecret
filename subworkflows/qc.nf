@@ -1,5 +1,6 @@
 include { aci }                                                 from '../modules/aci'       addParams(params)
 include { bcftools_variants }                                   from '../modules/bcftools'  addParams(params)
+include { igv_reports }                                         from '../modules/igvreports' addParams(params)
 include { ivar_variants }                                       from '../modules/ivar'      addParams(params)
 include { fastqc }                                              from '../modules/fastqc'    addParams(params)
 include { kraken2 }                                             from '../modules/kraken2'   addParams(params)
@@ -45,6 +46,8 @@ workflow qc {
     ivar_variants(         ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_reference_genome).combine(ch_gff_file))
     samtools_ampliconstats(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_primer_bed))
     samtools_plot_ampliconstats(samtools_ampliconstats.out.samtools_ampliconstats_files)
+
+    //igv_reports(bcftools_variants.out.vcf)
 
     samtools_coverage.out.samtools_coverage
       .collectFile(name: "samtools_coverage_summary.tsv",

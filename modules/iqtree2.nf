@@ -19,6 +19,7 @@ process iqtree2 {
 
   output:
   path "iqtree2/iqtree2.{iqtree,treefile*,mldist,log}", emit: tree
+  path "iqtree2/iqtree2.treefile.nwk"                 , emit: newick, optional: true
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:

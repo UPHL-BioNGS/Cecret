@@ -117,6 +117,7 @@ params.msa                                  = 'mafft'
 params.aci                                  = true
 params.bcftools_variants                    = true
 params.fastqc                               = true
+params.igv_reports                          = true
 params.ivar_variants                        = true
 params.samtools_stats                       = true
 params.samtools_coverage                    = true
@@ -132,6 +133,8 @@ params.multiqc                              = true
 params.relatedness                          = false
 params.snpdists                             = true
 params.iqtree2                              = true
+params.heatcluster                          = true
+params.phytreeviz                           = true
 
 //# parameters for processes with their default values
 params.artic_options                        = '--normalise 200 --skip-nanopolish --medaka --medaka-model r941_min_high_g360'
@@ -140,6 +143,8 @@ params.bcftools_variants_options            = ''
 params.fastp_options                        = ''
 params.fastqc_options                       = ''
 params.filter_options                       = ''
+params.heatcluster_options                  = '-t png'
+params.igv_reports_options                  = '--flanking 1000'
 params.iqtree2_options                      = '-ninit 2 -n 2 -me 0.05 -m GTR'
 params.ivar_consensus_options               = '-q 20 -t 0.6 -n N'
 params.ivar_trim_options                    = ''
@@ -149,6 +154,7 @@ params.minimum_depth                        = 100
 params.mpileup_depth                        = 8000
 params.multiqc_options                      = ''
 params.mafft_options                        = '--maxambiguous 0.5'
+params.phytreeviz_options                   = ''
 params.samtools_ampliconclip_options        = ''
 params.samtools_coverage_options            = ''
 params.samtools_flagstat_options            = ''
@@ -537,6 +543,8 @@ workflow CECRET {
       tree      = msa.out.tree
       alignment = msa.out.msa
       matrix    = msa.out.matrix
+
+      ch_for_multiqc = ch_for_multiqc.mix(msa.out.for_multiqc)
 
     } else {
       tree      = Channel.empty()

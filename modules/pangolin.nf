@@ -24,7 +24,7 @@ process pangolin {
 
   shell:
   '''
-    mkdir -p pangolin logs/!{task.process}
+    mkdir -p temp pangolin logs/!{task.process}
     log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
 
     date > $log
@@ -38,6 +38,8 @@ process pangolin {
     pangolin !{params.pangolin_options} \
       --threads !{task.cpus} \
       --outdir pangolin \
+      --tempdir temp \
+      --verbose \
       ultimate_fasta.fasta \
       | tee -a $log
     cp ultimate_fasta.fasta pangolin/combined.fasta

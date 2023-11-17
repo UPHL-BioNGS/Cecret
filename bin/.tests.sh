@@ -2,6 +2,7 @@
 # nextflow run ~/sandbox/Cecret -profile singularity --reads /home/eriny/sandbox/test_files/cecret/reads --outdir tests -with-tower -resume
 # nextflow run ~/sandbox/Cecret -profile singularity,mpx --reads /home/eriny/sandbox/test_files/cecret/mpx --outdir tests --cleaner 'fastp' -with-tower -resume
 # nextflow run ~/sandbox/Cecret -profile singularity --nanopore /home/eriny/sandbox/test_files/cecret/nanopore --outdir tests -with-tower -resume
+# nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret -profile singularity --reads /home/eriny/sandbox/test_files/cecret/reads --outdir tests -with-tower -resume
 
 echo "usage : bash .test.sh {small,primers,else}"
 
@@ -13,7 +14,7 @@ if [ "$test" == "small" ]
 then
 
   # sample sheet
-  nextflow run ~/sandbox/Cecret \
+  nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
     -profile singularity \
     --sample_sheet /home/eriny/sandbox/test_files/cecret/sample_sheet.csv \
     --outdir singularity_defaults_sample_sheet \
@@ -21,7 +22,7 @@ then
     -with-tower
 
   # using included nextclade data
-  nextflow run ~/sandbox/Cecret \
+  nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
     -profile singularity \
     --sample_sheet /home/eriny/sandbox/test_files/cecret/sample_sheet.csv \
     --outdir singularity_defaults_sample_sheet_included_nextclade \
@@ -34,7 +35,7 @@ then
   for option in ${options[@]}
   do
     # defaults
-    nextflow run ~/sandbox/Cecret \
+    nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir singularity_defaults_$option \
@@ -42,7 +43,7 @@ then
       -with-tower
 
     # removed test for bamsnap and rename because of lack of interest
-    nextflow run ~/sandbox/Cecret \
+    nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir all_on_$option \
@@ -51,7 +52,7 @@ then
       -resume
 
     # removing primer trimming
-    nextflow run ~/sandbox/Cecret \
+    nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir nontrimmed_$option \
@@ -60,7 +61,7 @@ then
       -resume
 
     # changing the cleaner, aligner, and trimmer
-    nextflow run ~/sandbox/Cecret \
+    nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
       -profile singularity,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir toggled_$option \
@@ -72,7 +73,7 @@ then
       -resume
 
     # with UPHL's config
-    nextflow run ~/sandbox/Cecret \
+    nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
       -profile uphl,artic_V3 \
       --$option /home/eriny/sandbox/test_files/cecret/$option \
       --outdir uphl_$option \
@@ -81,7 +82,7 @@ then
   done
 
   # multifasta
-  nextflow run ~/sandbox/Cecret \
+  nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
     -profile singularity,artic_V3 \
     --reads /home/eriny/sandbox/test_files/cecret/reads \
     --single-reads /home/eriny/sandbox/test_files/cecret/single-reads \
@@ -91,7 +92,7 @@ then
     -with-tower
 
   # empty
-  nextflow run ~/sandbox/Cecret \
+  nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
     -profile singularity,artic_V3 \
     --reads doesntexit \
     --single-reads willnotexist \
@@ -105,7 +106,7 @@ then
   nanopore_primers=("midnight_idt_V1" "midnight_ont_V1" "midnight_ont_V2" "midnight_ont_V3")
   for primer in ${nanopore_primers[@]}
   do
-    nextflow run ~/sandbox/Cecret \
+    nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
       -profile singularity \
       --nanopore /home/eriny/sandbox/test_files/cecret/nanopore \
       --outdir primer_${primer}_artic \
@@ -130,7 +131,7 @@ then
     illumina_primers=("ncov_V3" "ncov_V4" "ncov_V4.1" "ncov_V5.3.2")
     for primer in ${illumina_primers[@]}
     do
-      nextflow run ~/sandbox/Cecret \
+      nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
         -profile singularity \
         --reads /home/eriny/sandbox/test_files/cecret/reads \
         --outdir primer_${primer}_${trimmer} \
@@ -154,7 +155,7 @@ then
     mpx_primers=("mpx_primalseq" "mpx_idt")
     for primer in ${mpx_primers[@]}
     do
-      nextflow run ~/sandbox/Cecret \
+      nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
         -profile singularity \
         --reads /home/eriny/sandbox/test_files/cecret/mpx_idt \
         --outdir primer_${primer}_${trimmer} \
@@ -178,14 +179,14 @@ then
 
 else
   # CDC's test data with relatedness
-  nextflow run ~/sandbox/Cecret \
+  nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
     -profile singularity,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir default_datasets \
     --relatedness true  \
     -with-tower
 
-  nextflow run ~/sandbox/Cecret \
+  nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
     -profile uphl,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir uphl_datasets \
@@ -194,7 +195,7 @@ else
     --relatedness true
 
   # CDC's test data with relatedness using nextalign
-  nextflow run ~/sandbox/Cecret \
+  nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
     -profile singularity,artic_V3 \
     --reads /home/eriny/sandbox/sars-cov-2-datasets/reads \
     --outdir toggled_datasets \
@@ -208,7 +209,7 @@ else
     -resume
 
   # MPX
-  nextflow run ~/sandbox/Cecret \
+  nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
     -profile singularity,mpx \
     --reads /home/eriny/sandbox/test_files/cecret/mpx \
     --outdir mpx \
@@ -219,7 +220,7 @@ else
     -resume
 
   # MPX with idt primers
-  nextflow run ~/sandbox/Cecret \
+  nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
     -profile singularity,mpx_idt \
     --reads /home/eriny/sandbox/test_files/cecret/mpx_idt \
     --outdir mpx_idt \
@@ -230,7 +231,7 @@ else
     -resume
 
   # other
-  nextflow run ~/sandbox/Cecret \
+  nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
     -profile singularity \
     --reads /home/eriny/sandbox/test_files/cecret/mpx \
     --outdir mpx \
@@ -246,7 +247,7 @@ else
     -resume
 
   # MPX with kraken
-  nextflow run ~/sandbox/Cecret \
+  nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
     -profile uphl,mpx \
     --reads /home/eriny/sandbox/test_files/cecret/mpx \
     --outdir uphl_mpx \
