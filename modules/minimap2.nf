@@ -2,7 +2,7 @@ process minimap2 {
   tag         "${sample}"
   label       "process_high"
   publishDir  path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log'
-  container   'staphb/minimap2:2.25'
+  container   'staphb/minimap2:2.26'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}

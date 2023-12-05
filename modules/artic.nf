@@ -2,7 +2,7 @@ process artic {
     tag        "${sample}"
     label      "process_high"
     publishDir "${params.outdir}", mode: 'copy'
-    container  'quay.io/uphl/artic:1.2.4-1.11.1'
+    container  'quay.io/uphl/artic:1.2.4-1.11.2-2023-12-05'
   
     //#UPHLICA maxForks      10
     //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
