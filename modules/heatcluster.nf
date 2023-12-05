@@ -1,7 +1,7 @@
 process heatcluster {
   tag           "HeatCluster"
   publishDir    params.outdir, mode: 'copy'
-  container     'quay.io/uphl/heatcluster:0.4.12-2023-11-15'
+  container     'quay.io/uphl/heatcluster:0.4.13-2023-12-05'
   maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
