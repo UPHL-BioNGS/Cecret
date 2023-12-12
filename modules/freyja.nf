@@ -5,6 +5,7 @@ process freyja_variants {
   publishDir    "${params.outdir}", mode: 'copy'
   container     'quay.io/uphl/freyja:1.4.8-2023-12-12'
 
+
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
   //#UPHLICA memory 60.GB
@@ -45,6 +46,7 @@ process freyja_demix {
   //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
   container     'quay.io/uphl/freyja:1.4.8-2023-12-12'
+
 
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'

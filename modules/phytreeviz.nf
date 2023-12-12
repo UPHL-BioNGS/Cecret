@@ -2,7 +2,7 @@ process phytreeviz {
   tag           "Tree visualization"
   label         "maxcpus"
   publishDir    params.outdir, mode: 'copy'
-  container     'quay.io/uphl/phytreeviz:0.1.0-2023-11-15'
+  container     'staphb/phytreeviz:0.1.0'
   maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
