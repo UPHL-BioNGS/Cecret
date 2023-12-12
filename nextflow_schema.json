@@ -330,6 +330,17 @@
             "default": "cecret",
             "description": "Specifies where results are saved"
         },
+        "pango_collapse":{
+            "type": "boolean",
+            "hidden": true,
+            "default": true,
+            "description": "Specifies if process should be used"
+        },
+        "pango_collapse_options": { 
+            "type": "string",
+            "hidden": true,
+            "description": "Options for process"
+        },
         "pangolin": { 
             "type": "boolean",
             "hidden": true,
