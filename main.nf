@@ -181,9 +181,11 @@ params.freyja                               = true
 params.freyja_aggregate                     = true
 params.nextclade                            = true
 params.pangolin                             = true
+params.pango_collapse                       = true
 params.vadr                                 = true
 
 params.pangolin_options                     = ''
+params.pango_collapse_options               = ''
 params.vadr_mdir                            = '/opt/vadr/vadr-models'
 params.nextclade_options                    = ''
 params.nextalign_options                    = '--include-reference'

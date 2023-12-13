@@ -339,10 +339,12 @@ params.kraken2_db = 'kraken2_db'
 ## The main components of Cecret are:
 - [aci](https://github.com/erinyoung/ACI) - for depth estimation over amplicons
 - [artic network](https://github.com/artic-network) - for aligning and consensus creation of nanopore reads
+- [bcftools](https://samtools.github.io/bcftools/bcftools.html) - for variants
 - [bwa](http://bio-bwa.sourceforge.net/) - for aligning reads to the reference
 - [fastp](https://github.com/OpenGene/fastp) - for cleaning reads ; optional, faster alternative to seqyclean
 - [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics
 - [freyja](https://github.com/andersen-lab/Freyja) - for multiple SARS-CoV-2 lineage classifications
+- [heatcluster](https://github.com/DrB-S/heatcluster) - for visualizing SNP matrices generated via SNP dists
 - [iqtree2](http://www.iqtree.org/) - for phylogenetic tree generation (optional, relatedness must be set to "true")
 - [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - calling variants and creating a consensus fasta; optional primer trimmer
 - [kraken2](https://ccb.jhu.edu/software/kraken2/) - for read classification
@@ -352,6 +354,8 @@ params.kraken2_db = 'kraken2_db'
 - [nextalign](https://github.com/neherlab/nextalign) - for phylogenetic tree generation (optional, relatedness must be set to "true", and msa must be set to "nextalign")
 - [nextclade](https://clades.nextstrain.org/) - for SARS-CoV-2 clade classification
 - [pangolin](https://github.com/cov-lineages/pangolin) - for SARS-CoV-2 lineage classification
+- [pango collapse](https://github.com/MDU-PHL/pango-collapse) - for SARS-CoV-2 lineage tracing
+- [phytreeviz](https://github.com/moshi4/phyTreeViz) - for visualizing phylogenetic trees
 - [samtools](http://www.htslib.org/) - for QC metrics and sorting; optional primer trimmer; optional converting bam to fastq files; optional duplication marking
 - [seqyclean](https://github.com/ibest/seqyclean) - for cleaning reads
 - [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
@@ -373,6 +377,7 @@ params.kraken2 = false                    # used to classify reads and needs a c
 params.aci = true                         # coverage approximation of amplicons
 params.nextclade = true                   # SARS-CoV-2 clade determination
 params.pangolin = true                    # SARS-CoV-2 lineage determination
+params.pango_collapse = true              # SARS-CoV-2 lineage tracing
 params.freyja = true                      # multiple SARS-CoV-2 lineage determination
 params.vadr = false                       # NCBI fasta QC
 params.relatedness = false                # create multiple sequence alignments with input fastq and fasta files
@@ -390,6 +395,10 @@ params.multiqc = true                     # aggregates data into single report
 
 ```
 cecret                                # results from this workflow
+├── aci
+│   ├── amplicon_depth.csv
+│   ├── amplicon_depth_mqc.png
+│   └── amplicon_depth.png
 ├── aligned                           # aligned (with aligner) but untrimmed bam files with indexes
 │   ├── SRR13957125.sorted.bam
 │   ├── SRR13957125.sorted.bam.bai
@@ -479,6 +488,15 @@ cecret                                # results from this workflow
 │   ├── iqtree2.log
 │   ├── iqtree2.mldist
 │   └── iqtree2.treefile
+├── ivar_consensus
+│   ├── SRR13957125.consensus.fa
+│   ├── SRR13957125.consensus.qual.txt
+│   ├── SRR13957125_NTC.consensus.fa
+│   ├── SRR13957125_NTC.consensus.qual.txt
+│   ├── SRR13957170.consensus.fa
+│   ├── SRR13957170.consensus.qual.txt
+│   ├── SRR13957177.consensus.fa
+│   └── SRR13957177.consensus.qual.txt
 ├── ivar_trim                        # bam files after primers have been trimmed off the reads with ivar
 │   ├── SRR13957125_ivar.log
 │   ├── SRR13957125.primertrim.sorted.bam
@@ -551,6 +569,8 @@ cecret                                # results from this workflow
 │   ├── nextclade.insertions.csv
 │   ├── nextclade.json
 │   └── nextclade.tsv
+├── pango_collapse
+│   └── pango_collapse.csv
 ├── pangolin                         # pangolin results
 │   ├── combined.fasta
 │   └── lineage_report.csv
@@ -972,6 +992,7 @@ params.samtools_ampliconstats = false
 params.samtools_plot_ampliconstats = false
 params.aci = false
 params.pangolin = false
+params.pango_collapse = false
 params.freyja = false
 params.nextclade = false
 params.vadr = false
