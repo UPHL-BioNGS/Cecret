@@ -2,7 +2,7 @@ process artic {
     tag        "${sample}"
     label      "process_high"
     publishDir "${params.outdir}", mode: 'copy'
-    container  'quay.io/uphl/artic:1.2.4-1.11.3-2023-12-12'
+    container  'quay.io/uphl/artic:1.2.4-1.11.3-2023-12-19'
 
   
     //#UPHLICA maxForks      10
@@ -62,7 +62,7 @@ process artic {
 process artic_read_filtering {
     tag        "${sample}"
     publishDir "${params.outdir}", mode: 'copy'
-    container  'quay.io/uphl/artic:1.2.4-1.11.1'
+    container  'quay.io/uphl/artic:1.2.4-1.11.3-2023-12-19'
     label      "process_single"
   
     //#UPHLICA maxForks      10
