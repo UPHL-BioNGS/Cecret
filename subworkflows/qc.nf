@@ -47,7 +47,12 @@ workflow qc {
     samtools_ampliconstats(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_primer_bed))
     samtools_plot_ampliconstats(samtools_ampliconstats.out.samtools_ampliconstats_files)
 
-    //igv_reports(bcftools_variants.out.vcf)
+    bcftools_variants.out.vcf
+      .join(ch_trim_bam, by: 0)
+      .combine(ch_reference_genome)
+      .set{ for_igv_reports }
+
+    igv_reports(for_igv_reports)
 
     samtools_coverage.out.samtools_coverage
       .collectFile(name: "samtools_coverage_summary.tsv",
