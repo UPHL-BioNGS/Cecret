@@ -38,5 +38,6 @@ process heatcluster {
         | tee -a $log_file
 
     if [ -f "heatcluster/heatcluster.png" ] ; then cp heatcluster/heatcluster.png heatcluster/heatcluster_mqc.png ; fi
+    if [ -f "sorted_matrix.csv" ] ; then cp sorted_matrix.csv heatcluster/sorted_matrix.csv ; fi
   '''
 }
