@@ -1,5 +1,8 @@
 # Cecret
 
+UPDATE : THIS README IS (albiet slowly) GETTING TURNED INTO A WIKI. YOU CAN CHECK OUR PROGRESS HERE: https://github.com/UPHL-BioNGS/Cecret/wiki
+
+
 Named after the beautiful [Cecret lake](https://en.wikipedia.org/wiki/Cecret_Lake)
 
 Location: 40.570°N 111.622°W , Elevation: 9,875 feet (3,010 m), [Hiking level: easy](https://www.alltrails.com/trail/us/utah/cecret-lake-trail)
