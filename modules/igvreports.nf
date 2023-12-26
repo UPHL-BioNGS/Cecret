@@ -2,7 +2,7 @@ process igv_reports {
   tag         "${sample}"
   label       "process_high"
   publishDir  path: "${params.outdir}", mode: 'copy'
-  container   'quay.io/biocontainers/igv-reports:1.9.1--pyh7cba7a3_0'
+  container   'quay.io/biocontainers/igv-reports:1.10.0--pyh7cba7a3_0'
   
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -15,25 +15,25 @@ process igv_reports {
   params.igv_reports
 
   input:
-  tuple val(sample), file(bam), file(reference_genome), file(vcf)
+  tuple val(sample), file(vcf), file(bam), file(bai), file(reference_genome)
 
   output:
-    path "igv_reports/${sample}/igvjs_viewer.html"
+    path "igv_reports/${sample}_igvjs_viewer.html"
     path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
   '''
-    mkdir -p igv_reports/!{sample} logs/!{task.process}
+    mkdir -p igv_reports logs/!{task.process}
     log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
 
     # time stamp + capturing tool versions
     date > $log
-    create_report -v >> $log
+    echo "igv-reports does not print version to screen" >> $log
 
     create_report !{params.igv_reports_options} \
         --fasta !{reference_genome} \
         --tracks !{vcf} !{bam} \
-        --output igv_reports/!{sample}/igvjs_viewer.html \
+        --output igv_reports/!{sample}_igvjs_viewer.html \
         !{vcf} \
         | tee -a $log
   '''
