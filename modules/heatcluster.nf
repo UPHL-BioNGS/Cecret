@@ -1,7 +1,7 @@
 process heatcluster {
   tag           "HeatCluster"
   publishDir    params.outdir, mode: 'copy'
-  container     'quay.io/uphl/heatcluster:1.0.2-2023-12-19'
+  container     'quay.io/uphl/heatcluster:1.0.2b-2023-12-26'
   maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
@@ -16,7 +16,7 @@ process heatcluster {
   file(matrix)
 
   output:
-  path "heatcluster/heatcluster*"       , optional : true
+  path "heatcluster/*"                  , optional : true
   path "heatcluster/heatcluster_mqc.png", optional : true              , emit: for_multiqc
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log", emit: log_files
 
