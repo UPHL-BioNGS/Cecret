@@ -122,7 +122,6 @@
         "freyja_demix_options": { 
             "type": "string",
             "hidden": true,
-            "default": "--depthcutoff 100",
             "description": "Options for process"
         },
         "freyja_plot_filetype": { 
