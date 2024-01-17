@@ -57,10 +57,7 @@ if (params.freyja_boot_options  ) {
   println('WARNING : params.freyja_boot_options no longer does anything!')
 }
 
-if (params.msa == "nextalign" ) {
-  println('WARNING : setting params.msa to nextalign no longer does anything!')
-  println('WARNING : Use params.msa == "nextclade" instead!')
-}
+
 params.nextalign_options                    = false
 if (params.nextalign_options ) {
   println('WARNING : params.params.nextalign_options no longer does anything!')
@@ -223,6 +220,12 @@ if ( params.species == 'sarscov2' ) {
   params.vadr_reference                     = ''
   params.vadr_trim_options                  = ''
   params.iqtree2_outgroup                   = ''
+}
+
+//# Discontinued options
+if (params.msa == "nextalign" ) {
+  println('WARNING : setting params.msa to nextalign no longer does anything!')
+  println('WARNING : Use params.msa == "nextclade" instead!')
 }
 
 //# Adding in subworkflows
@@ -539,7 +542,7 @@ workflow CECRET {
       ch_for_multiqc = ch_for_multiqc.mix(mpx.out.for_multiqc)
       ch_for_dataset = mpx.out.dataset
       ch_for_summary = ch_for_summary.mix(mpx.out.for_summary)
-      ch_prealigned  = sarscov2.out.prealigned
+      ch_prealigned  = mpx.out.prealigned
 
     } else if ( params.species == 'other') {
       other(fasta_prep.out.fastas.concat(ch_multifastas).mix(cecret.out.consensus), ch_nextclade_dataset)
@@ -547,7 +550,7 @@ workflow CECRET {
       ch_for_multiqc = ch_for_multiqc.mix(other.out.for_multiqc)
       ch_for_dataset = other.out.dataset
       ch_for_summary = ch_for_summary.mix(other.out.for_summary)
-      ch_prealigned  = sarscov2.out.prealigned
+      ch_prealigned  = other.out.prealigned
 
     } 
 
