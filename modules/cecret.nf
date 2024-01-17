@@ -131,7 +131,7 @@ process unzip {
   //#UPHLICA time '45m'
 
   when:
-  params.nextclade || params.msa == 'nextalign'
+  params.nextclade
 
   input:
   file(input)
