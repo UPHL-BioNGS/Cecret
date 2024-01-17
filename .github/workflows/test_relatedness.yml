@@ -49,7 +49,7 @@ jobs:
         run: |
           nextflow run . -profile docker -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --relatedness true --outdir cecret1
 
-          nextflow run . -profile docker -resume -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --relatedness true --outdir cecret2 --msa nextalign
+          nextflow run . -profile docker -resume -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --relatedness true --outdir cecret2 --msa nextclade
 
           ls cecret*
             
