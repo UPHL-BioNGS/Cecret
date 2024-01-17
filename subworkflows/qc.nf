@@ -37,7 +37,7 @@ workflow qc {
     }
 
     samtools_intial_stats( ch_sam)
-    aci(                   ch_trim_bam.map{ it -> tuple(it[1])}.collect().map{it -> tuple([it])}.combine(ch_amplicon_bed))
+    aci(                   ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_amplicon_bed))
     samtools_flagstat(     ch_trim_bam.map{ it -> tuple(it[0], it[1])})
     samtools_depth(        ch_trim_bam.map{ it -> tuple(it[0], it[1])})
     samtools_coverage(     ch_trim_bam.map{ it -> tuple(it[0], it[1])})
