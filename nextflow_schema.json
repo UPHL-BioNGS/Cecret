@@ -275,9 +275,9 @@
             "type": "string",
             "hidden": true,
             "default": "mafft",
-            "description": "Specifies what tool to use for multiple sequence alignment. Current options are nextalign and mafft.",
+            "description": "Specifies what tool to use for multiple sequence alignment. Current options are nextclade and mafft.",
             "enum": [
-                "nextalign", 
+                "nextclade", 
                 "mafft"
             ]
         },
@@ -300,12 +300,6 @@
             "type": "string",
             "hidden": true,
             "description": "Directory with nanopore fastq files"
-        },
-        "nextalign_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "--include-reference",
-            "description": "Options for process"
         },
         "nextclade": { 
             "type": "boolean",
