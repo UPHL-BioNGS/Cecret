@@ -60,9 +60,15 @@ workflow qc {
         storeDir: "${params.outdir}/samtools_coverage")
       .set { samtools_coverage_file }
 
+    aci.out.cov
+      .collectFile(name: "aci_coverage_summary.csv",
+        keepHeader: true,
+        storeDir: "${params.outdir}/aci")
+      .set { aci_coverage_file }
+
     //# All of these tools are for QC, so each needs to make it to the summary file if actually useful
     ch_for_summary = ch_for_summary
-      .mix(aci.out.cov)
+      .mix(aci_coverage_file)
       .mix(ivar_variants.out.variant_tsv)
       .mix(bcftools_variants.out.bcftools_variants_file)
       .mix(samtools_stats.out.samtools_stats_files)
