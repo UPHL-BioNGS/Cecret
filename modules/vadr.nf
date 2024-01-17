@@ -2,7 +2,7 @@ process vadr {
   tag        "QC metrics"
   label      "process_medium"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/vadr:1.5.1'
+  container  'staphb/vadr:1.6.3'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
