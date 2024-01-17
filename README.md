@@ -315,11 +315,11 @@ To create a multiple sequence alignment and corresponding phylogenetic tree and 
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true
 ```
-### Using nextalign to for multiple sequence alignement instead of mafft
+### Using nextclade to for multiple sequence alignement instead of mafft
 ```
-nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --msa nextalign
+nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --msa nextclade
 ```
-Or set `params.msa = 'nextalign'` and `params.relatedness = true` in a config file
+Or set `params.msa = 'nextclade'` and `params.relatedness = true` in a config file
 
 And then you get trees like this which can visualized with [itol](https://itol.embl.de/) or [ggtree](https://github.com/YuLab-SMU/ggtree).
 ![alt text](images/w5IMLiHfkMm3fS3kgJVpRg.png)
@@ -354,8 +354,7 @@ params.kraken2_db = 'kraken2_db'
 - [mafft](https://mafft.cbrc.jp/alignment/software/) - for multiple sequence alignment (optional, relatedness must be set to "true")
 - [minimap2](https://github.com/lh3/minimap2) - an alternative to bwa
 - [multiqc](https://multiqc.info/) - summary of results
-- [nextalign](https://github.com/neherlab/nextalign) - for phylogenetic tree generation (optional, relatedness must be set to "true", and msa must be set to "nextalign")
-- [nextclade](https://clades.nextstrain.org/) - for SARS-CoV-2 clade classification
+- [nextclade](https://clades.nextstrain.org/) - for SARS-CoV-2 clade classification (optional: aligned fasta can be used from this analysis when relatedness is set to "true" and msa is set to "nextclade")
 - [pangolin](https://github.com/cov-lineages/pangolin) - for SARS-CoV-2 lineage classification
 - [pango collapse](https://github.com/MDU-PHL/pango-collapse) - for SARS-CoV-2 lineage tracing
 - [phytreeviz](https://github.com/moshi4/phyTreeViz) - for visualizing phylogenetic trees
