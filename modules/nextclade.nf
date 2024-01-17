@@ -2,7 +2,7 @@ process nextclade_dataset {
   tag        "Downloading NextClade Dataset"
   label      "process_medium"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'nextstrain/nextclade:2.14.0'
+  container  'nextstrain/nextclade:3.0.0'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -12,7 +12,7 @@ process nextclade_dataset {
   //#UPHLICA time '45m'
 
   when:
-  params.nextclade || params.msa == 'nextalign'
+  params.nextclade
 
   output:
   path "dataset", emit: dataset
@@ -38,7 +38,7 @@ process nextclade {
   tag        "Clade Determination"
   label      "process_medium"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'nextstrain/nextclade:2.14.0'
+  container  'nextstrain/nextclade:3.0.0'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -55,9 +55,9 @@ process nextclade {
   path(dataset)
 
   output:
-  path "nextclade/nextclade.csv",                                              emit: nextclade_file
-  path "nextclade/*",                                                          emit: results
-  path "nextclade/nextclade.aligned.fasta",                                    emit: nextclade_aligned_fasta
+  path "nextclade/nextclade.csv",                                                    emit: nextclade_file
+  path "nextclade/*",                                                                emit: results
+  tuple file("nextclade/nextclade.aligned.fasta"), file("nextclade/nextclade.nwk"), emit: prealigned, optional: true
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
 
   shell:
