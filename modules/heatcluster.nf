@@ -16,8 +16,7 @@ process heatcluster {
   file(matrix)
 
   output:
-  path "heatcluster/*"                  , optional : true
-  path "heatcluster/heatcluster_mqc.png", optional : true              , emit: for_multiqc
+  path "heatcluster/*"                  , optional : true,               emit: for_multiqc
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log", emit: log_files
 
   shell:
@@ -37,7 +36,6 @@ process heatcluster {
         -o heatcluster/heatcluster \
         | tee -a $log_file
 
-    if [ -f "heatcluster/heatcluster.png" ] ; then cp heatcluster/heatcluster.png heatcluster/heatcluster_mqc.png ; fi
     if [ -f "sorted_matrix.csv" ] ; then cp sorted_matrix.csv heatcluster/sorted_matrix.csv ; fi
   '''
 }

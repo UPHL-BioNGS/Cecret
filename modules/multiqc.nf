@@ -32,6 +32,17 @@ process multiqc_combine {
     date > $log
     multiqc --version >> $log
 
+    touch whatever.png
+    pngs=$(ls *png | grep -v mqc.png$ )
+
+    for png in ${pngs[@]}
+    do
+      file=$(echo $png | sed 's/.png$//g' )
+      mv ${file}.png ${file}_mqc.png
+    done
+
+    rm whatever_mqc.png
+
     multiqc !{params.multiqc_options} \
       --outdir multiqc \
       . \

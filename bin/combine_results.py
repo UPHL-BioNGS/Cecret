@@ -7,7 +7,7 @@ import sys
 from os.path import exists
 
 # Entire sample set already in one file
-aci_file                = 'amplicon_depth.csv'
+aci_file                = 'aci_coverage_summary.csv'
 ampliconstats_file      = 'ampliconstats.summary'
 samtools_coverage_file  = 'samtools_coverage_summary.tsv'
 pangolin_file           = 'multiqc_data/multiqc_pangolin.txt'

@@ -57,6 +57,12 @@ if (params.freyja_boot_options  ) {
   println('WARNING : params.freyja_boot_options no longer does anything!')
 }
 
+
+params.nextalign_options                    = false
+if (params.nextalign_options ) {
+  println('WARNING : params.params.nextalign_options no longer does anything!')
+}
+
 //# Starting the workflow --------------------------------------------------------------
 
 nextflow.enable.dsl = 2
@@ -188,7 +194,6 @@ params.pangolin_options                     = ''
 params.pango_collapse_options               = ''
 params.vadr_mdir                            = '/opt/vadr/vadr-models'
 params.nextclade_options                    = ''
-params.nextalign_options                    = '--include-reference'
 params.freyja_variants_options              = ''
 params.freyja_demix_options                 = ""
 
@@ -215,6 +220,12 @@ if ( params.species == 'sarscov2' ) {
   params.vadr_reference                     = ''
   params.vadr_trim_options                  = ''
   params.iqtree2_outgroup                   = ''
+}
+
+//# Discontinued options
+if (params.msa == "nextalign" ) {
+  println('WARNING : setting params.msa to nextalign no longer does anything!')
+  println('WARNING : Use params.msa == "nextclade" instead!')
 }
 
 //# Adding in subworkflows
@@ -493,6 +504,7 @@ ch_reads.ifEmpty     { println("No fastq or fastq.gz files were found at ${param
 workflow CECRET {
     ch_for_dataset = Channel.empty()
     ch_for_version = Channel.from("Cecret version", workflow.manifest.version).collect()
+    ch_prealigned  = Channel.empty()
 
     if ( ! params.sra_accessions.isEmpty() ) { 
       test(ch_sra_accessions)
@@ -519,6 +531,7 @@ workflow CECRET {
     if ( params.species == 'sarscov2' ) {
       sarscov2(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), cecret.out.trim_bam, ch_reference_genome, ch_nextclade_dataset, ch_freyja_script)
       
+      ch_prealigned  = sarscov2.out.prealigned
       ch_for_multiqc = ch_for_multiqc.mix(sarscov2.out.for_multiqc)
       ch_for_dataset = sarscov2.out.dataset
       ch_for_summary = ch_for_summary.mix(sarscov2.out.for_summary)
@@ -529,6 +542,7 @@ workflow CECRET {
       ch_for_multiqc = ch_for_multiqc.mix(mpx.out.for_multiqc)
       ch_for_dataset = mpx.out.dataset
       ch_for_summary = ch_for_summary.mix(mpx.out.for_summary)
+      ch_prealigned  = mpx.out.prealigned
 
     } else if ( params.species == 'other') {
       other(fasta_prep.out.fastas.concat(ch_multifastas).mix(cecret.out.consensus), ch_nextclade_dataset)
@@ -536,11 +550,12 @@ workflow CECRET {
       ch_for_multiqc = ch_for_multiqc.mix(other.out.for_multiqc)
       ch_for_dataset = other.out.dataset
       ch_for_summary = ch_for_summary.mix(other.out.for_summary)
+      ch_prealigned  = other.out.prealigned
 
     } 
 
     if ( params.relatedness ) { 
-      msa(fasta_prep.out.fastas.concat(ch_multifastas).concat(cecret.out.consensus), ch_reference_genome, ch_for_dataset) 
+      msa(fasta_prep.out.fastas.concat(ch_multifastas).concat(cecret.out.consensus), ch_reference_genome, ch_prealigned) 
 
       tree      = msa.out.tree
       alignment = msa.out.msa

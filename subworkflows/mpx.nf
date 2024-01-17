@@ -24,5 +24,6 @@ workflow mpx {
   emit:
     for_multiqc = nextclade.out.nextclade_file
     for_summary = vadr.out.vadr_file
+    prealigned  = nextclade.out.prealigned
     dataset     = ch_dataset
 }

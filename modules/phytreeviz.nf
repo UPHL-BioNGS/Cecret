@@ -4,7 +4,8 @@ process phytreeviz {
   publishDir    params.outdir, mode: 'copy'
   container     'staphb/phytreeviz:0.1.0'
   maxForks      10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+  errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
+
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
   //#UPHLICA cpus 14
   //#UPHLICA memory 60.GB
@@ -17,8 +18,7 @@ process phytreeviz {
   file(newick)
 
   output:
-  path "phytreeviz/tree.png"
-  path "phytreeviz/tree_mqc.png"                                       , emit: for_multiqc
+  path "phytreeviz/tree.png",                                            emit: for_multiqc
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log", emit: log
 
   shell:
@@ -37,7 +37,5 @@ process phytreeviz {
         -i !{newick} \
         -o phytreeviz/tree.png \
       | tee -a $log_file
-
-    if [ -f "phytreeviz/tree.png" ] ; then cp phytreeviz/tree.png phytreeviz/tree_mqc.png ; fi 
   '''
 }

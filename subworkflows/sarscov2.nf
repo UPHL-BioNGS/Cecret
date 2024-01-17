@@ -36,6 +36,7 @@ workflow sarscov2 {
 
     emit:
         dataset     = ch_dataset
+        prealigned  = nextclade.out.prealigned
         for_multiqc = pangolin.out.pangolin_file.mix(nextclade.out.nextclade_file).mix(freyja_aggregate.out.for_multiqc)
         for_summary = freyja_aggregate.out.aggregated_freyja_file.mix(vadr.out.vadr_file).mix(pango_collapse.out.results)
 }
