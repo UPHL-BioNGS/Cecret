@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Cecret
         run: |
-          nextflow run . -profile docker,mpx_primalseq -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2
+          nextflow run . -profile docker,mpx_primalseq -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --aci false
 
           ls cecret*
             
