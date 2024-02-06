@@ -3,7 +3,7 @@ process freyja_variants {
   label         "process_medium"
   //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
-  container     'quay.io/uphl/freyja:1.4.8-2024-01-30'
+  container     'quay.io/uphl/freyja:1.4.8-2024-02-06'
 
 
   //#UPHLICA maxForks 10
@@ -45,7 +45,7 @@ process freyja_demix {
   label         "process_medium"
   //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
-  container     'quay.io/uphl/freyja:1.4.8-2024-01-30'
+  container     'quay.io/uphl/freyja:1.4.8-2024-02-06'
 
 
   //#UPHLICA maxForks 10
@@ -87,7 +87,7 @@ process freyja_boot {
   label         "process_medium"
   //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    "${params.outdir}", mode: 'copy'
-  container     'quay.io/uphl/freyja:1.4.8-2024-01-30'
+  container     'quay.io/uphl/freyja:1.4.8-2024-02-06'
 
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
@@ -126,7 +126,7 @@ process freyja_aggregate {
   tag        "Aggregating results from freyja"
   label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'quay.io/uphl/freyja:1.4.8-2024-01-30'
+  container  'quay.io/uphl/freyja:1.4.8-2024-02-06'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
