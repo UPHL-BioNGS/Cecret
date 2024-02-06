@@ -2,7 +2,7 @@ process nextclade_dataset {
   tag        "Downloading NextClade Dataset"
   label      "process_medium"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'nextstrain/nextclade:3.0.1'
+  container  'nextstrain/nextclade:3.1.0'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -38,7 +38,7 @@ process nextclade {
   tag        "Clade Determination"
   label      "process_medium"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'nextstrain/nextclade:3.0.1'
+  container  'nextstrain/nextclade:3.1.0'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
