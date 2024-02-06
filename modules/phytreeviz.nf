@@ -2,7 +2,7 @@ process phytreeviz {
   tag           "Tree visualization"
   label         "maxcpus"
   publishDir    params.outdir, mode: 'copy'
-  container     'staphb/phytreeviz:0.1.0'
+  container     'staphb/phytreeviz:0.2.0'
   maxForks      10
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
 
