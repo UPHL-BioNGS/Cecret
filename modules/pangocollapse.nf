@@ -2,7 +2,7 @@ process pango_collapse {
   tag        "SARS-CoV-2 lineage mapping"
   label      "process_low"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'quay.io/uphl/pango-collapse:0.7.1'
+  container  'quay.io/uphl/pango-collapse:0.7.2-2024-02-21'
 
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -33,6 +33,7 @@ process pango_collapse {
         !{params.pango_collapse_options} \
         --output pango_collapse/pango_collapse.csv \
         --lineage-column lineage \
+        --collapse-file /pango-collapse/collapse.txt \
         !{file} \
         | tee -a $log
   '''
