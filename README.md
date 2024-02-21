@@ -205,7 +205,7 @@ The **End User** can adjust this by specifying the maximum cpus that one process
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --maxcpus <new value>
 ```
-It is important to remember that nextflow will attempt to utilize all CPUs available, and this value is restricted to one process. As a specific example, the prcoess 'bwa' will be allocated `'params.maxcpus'`. If there are 48 CPUs available and `'params.maxcpus = 8'`, then 6 samples can be run simultaneously.
+It is important to remember that nextflow will attempt to utilize all CPUs available, and this value is restricted to one process. As a specific example, the prcoess 'bwa' will be allocated `'params.maxcpus'`. If there are 48 CPUs available and `'params.maxcpus = 8'`, then 6 samples will be run simultaneously.
 
 ## Determining depth for base calls
 Sequencing has an intrinsic amount of error for every predicted base on a read. This error is reduced the more reads there are. As such, there is a minimum amount of depth that is required to call a base with ivar consensus, ivar variants, and bcftools variants. The main assumption of using this workflow is that the virus is clonal (i.e. only one infection represented in a sample) and created via pcr amplified libraries. The default depth for calling bases or finding variants is set with 'params.minimum_depth' with the default value being `'params.minimum_depth = 100'`. This parameter can be adjusted by the **END USER** in a config file or on the command line.
@@ -340,19 +340,21 @@ params.kraken2_db = 'kraken2_db'
 ```
 
 ## The main components of Cecret are:
-- [aci](https://github.com/erinyoung/ACI) - for depth estimation over amplicons
+- [aci](https://github.com/erinyoung/ACI) - for depth estimation over amplicons (optional, set params.aci = true)
 - [artic network](https://github.com/artic-network) - for aligning and consensus creation of nanopore reads
+- [bbnorm](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbnorm-guide/) - for normalizing reads (optional, set params.bbnorm = true)
 - [bcftools](https://samtools.github.io/bcftools/bcftools.html) - for variants
 - [bwa](http://bio-bwa.sourceforge.net/) - for aligning reads to the reference
-- [fastp](https://github.com/OpenGene/fastp) - for cleaning reads ; optional, faster alternative to seqyclean
+- [fastp](https://github.com/OpenGene/fastp) - for cleaning reads ; (optional, set params.cleaner = 'fastp')
 - [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics
 - [freyja](https://github.com/andersen-lab/Freyja) - for multiple SARS-CoV-2 lineage classifications
 - [heatcluster](https://github.com/DrB-S/heatcluster) - for visualizing SNP matrices generated via SNP dists
-- [iqtree2](http://www.iqtree.org/) - for phylogenetic tree generation (optional, relatedness must be set to "true")
-- [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - calling variants and creating a consensus fasta; optional primer trimmer
+- [iqtree2](http://www.iqtree.org/) - for phylogenetic tree generation (optional, set params.relatedness = true)
+- [igv-reports](https://github.com/igvteam/igv-reports) - visualizing SNPs (optional, set params.igv_reports = true)
+- [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - calling variants and creating a consensus fasta; default primer trimmer
 - [kraken2](https://ccb.jhu.edu/software/kraken2/) - for read classification
 - [mafft](https://mafft.cbrc.jp/alignment/software/) - for multiple sequence alignment (optional, relatedness must be set to "true")
-- [minimap2](https://github.com/lh3/minimap2) - an alternative to bwa
+- [minimap2](https://github.com/lh3/minimap2) - an alternative to bwa (optional, set params.aligner = minimap2 )
 - [multiqc](https://multiqc.info/) - summary of results
 - [nextclade](https://clades.nextstrain.org/) - for SARS-CoV-2 clade classification (optional: aligned fasta can be used from this analysis when relatedness is set to "true" and msa is set to "nextclade")
 - [pangolin](https://github.com/cov-lineages/pangolin) - for SARS-CoV-2 lineage classification
@@ -376,7 +378,8 @@ params.samtools_flagstat = true           # stats about the bam files
 params.samtools_ampliconstats = true      # stats about the amplicons
 params.samtools_plot_ampliconstats = true # images related to amplicon performance
 params.kraken2 = false                    # used to classify reads and needs a corresponding params.kraken2_db and organism if not SARS-CoV-2
-params.aci = true                         # coverage approximation of amplicons
+params.aci = false                        # coverage approximation of amplicons
+parms.igv_reports = false                 # SNP IGV images
 params.nextclade = true                   # SARS-CoV-2 clade determination
 params.pangolin = true                    # SARS-CoV-2 lineage determination
 params.pango_collapse = true              # SARS-CoV-2 lineage tracing
