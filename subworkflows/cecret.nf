@@ -1,4 +1,5 @@
 include { artic ; artic_read_filtering }          from '../modules/artic'     addParams(params)
+include { bbnorm }                                from '../modules/bbnorm'    addParams(params)
 include { bwa }                                   from '../modules/bwa'       addParams(params)
 include { fastp }                                 from '../modules/fastp'     addParams(params)
 include { ivar_trim ; ivar_consensus as ivar }    from '../modules/ivar'      addParams(params)
@@ -20,8 +21,15 @@ workflow cecret {
     ch_for_multiqc = Channel.empty()
     ch_for_version = Channel.empty()
 
+  if ( params.bbnorm ){
+    bbnorm(ch_reads)
+    ch_norm_reads = bbnorm.out.fastq
+  } else {
+    ch_norm_reads = ch_reads
+  }
+
   if ( params.cleaner == 'seqyclean' ) {
-    seqyclean(ch_reads)
+    seqyclean(ch_norm_reads)
 
     seqyclean.out.seqyclean_files_collect_paired
       .collectFile(name: "Combined_SummaryStatistics.tsv",
@@ -40,7 +48,7 @@ workflow cecret {
     ch_for_multiqc = ch_for_multiqc.mix(seqyclean.out.seqyclean_files_collect_paired).mix(seqyclean.out.seqyclean_files_collect_single)
 
   } else if ( params.cleaner == 'fastp' ) {
-    fastp(ch_reads)
+    fastp(ch_norm_reads)
 
     ch_clean_reads = fastp.out.clean_reads
     ch_for_version = ch_for_version.mix(fastp.out.cleaner_version)

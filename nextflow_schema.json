@@ -38,6 +38,18 @@
             "hidden": true,
             "default": "--min-length 400 --max-length 700"
         },
+        "bbnorm": { 
+            "type": "boolean",
+            "hidden": true,
+            "default": false,
+            "description": "Specifies if process should be used"
+        },
+        "bbnorm_options": { 
+            "type": "string",
+            "hidden": true,
+            "default": "target=200 min=5",
+            "description": "Options for process"
+        },
         "bcftools_variants": { 
             "type": "boolean",
             "hidden": true,

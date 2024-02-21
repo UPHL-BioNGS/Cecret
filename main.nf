@@ -120,11 +120,12 @@ params.aligner                              = 'bwa'
 params.msa                                  = 'mafft'
 
 //# to toggle off processes
-params.aci                                  = true
+params.aci                                  = false
+params.bbnorm                               = false
 params.bcftools_variants                    = true
 params.fastqc                               = true
-params.igv_reports                          = true
-params.ivar_variants                        = true
+params.igv_reports                          = false
+params.ivar_variants                        = false
 params.samtools_stats                       = true
 params.samtools_coverage                    = true
 params.samtools_depth                       = true
@@ -145,6 +146,7 @@ params.phytreeviz                           = true
 //# parameters for processes with their default values
 params.artic_options                        = '--normalise 200 --skip-nanopolish --medaka --medaka-model r941_min_high_g360'
 params.artic_read_filtering_options         = '--min-length 400 --max-length 700'
+params.bbnorm_options                       = 'target=200 min=5'
 params.bcftools_variants_options            = ''
 params.fastp_options                        = ''
 params.fastqc_options                       = ''
