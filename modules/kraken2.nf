@@ -32,8 +32,8 @@ process kraken2 {
     kraken2 --version >> $log
 
     kraken2 !{params.kraken2_options} \
-      --classified-out kraken2/${sample}.cseqs#.fastq \
-      --unclassified-out kraken2/${sample}.useqs#.fastq \
+      --classified-out kraken2/!{sample}.cseqs#.fastq \
+      --unclassified-out kraken2/!{sample}.useqs#.fastq \
       --threads !{task.cpus} \
       --db !{kraken2_db} \
       !{clean} \
@@ -51,8 +51,8 @@ process kraken2 {
 
       kraken2 !{params.kraken2_options} \
         --paired \
-        --classified-out kraken2/${sample}.cseqs#.fastq \
-        --unclassified-out kraken2/${sample}.useqs#.fastq \
+        --classified-out kraken2/!{sample}.cseqs#.fastq \
+        --unclassified-out kraken2/!{sample}.useqs#.fastq \
         --threads !{task.cpus} \
         --db !{kraken2_db} \
         !{clean} \
