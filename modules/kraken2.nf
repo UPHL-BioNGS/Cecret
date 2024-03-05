@@ -18,7 +18,8 @@ process kraken2 {
   tuple val(sample), file(clean), path(kraken2_db)
 
   output:
-  path "kraken2/${sample}_kraken2_report.txt",                            emit: kraken2_files
+  path "kraken2/${sample}_kraken2_report.txt", emit: kraken2_files
+  path "kraken2/*"
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
 
   shell:
@@ -31,7 +32,8 @@ process kraken2 {
     kraken2 --version >> $log
 
     kraken2 !{params.kraken2_options} \
-      --classified-out cseqs#.fq \
+      --classified-out kraken2/!{sample}.cseqs#.fastq \
+      --unclassified-out kraken2/!{sample}.useqs#.fastq \
       --threads !{task.cpus} \
       --db !{kraken2_db} \
       !{clean} \
@@ -49,7 +51,8 @@ process kraken2 {
 
       kraken2 !{params.kraken2_options} \
         --paired \
-        --classified-out cseqs#.fq \
+        --classified-out kraken2/!{sample}.cseqs#.fastq \
+        --unclassified-out kraken2/!{sample}.useqs#.fastq \
         --threads !{task.cpus} \
         --db !{kraken2_db} \
         !{clean} \
