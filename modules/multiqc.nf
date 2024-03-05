@@ -2,7 +2,7 @@ process multiqc_combine {
   tag        "multiqc"
   label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'quay.io/biocontainers/multiqc:1.19--pyhdfd78af_0'
+  container  'staphb/multiqc:1.19'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
