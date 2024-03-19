@@ -1,8 +1,8 @@
 process pango_collapse {
   tag        "SARS-CoV-2 lineage mapping"
   label      "process_low"
-  publishDir "${params.outdir}", mode: 'copy'
-  container  'quay.io/uphl/pango-collapse:0.7.2-2024-02-21'
+  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
+  container  'quay.io/uphl/pango-collapse:0.8.2-2024-03-19'
 
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -12,7 +12,7 @@ process pango_collapse {
   //#UPHLICA time '45m'
 
   when:
-  params.pango_collapse
+  params.pango_collapse && (task.ext.when == null || task.ext.when)
 
   input:
   file(file)
@@ -20,21 +20,30 @@ process pango_collapse {
   output:
   path "pango_collapse/pango_collapse.csv", emit: results
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
+  path "versions.yml", emit: versions
 
   shell:
-  '''
-    mkdir -p pango_collapse logs/!{task.process}
-    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+  def args   = task.ext.args   ?: "${params.pango_collapse_options}"
+  def prefix = task.ext.prefix ?: "pango_collapse"
+  """
+    mkdir -p pango_collapse logs/${task.process}
+    log=logs/${task.process}/${task.process}.${workflow.sessionId}.log
 
-    date > $log
-    pango-collapse --version >> $log
+    date > \$log
+    pango-collapse --version >> \$log
 
     pango-collapse \
-        !{params.pango_collapse_options} \
-        --output pango_collapse/pango_collapse.csv \
+        ${args} \
+        --output pango_collapse/${prefix}.csv \
         --lineage-column lineage \
         --collapse-file /pango-collapse/collapse.txt \
-        !{file} \
-        | tee -a $log
-  '''
+        ${file} \
+        | tee -a \$log
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+      pango-collapse: \$(pango-collapse --version | awk '{print \$NF}')
+      container: ${task.container}
+    END_VERSIONS
+  """
 }

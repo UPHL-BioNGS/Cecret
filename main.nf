@@ -18,15 +18,15 @@ println('')
 println('Cecret is named after a real lake!')
 println('Visit https://www.alltrails.com/trail/us/utah/cecret-lake-trail to learn more.')
 println('Not everyone can visit in person, so here is some ASCII art of nucleotides in lake forming a consensus sequence.')
-println('                    _________ ______')
-println('               _ /      G    A   T   \\_____')
-println('          __/    C      C A    G      T  C \\')
-println('        /    G     A   T   T  A   G  G    T  \\_')
-println('        | G       G  C   A            G   T     \\')  
-println('        \\      A     C     G   A   T    A  G  T  \\__')
-println('         \\_           C       G    ____ _____ __ C  \\________')
-println('            \\__T______ ___________/                \\ C T G A G G T C G A T A') 
-println('')
+println('             _________ ______')
+println('        _ /      G    A   T   \\_____')
+println('   __/    C      C A    G      T  C \\')
+println(' /    G     A   T   T  A   G  G    T  \\_')
+println('| G       G  C   A            G   T     \\')  
+println(' \\      A     C     G   A   T    A  G  T  \\__')
+println('  \\_           C       G    ____ _____ __ C  \\________')
+println('     \\__T______ ___________/                \\ C T G A G G T C G A T A') 
+println('                                                    A T G A C GTAGATA')
 println('')
 
 //# copying the confit template and ending the workflow
@@ -469,6 +469,7 @@ if ( params.trimmer != 'none' ) {
 //# scripts for legacy reasons
 ch_combine_results_script = Channel.fromPath("${workflow.projectDir}/bin/combine_results.py",  type:'file')
 ch_freyja_script          = Channel.fromPath("${workflow.projectDir}/bin/freyja_graphs.py",    type:'file')
+ch_version_script         = Channel.fromPath("${workflow.projectDir}/bin/versions.py",         type:'file')
 
 if ( params.kraken2_db ) {
   Channel
@@ -507,6 +508,7 @@ workflow CECRET {
     ch_for_dataset = Channel.empty()
     ch_for_version = Channel.from("Cecret version", workflow.manifest.version).collect()
     ch_prealigned  = Channel.empty()
+    ch_versions    = Channel.empty()
 
     if ( ! params.sra_accessions.isEmpty() ) { 
       test(ch_sra_accessions)
@@ -516,6 +518,7 @@ workflow CECRET {
     fasta_prep(ch_fastas)
 
     cecret(ch_reads, ch_nanopore, ch_reference_genome, ch_primer_bed)
+    ch_versions = ch_versions.mix(cecret.out.versions)
 
     qc(ch_reads,
       cecret.out.clean_reads,
@@ -529,6 +532,7 @@ workflow CECRET {
 
     ch_for_multiqc = cecret.out.for_multiqc.mix(qc.out.for_multiqc)
     ch_for_summary = qc.out.for_summary
+    ch_versions    = ch_versions.mix(qc.out.versions)
 
     if ( params.species == 'sarscov2' ) {
       sarscov2(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), cecret.out.trim_bam, ch_reference_genome, ch_nextclade_dataset, ch_freyja_script)
@@ -537,6 +541,7 @@ workflow CECRET {
       ch_for_multiqc = ch_for_multiqc.mix(sarscov2.out.for_multiqc)
       ch_for_dataset = sarscov2.out.dataset
       ch_for_summary = ch_for_summary.mix(sarscov2.out.for_summary)
+      ch_versions    = ch_versions.mix(sarscov2.out.versions)
     
     } else if ( params.species == 'mpx') {
       mpx(fasta_prep.out.fastas.mix(ch_multifastas).mix(cecret.out.consensus), ch_nextclade_dataset)
@@ -545,6 +550,7 @@ workflow CECRET {
       ch_for_dataset = mpx.out.dataset
       ch_for_summary = ch_for_summary.mix(mpx.out.for_summary)
       ch_prealigned  = mpx.out.prealigned
+      ch_versions    = ch_versions.mix(mpx.out.versions)
 
     } else if ( params.species == 'other') {
       other(fasta_prep.out.fastas.concat(ch_multifastas).mix(cecret.out.consensus), ch_nextclade_dataset)
@@ -553,6 +559,7 @@ workflow CECRET {
       ch_for_dataset = other.out.dataset
       ch_for_summary = ch_for_summary.mix(other.out.for_summary)
       ch_prealigned  = other.out.prealigned
+      ch_versions    = ch_versions.mix(other.out.versions)
 
     } 
 
@@ -564,6 +571,7 @@ workflow CECRET {
       matrix    = msa.out.matrix
 
       ch_for_multiqc = ch_for_multiqc.mix(msa.out.for_multiqc)
+      ch_versions    = ch_versions.mix(msa.out.versions)
 
     } else {
       tree      = Channel.empty()
@@ -571,7 +579,13 @@ workflow CECRET {
       matrix    = Channel.empty()
     }
 
-    multiqc_combine(ch_for_multiqc.collect())
+    ch_versions
+      .collectFile(
+        keepHeader: false,
+        name: "collated_versions.yml")
+      .set { ch_collated_versions }
+
+    multiqc_combine(ch_for_multiqc.mix(ch_collated_versions).collect(), ch_version_script)
 
     summary(
       ch_for_summary.mix(fasta_prep.out.fastas).mix(cecret.out.consensus).collect().map{it -> tuple([it])}

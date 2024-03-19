@@ -1,7 +1,7 @@
 process nextclade_dataset {
-  tag        "Downloading NextClade Dataset"
+  tag        "Downloading Dataset"
   label      "process_medium"
-  publishDir "${params.outdir}", mode: 'copy'
+  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'nextstrain/nextclade:3.3.1'
 
   //#UPHLICA maxForks 10
@@ -12,32 +12,41 @@ process nextclade_dataset {
   //#UPHLICA time '45m'
 
   when:
-  params.nextclade
+  params.nextclade && (task.ext.when == null || task.ext.when)
 
   output:
   path "dataset", emit: dataset
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
+  path "versions.yml", emit: versions
 
   shell:
-  '''
-    mkdir -p nextclade dataset logs/!{task.process}
-    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+  def args   = task.ext.args ?: "${params.nextclade_dataset}"
+  """
+    mkdir -p nextclade dataset logs/${task.process}
+    log=logs/${task.process}/${task.process}.${workflow.sessionId}.log
 
-    date > $log
-    nextclade --version >> $log
-    nextclade_version=$(nextclade --version)
+    date > \$log
+    nextclade --version >> \$log
+    nextclade_version=\$(nextclade --version)
 
-    echo "Getting nextclade dataset for !{params.nextclade_dataset}" | tee -a $log
-    nextclade dataset list | tee -a $log
+    echo "Getting nextclade dataset for ${args}" | tee -a \$log
+    nextclade dataset list | tee -a \$log
 
-    nextclade dataset get --name !{params.nextclade_dataset} --output-dir dataset
-  '''
+    nextclade dataset get --name ${args} --output-dir dataset
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+      nextclade: \$(nextclade --version | awk '{print \$NF}')
+      tag: \$(grep "tag" dataset/pathogen.json | grep tag | sed 's/\"//g' | sed 's/,//g' | awk '{print \$NF}')
+      container: ${task.container}
+    END_VERSIONS
+  """
 }
 
 process nextclade {
   tag        "Clade Determination"
   label      "process_medium"
-  publishDir "${params.outdir}", mode: 'copy'
+  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'nextstrain/nextclade:3.3.0'
 
   //#UPHLICA maxForks 10
@@ -48,86 +57,57 @@ process nextclade {
   //#UPHLICA time '45m'
 
   when:
-  params.nextclade
+  params.nextclade && (task.ext.when == null || task.ext.when)
 
   input:
   file(fasta)
   path(dataset)
 
   output:
-  path "nextclade/nextclade.csv",                                                    emit: nextclade_file
-  path "nextclade/*",                                                                emit: results
+  path "nextclade/nextclade.csv", emit: nextclade_file
+  path "nextclade/*", emit: results
   tuple file("nextclade/nextclade.aligned.fasta"), file("nextclade/nextclade.nwk"), emit: prealigned, optional: true
   path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
+  path "versions.yml", emit: versions
 
   shell:
-  '''
-    mkdir -p nextclade dataset logs/!{task.process}
-    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
+  def args   = task.ext.args   ?: "${params.nextclade_options}"
+  def files  = fasta.join(" ")
+  def prefix = task.ext.prefix ?: "combined"
+  """
+    mkdir -p nextclade dataset logs/${task.process}
+    log=logs/${task.process}/${task.process}.${workflow.sessionId}.log
 
-    date > $log
-    nextclade --version >> $log
-    nextclade_version=$(nextclade --version)
+    date > \$log
+    nextclade --version >> \$log
+    nextclade_version=\$(nextclade --version)
 
-    for fasta in !{fasta}
+    for fasta in ${files}
     do
-      cat $fasta >> ultimate_fasta.fasta
+      cat \$fasta >> ultimate_fasta.fasta
     done
 
-    nextclade run !{params.nextclade_options} \
-      --input-dataset !{dataset} \
+    nextclade run ${args} \
+      --input-dataset ${dataset} \
       --output-all=nextclade/ \
-      --jobs !{task.cpus} \
+      --jobs ${task.cpus} \
       ultimate_fasta.fasta \
-      | tee -a $log
-    cp ultimate_fasta.fasta nextclade/combined.fasta
-  '''
-}
+      | tee -a \$log
 
-process nextalign {
-  tag        "Multiple Sequence Alignment"
-  label      "process_medium"
-  publishDir "${params.outdir}", mode: 'copy'
-  container  'nextstrain/nextclade:3.3.0'
+    cp ultimate_fasta.fasta nextclade/${prefix}.fasta
 
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
+    if [ -f "dataset/pathogen.json" ]
+    then
+      tag=\$(grep "tag" dataset/pathogen.json | grep tag | sed 's/\"//g' | sed 's/,//g' | awk '{print \$NF}')
+    else
+      tag="NA"
+    fi
 
-  when:
-  params.nextclade
-
-  input:
-  file(consensus)
-  path(dataset)
-
-  output:
-  path "nextalign/nextalign.aligned.fasta",   emit: msa
-  path "nextalign/{*.fasta,nextalign.*.csv}", emit: files
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
-
-  shell:
-  '''
-    mkdir -p nextalign logs/!{task.process}
-    log=logs/!{task.process}/!{task.process}.!{workflow.sessionId}.log
-    date > $log
-    echo "nextalign version:" >> $log
-    nextalign --version >> $log
-
-    for fasta in !{consensus}
-    do
-      cat $fasta >> nextalign/ultimate.fasta
-    done
-
-    nextalign run !{params.nextalign_options} \
-      --input-ref=!{dataset}/reference.fasta \
-      --genemap=!{dataset}/genemap.gff \
-      --jobs !{task.cpus} \
-      --output-all=nextalign/ \
-      nextalign/ultimate.fasta \
-      | tee -a $log
-  '''
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+      nextclade: \$(nextclade --version | awk '{print \$NF}')
+      tag: \$tag
+      container: ${task.container}
+    END_VERSIONS
+  """
 }
