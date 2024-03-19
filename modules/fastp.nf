@@ -50,11 +50,9 @@ process fastp {
 
       cat <<-END_VERSIONS > versions.yml
       "${task.process}":
-        fastp: \$(fastp --version | awk '{print \$NF}')
+        fastp: \$(fastp --version 2>&1 | awk '{print \$NF}')
         container: ${task.container}
       END_VERSIONS
-      head versions.yml
-      exit 1
     """
   } else if ( paired_single == 'single' ) {
     """
@@ -76,10 +74,9 @@ process fastp {
 
       cat <<-END_VERSIONS > versions.yml
       "${task.process}":
-        fastp: \$(fastp --version | awk '{print \$NF}')
+        fastp: \$(fastp --version 2>&1 | awk '{print \$NF}')
+        container: ${task.container}
       END_VERSIONS
-      head versions.yml
-      exit 1
     """
   }
 }

@@ -65,12 +65,9 @@ process artic {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         artic: \$(artic --version | awk '{print \$NF}')
+        medaka: \$( medaka --version | awk '{print \$NF}')
         container: ${task.container}
     END_VERSIONS
-
-    head versions.yml
-
-    exit 1
     """
 }
 
@@ -117,9 +114,5 @@ process artic_read_filtering {
             artic: \$(artic --version | awk '{print \$NF}')
             container: ${task.container}
         END_VERSIONS
-
-        head versions.yml
-
-        exit 1
     """
 }

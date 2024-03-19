@@ -25,6 +25,7 @@ process minimap2 {
 
   shell:
   def args   = task.ext.args   ?: "${params.minimap2_options}}"
+  def fastq  = reads.join(" ")
   def prefix = task.ext.prefix ?: "${sample}"
   """
     mkdir -p aligned logs/${task.process}
@@ -38,7 +39,7 @@ process minimap2 {
     minimap2 ${args} \
       -ax sr -t ${task.cpus} \
       -o aligned/${prefix}.sam \
-      ${reference_genome} ${reads} \
+      ${reference_genome} ${fastq} \
       | tee -a \$log
 
     cat <<-END_VERSIONS > versions.yml
@@ -46,7 +47,5 @@ process minimap2 {
       minimap2: \$(minimap2 --version | awk '{print \$NF}')
       container: ${task.container}
     END_VERSIONS
-    head versions.yml
-    exit 1
   """
 }

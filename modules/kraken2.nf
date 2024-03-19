@@ -45,10 +45,8 @@ process kraken2 {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-      kraken2: \$(kraken2 --version | awk '{print \$NF}')
+      kraken2: \$(kraken2 --version | head -n 1 | awk '{print \$NF}')
     END_VERSIONS
-    head versions.yml
-    exit 1
   """
   } else {
   """
@@ -70,11 +68,9 @@ process kraken2 {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-      kraken2: \$(kraken2 --version | awk '{print \$NF}')
+      kraken2: \$(kraken2 --version | head -n 1 | awk '{print \$NF}')
       container: ${task.container}
     END_VERSIONS
-    head versions.yml
-    exit 1
   """
   }
 }
