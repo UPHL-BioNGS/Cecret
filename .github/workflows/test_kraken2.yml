@@ -1,0 +1,45 @@
+name: Test SARS-CoV-2 with Kraken2
+
+on: [pull_request, workflow_dispatch]
+
+run-name: Test profile
+
+jobs:
+
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          lfs: true
+
+      - name: Checkout LFS objects
+        run: git lfs checkout
+          
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Download Kraken2 Database
+        run: |
+            mkdir kraken2_db
+            cd kraken2_db
+            wget https://genome-idx.s3.amazonaws.com/kraken/k2_viral_20240112.tar.gz 
+            tar -zxvf k2_viral_20240112.tar.gz
+            cd ../
+          
+      - name: Run Cecret
+        run: |
+          nextflow run . -profile docker,test \
+            -c .github/workflows/github_actions.config \
+            --maxcpus 2 --medcpus 2 --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200 --vadr false \
+            --kraken2_db kraken2_db --kraken2
+
+          ls cecret*
+            
+          cat cecret*/cecret_results.txt
+
+      - name: Clean
+        run: rm -rf work .nextflow*

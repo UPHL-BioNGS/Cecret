@@ -11,6 +11,9 @@ process download {
   //#UPHLICA cpus 3
   //#UPHLICA time '45m'
 
+  when:
+  task.ext.when == null || task.ext.when
+
   input:
   val(sra)
 
@@ -19,25 +22,25 @@ process download {
   tuple val(sra), file("sra/single/${sra}*fastq.gz"), val("single"), optional: true, emit: single
 
   shell:
-  '''
+  """
     mkdir -p sra/{paired,single}
 
-    sra=!{sra}
+    sra=${sra}
 
-    wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2}/!{sra}/!{sra}_1.fastq.gz || \
-        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2}/!{sra}/!{sra}.fastq.gz
+    wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/\${sra:0:6}/0\${sra: -2}/\${sra}/\${sra}_1.fastq.gz || \
+        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/\${sra:0:6}/0\${sra: -2}/\${sra}/\${sra}.fastq.gz
 
-    if [ -f !{sra}_1.fastq.gz ]
+    if [ -f "\${sra}_1.fastq.gz" ]
     then
-        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/${sra:0:6}/0${sra: -2 }/!{sra}/!{sra}_2.fastq.gz
-        mv !{sra}_*.fastq.gz sra/paired/.
-    elif [ -f !{sra}.fastq.gz ]
+        wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/\${sra:0:6}/0\${sra: -2 }/\${sra}/\${sra}_2.fastq.gz
+        mv \${sra}_*.fastq.gz sra/paired/.
+    elif [ -f "\${sra}.fastq.gz" ]
     then
-        mv !{sra}.fastq.gz sra/single/.
+        mv \${sra}.fastq.gz sra/single/.
     else
-        echo "Could not download file for SRA accession !{sra}"
+        echo "Could not download file for SRA accession ${sra}"
     fi
-  '''
+  """
 }
 
 //# some fastas are created with the header of >reference, so this changes the header
@@ -55,7 +58,7 @@ process fasta_prep {
   //#UPHLICA time '45m'
 
   when:
-  fasta != null
+  fasta != null && (task.ext.when == null || task.ext.when)
 
   input:
   tuple val(sample), file(fasta)
@@ -64,18 +67,19 @@ process fasta_prep {
   path "fasta_prep/${fasta}", optional: true, emit: fastas
 
   shell:
-  '''
-    mkdir -p fasta_prep
+  def prefix = task.ext.prefix ?: "${sample}"
+  """
+  mkdir -p fasta_prep
 
-    echo ">!{sample}" > fasta_prep/!{fasta}
-    grep -v ">" !{fasta} | fold -w 75 >> fasta_prep/!{fasta}
-  '''
+  echo ">${prefix}" > fasta_prep/${fasta}
+  grep -v ">" ${fasta} | fold -w 75 >> fasta_prep/${fasta}
+  """
 }
 
 process summary {
   tag        "Creating summary files"
   label      "process_single"
-  publishDir "${params.outdir}", mode: 'copy'
+  publishDir path: params.outdir, mode: 'copy'
   container  'quay.io/biocontainers/pandas:1.5.2'
 
   //#UPHLICA maxForks 10
@@ -85,6 +89,9 @@ process summary {
   //#UPHLICA cpus 3
   //#UPHLICA time '45m'
 
+  when:
+  task.ext.when == null || task.ext.when
+
   input:
   tuple file(files), file(script), val(versions), file(multiqc)
 
@@ -92,19 +99,20 @@ process summary {
   path "cecret_results.{csv,txt}", emit: summary_file
 
   shell:
-  '''
-    echo "!{versions}" | cut -f 1,3,5,7,9,11  -d ',' | sed 's/\\[//g' | sed 's/\\]//g' | sed 's/, /,/g' >  versions.csv
-    echo "!{versions}" | cut -f 2,4,6,8,10,12 -d ',' | sed 's/\\[//g' | sed 's/\\]//g' | sed 's/, /,/g' | awk '{($1=$1); print $0}' >> versions.csv
+  def multiqc_files = multiqc.join(" ")
+  """
+    echo "${versions}" | cut -f 1,3,5,7,9,11  -d ',' | sed 's/\\[//g' | sed 's/\\]//g' | sed 's/, /,/g' >  versions.csv
+    echo "${versions}" | cut -f 2,4,6,8,10,12 -d ',' | sed 's/\\[//g' | sed 's/\\]//g' | sed 's/, /,/g' | awk '{(\$1=\$1); print \$0}' >> versions.csv
 
-    echo "Summary files are !{files}"
+    echo "Summary files are ${files}"
 
     mkdir multiqc_data
-    for file in !{multiqc}
+    for file in ${multiqc_files}
     do
-      if [ -f "$file" ]; then mv $file multiqc_data/. ; fi
+      if [ -f "\$file" ]; then mv \$file multiqc_data/. ; fi
     done
 
-    if [ -n "$(find . -iname *ampliconstats.txt | head -n 1)" ] 
+    if [ -n "\$(find . -iname *ampliconstats.txt | head -n 1)" ] 
     then
       cat *_ampliconstats.txt | grep -h ^FREADS > ampliconstats.summary
     else
@@ -113,8 +121,8 @@ process summary {
 
     if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | grep -v "#-" | tr -s '[:blank:]' ',' > vadr.csv ; fi
 
-    python !{script} !{params.minimum_depth}
-  '''
+    python ${script} ${params.minimum_depth}
+  """
 }
 
 process unzip {
@@ -131,7 +139,7 @@ process unzip {
   //#UPHLICA time '45m'
 
   when:
-  params.nextclade
+  params.nextclade && (task.ext.when == null || task.ext.when)
 
   input:
   file(input)
@@ -140,9 +148,8 @@ process unzip {
   path "dataset", emit: dataset
 
   shell:
-  '''
-    mkdir dataset
-    
-    unzip !{input} -d dataset
-  '''
+  """
+  mkdir dataset
+  unzip ${input} -d dataset
+  """
 }

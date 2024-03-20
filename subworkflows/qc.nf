@@ -26,14 +26,17 @@ workflow qc {
   main:
     ch_for_multiqc = Channel.empty()
     ch_for_summary = Channel.empty()
+    ch_versions    = Channel.empty()
     
     fastqc(ch_raw_reads)
     ch_for_summary = ch_for_summary.mix(fastqc.out.fastq_name.collectFile(name: "fastq_names.csv", keepHeader: true ))
+    ch_versions    = ch_versions.mix(fastqc.out.versions.first())
 
     if ( ch_kraken2_db ) {
       kraken2(ch_clean_reads.combine(ch_kraken2_db))
       ch_for_multiqc = ch_for_multiqc.mix(kraken2.out.kraken2_files)
       ch_for_summary = ch_for_summary.mix(kraken2.out.kraken2_files)
+      ch_versions    = ch_versions.mix(kraken2.out.versions.first())
     }
 
     samtools_intial_stats( ch_sam)
@@ -47,12 +50,25 @@ workflow qc {
     samtools_ampliconstats(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_primer_bed))
     samtools_plot_ampliconstats(samtools_ampliconstats.out.samtools_ampliconstats_files)
 
+    ch_versions = ch_versions.mix(samtools_intial_stats.out.versions.first())
+    ch_versions = ch_versions.mix(aci.out.versions.first())
+    ch_versions = ch_versions.mix(samtools_flagstat.out.versions.first())
+    ch_versions = ch_versions.mix(samtools_depth.out.versions.first())
+    ch_versions = ch_versions.mix(samtools_coverage.out.versions.first())
+    ch_versions = ch_versions.mix(samtools_stats.out.versions.first())
+    ch_versions = ch_versions.mix(bcftools_variants.out.versions.first())
+    ch_versions = ch_versions.mix(ivar_variants.out.versions.first())
+    ch_versions = ch_versions.mix(samtools_ampliconstats.out.versions.first())
+    ch_versions = ch_versions.mix(samtools_plot_ampliconstats.out.versions.first())
+
     bcftools_variants.out.vcf
       .join(ch_trim_bam, by: 0)
       .combine(ch_reference_genome)
       .set{ for_igv_reports }
 
     igv_reports(for_igv_reports)
+
+    ch_versions = ch_versions.mix(igv_reports.out.versions.first())
 
     samtools_coverage.out.samtools_coverage
       .collectFile(name: "samtools_coverage_summary.tsv",
@@ -79,4 +95,5 @@ workflow qc {
   emit:
     for_multiqc = ch_for_multiqc.mix(fastqc.out.fastqc_files).mix(samtools_intial_stats.out.samtools_stats_files).mix(samtools_flagstat.out.samtools_flagstat_files).mix(aci.out.for_multiqc)
     for_summary = ch_for_summary
+    versions    = ch_versions
 }

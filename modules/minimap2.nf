@@ -11,28 +11,41 @@ process minimap2 {
   //#UPHLICA cpus 14
   //#UPHLICA time '45m'
 
+  when:
+  task.ext.when == null || task.ext.when
+
   input:
   tuple val(sample), file(reads), file(reference_genome)
 
   output:
-  tuple val(sample), file("aligned/${sample}.sam"),                       emit: sam
+  tuple val(sample), file("aligned/${sample}.sam"), emit: sam
   path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
-  tuple val("${params.aligner}"), env(minimap2_version),                  emit: aligner_version
+  tuple val("${params.aligner}"), env(minimap2_version), emit: aligner_version
+  path "versions.yml", emit: versions
 
   shell:
-  '''
-    mkdir -p aligned logs/!{task.process}
-    log=logs/!{task.process}/!{sample}.!{workflow.sessionId}.log
+  def args   = task.ext.args   ?: "${params.minimap2_options}}"
+  def fastq  = reads.join(" ")
+  def prefix = task.ext.prefix ?: "${sample}"
+  """
+    mkdir -p aligned logs/${task.process}
+    log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
 
     # time stamp + capturing tool versions
-    date > $log
-    minimap2 --version >> $log
-    minimap2_version=$(echo "minimap2 : "$(minimap2 --version))
+    date > \$log
+    minimap2 --version >> \$log
+    minimap2_version=\$(echo "minimap2 : "\$(minimap2 --version))
 
-    minimap2 !{params.minimap2_options} \
-      -ax sr -t !{task.cpus} \
-      -o aligned/!{sample}.sam \
-      !{reference_genome} !{reads} \
-      | tee -a $log
-  '''
+    minimap2 ${args} \
+      -ax sr -t ${task.cpus} \
+      -o aligned/${prefix}.sam \
+      ${reference_genome} ${fastq} \
+      | tee -a \$log
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+      minimap2: \$(minimap2 --version | awk '{print \$NF}')
+      container: ${task.container}
+    END_VERSIONS
+  """
 }
