@@ -26,6 +26,7 @@ process kraken2 {
   shell:
   def args   = task.ext.args   ?: "${params.kraken2_options}"
   def prefix = task.ext.prefix ?: "${sample}"
+  def reads  = clean.join(" ")
   if ( clean =~ "cln" ) {
   """
     mkdir -p kraken2 logs/${task.process}
@@ -35,11 +36,11 @@ process kraken2 {
     kraken2 --version >> \$log
 
     kraken2 ${args} \
-      --classified-out kraken2/${prefix}.cseqs#.fastq \
-      --unclassified-out kraken2/${prefix}.useqs#.fastq \
+      --classified-out kraken2/${prefix}.cseqs#.fastq.gz \
+      --unclassified-out kraken2/${prefix}.useqs#.fastq.gz \
       --threads ${task.cpus} \
       --db ${kraken2_db} \
-      ${clean} \
+      ${reads} \
       --report kraken2/${prefix}_kraken2_report.txt \
       | tee -a \$log
 
@@ -58,11 +59,11 @@ process kraken2 {
 
     kraken2 ${args} \
       --paired \
-      --classified-out kraken2/${prefix}.cseqs#.fastq \
-      --unclassified-out kraken2/${prefix}.useqs#.fastq \
+      --classified-out kraken2/${prefix}.cseqs#.fastq.gz \
+      --unclassified-out kraken2/${prefix}.useqs#.fastq.gz \
       --threads ${task.cpus} \
       --db ${kraken2_db} \
-      ${clean} \
+      ${reads} \
       --report kraken2/${prefix}_kraken2_report.txt \
       | tee -a \$log
 
