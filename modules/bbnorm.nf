@@ -4,7 +4,7 @@ process bbnorm {
     tag           "${sample}"
     publishDir    params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
     //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-    container     'staphb/bbtools:39.01'
+    container     'staphb/bbtools:39.06'
 
     input:
     tuple val(sample), file(reads), val(paired_single)
