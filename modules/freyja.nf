@@ -3,7 +3,7 @@ process freyja_variants {
   label         "process_medium"
   //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container     'staphb/freyja:1.5.0-03_25_2024-00-45-2024-03-26'
+  container     'staphb/freyja:1.5.0-04_02_2024-00-47-2024-04-02'
 
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
@@ -53,7 +53,7 @@ process freyja_demix {
   label         "process_medium"
   //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container     'staphb/freyja:1.5.0-03_25_2024-00-45-2024-03-26'
+  container     'staphb/freyja:1.5.0-04_02_2024-00-47-2024-04-02'
 
 
   //#UPHLICA maxForks 10
@@ -105,7 +105,7 @@ process freyja_aggregate {
   tag        "Aggregating results from freyja"
   label      "process_single"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/freyja:1.5.0-03_25_2024-00-45-2024-03-26'
+  container  'staphb/freyja:1.5.0-04_02_2024-00-47-2024-04-02'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
