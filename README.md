@@ -266,6 +266,8 @@ Pangolin, Nextclade, and any analysis that evaluates the consensus fasta are not
 nextflow pull UPHL-BioNGS/Cecret
 ```
 
+Cecret has a weekly update schedule. Cecret's versions have three numbers : X.Y.Z. If the first number, X, changes, there has been a major modification. Params may have changed or subworkflows/channels may have been modified. If the second number, Y, changes, there has been a minor to moderate change. These are mainly for bug fixes or the changing the defaults of params. If the last number has been modified, Z, the workflow is basically the same, there have just been some updates in the containers pulled for the workflow. Most of these updates are to keep Freyja, NextClade, and Pangolin current for SARS-CoV-2 analysis. 
+
 ## Quality Assessment
 The quality of a sequencing run is very important. As such, many values are recorded so that the **End User** can assess the quality of the results produced from a sequencing run.
 
