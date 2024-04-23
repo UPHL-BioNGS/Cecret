@@ -2,7 +2,7 @@ process bcftools_variants {
   tag           "${sample}"
   publishDir    params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  container     'staphb/bcftools:1.19'
+  container     'staphb/bcftools:1.20'
   label         'process_single'
 
   //#UPHLICA maxForks 10
