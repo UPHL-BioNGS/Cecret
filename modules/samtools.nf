@@ -2,7 +2,7 @@ process samtools_stats {
   tag        "${sample}"
   label      "process_single"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/samtools:1.19'
+  container  'staphb/samtools:1.20'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -46,7 +46,7 @@ process samtools_coverage {
   tag        "${sample}"
   label      "process_single"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/samtools:1.19'
+  container  'staphb/samtools:1.20'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -92,7 +92,7 @@ process samtools_flagstat {
   tag        "${sample}"
   label      "process_single"
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/samtools:1.19'
+  container  'staphb/samtools:1.20'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -138,7 +138,7 @@ process samtools_depth {
   tag        "${sample}"
   label      "process_single"
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/samtools:1.19'
+  container  'staphb/samtools:1.20'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -183,7 +183,7 @@ process samtools_ampliconstats {
   tag        "${sample}"
   label      "process_single"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/samtools:1.19'
+  container  'staphb/samtools:1.20'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -230,7 +230,7 @@ process samtools_plot_ampliconstats {
   label         "process_single"
   errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container     'staphb/samtools:1.19'
+  container     'staphb/samtools:1.20'
 
   //#UPHLICA maxForks 10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
@@ -275,7 +275,7 @@ process samtools_sort {
   tag        "${sample}"
   label      "process_high"
   publishDir  path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/samtools:1.19'
+  container  'staphb/samtools:1.20'
 
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -323,7 +323,7 @@ process samtools_filter {
   tag        "${sample}"
   label      "process_single"
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/samtools:1.19'
+  container  'staphb/samtools:1.20'
 
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -374,7 +374,7 @@ process samtools_ampliconclip {
   tag        "${sample}"
   label      "process_single"
   publishDir  path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/samtools:1.19'
+  container  'staphb/samtools:1.20'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -426,7 +426,7 @@ process samtools_markdup {
   tag        "${sample}"
   label      "process_single"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/samtools:1.19'
+  container  'staphb/samtools:1.20'
   
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
