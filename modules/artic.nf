@@ -26,7 +26,7 @@ process artic {
     path "versions.yml", emit: versions
   
     shell:
-    def args   = task.ext.args   ?: "${params.artic_options}}"
+    def args   = task.ext.args   ?: "${params.artic_options}"
     def prefix = task.ext.prefix ?: "${sample}"
     """
     mkdir -p artic consensus schema/cecret/V1 logs/${task.process}
