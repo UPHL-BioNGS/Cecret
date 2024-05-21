@@ -24,7 +24,7 @@ process minimap2 {
   path "versions.yml", emit: versions
 
   shell:
-  def args   = task.ext.args   ?: "${params.minimap2_options}}"
+  def args   = task.ext.args   ?: "${params.minimap2_options}"
   def fastq  = reads.join(" ")
   def prefix = task.ext.prefix ?: "${sample}"
   """

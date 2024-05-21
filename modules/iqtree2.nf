@@ -2,7 +2,7 @@ process iqtree2 {
   tag        "Creating phylogenetic tree with iqtree"
   label      "process_high"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/iqtree2:2.2.2.7'
+  container  'staphb/iqtree2:2.3.1'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
