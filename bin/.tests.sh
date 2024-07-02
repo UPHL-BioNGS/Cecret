@@ -152,7 +152,7 @@ then
         -with-tower
     done
 
-    mpx_primers=("mpx_primalseq" "mpx_idt")
+    mpx_primers=("mpx_primalseq" "mpx_idt" "mpx_yale")
     for primer in ${mpx_primers[@]}
     do
       nextflow run /Volumes/IDGenomics_NAS/Bioinformatics/eriny/Cecret \
