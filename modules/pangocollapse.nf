@@ -2,7 +2,7 @@ process pango_collapse {
   tag        "SARS-CoV-2 lineage mapping"
   label      "process_low"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'quay.io/uphl/pango-collapse:0.8.2-2024-03-19'
+  container  'quay.io/uphl/pango-collapse:0.8.2-2024-07-02'
 
   //#UPHLICA maxForks      10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
