@@ -322,7 +322,7 @@ if (params.reference_genome){
 } else {
   if ( params.species == 'sarscov2' ) {
     ch_reference_genome = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.fasta', type: 'file')
-  } else if ( params.species == 'mpx') && (params.primer_set == 'mpx_yale') {
+  } else if ( params.species == 'mpx' && params.primer_set == 'mpx_yale') {
     ch_reference_genome = Channel.fromPath(workflow.projectDir + '/genomes/MT903345.1.fasta', type: 'file')
   } else if ( params.species == 'mpx') {
     ch_reference_genome = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.fasta', type: 'file')
@@ -348,7 +348,7 @@ if ( params.ivar_variants ) {
   } else {
     if ( params.species == 'sarscov2' ) {
       ch_gff_file = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.gff', type: 'file')
-    } else if ( params.species == 'mpx') && (params.primer_set == 'mpx_yale') {
+    } else if ( params.species == 'mpx' && params.primer_set == 'mpx_yale') {
       ch_gff_file = Channel.fromPath(workflow.projectDir + '/genomes/MT903345.1.gff', type: 'file')
     } else if ( params.species == 'mpx') {
       ch_gff_file = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.gff3', type: 'file')
