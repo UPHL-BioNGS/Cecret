@@ -322,6 +322,8 @@ if (params.reference_genome){
 } else {
   if ( params.species == 'sarscov2' ) {
     ch_reference_genome = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.fasta', type: 'file')
+  } else if ( params.species == 'mpx') && (params.primer_set == 'mpx_yale') {
+    ch_reference_genome = Channel.fromPath(workflow.projectDir + '/genomes/MT903345.1.fasta', type: 'file')
   } else if ( params.species == 'mpx') {
     ch_reference_genome = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.fasta', type: 'file')
   } else {
@@ -346,6 +348,8 @@ if ( params.ivar_variants ) {
   } else {
     if ( params.species == 'sarscov2' ) {
       ch_gff_file = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.gff', type: 'file')
+    } else if ( params.species == 'mpx') && (params.primer_set == 'mpx_yale') {
+      ch_gff_file = Channel.fromPath(workflow.projectDir + '/genomes/MT903345.1.gff', type: 'file')
     } else if ( params.species == 'mpx') {
       ch_gff_file = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.gff3', type: 'file')
     } else {
@@ -372,6 +376,7 @@ included_primers     = [
   workflow.projectDir + '/schema/ncov_V4.1_SARS-CoV-2.primer.bed',
   workflow.projectDir + '/schema/ncov_V5.3.2_SARS-CoV-2.primer.bed',
   workflow.projectDir + '/schema/mpx_idt_primer.bed',
+  workflow.projectDir + '/schema/mpx_yale_primer.bed',
   workflow.projectDir + '/schema/mpx_primalseq_primer.bed'
   ]
 included_amplicons = [
@@ -384,6 +389,7 @@ included_amplicons = [
   workflow.projectDir + '/schema/ncov_V4.1_SARS-CoV-2.insert.bed',
   workflow.projectDir + '/schema/ncov_V5.3.2_SARS-CoV-2.insert.bed',
   workflow.projectDir + '/schema/mpx_idt_insert.bed',
+  workflow.projectDir + '/schema/mpx_yale_insert.bed',
   workflow.projectDir + '/schema/mpx_primalseq_insert.bed'
 ]
 
@@ -399,7 +405,8 @@ available_primer_sets = [
   'ncov_V4', 
   'ncov_V4.1', 
   'ncov_V5.3.2', 
-  'mpx_primalseq', 
+  'mpx_primalseq',
+  'mpx_yale',
   'mpx_idt'
   ]
 
@@ -506,7 +513,7 @@ ch_reads.ifEmpty     { println("No fastq or fastq.gz files were found at ${param
 
 workflow CECRET {
     ch_for_dataset = Channel.empty()
-    ch_for_version = Channel.from("Cecret version", workflow.manifest.version).collect()
+    ch_for_version = Channel.from("Cecret version", workflow.manifest.version).first()
     ch_prealigned  = Channel.empty()
     ch_versions    = Channel.empty()
 
