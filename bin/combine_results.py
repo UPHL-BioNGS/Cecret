@@ -10,9 +10,9 @@ from os.path import exists
 aci_file                = 'aci_coverage_summary.csv'
 ampliconstats_file      = 'ampliconstats.summary'
 samtools_coverage_file  = 'samtools_coverage_summary.tsv'
-pangolin_file           = 'multiqc_data/multiqc_pangolin.txt'
+pangolin_file           = 'lineage_report.csv'
 pango_collapse_file     = 'pango_collapse.csv'
-nextclade_file          = 'multiqc_data/multiqc_nextclade.txt'
+nextclade_file          = 'nextclade.csv'
 vadr_file               = 'vadr.csv'
 fastp_file              = 'multiqc_data/multiqc_general_stats.txt'
 fastq_names_file        = 'fastq_names.csv'
@@ -277,9 +277,17 @@ if exists(samtools_coverage_file) :
     summary_df              = summary_df.drop('sample', axis=1)
     columns                 = columns + ['samtools_meandepth_after_trimming', 'samtools_per_1X_coverage_after_trimming']
 
+def vadr_sample_name(s):
+    if s.count('.') >=1:
+        if len(s.split(".")[-1]) > 2:
+            return ''.join(s.split(".")[:-1])
+    return s
+
 if exists(vadr_file) :
     print("Getting results from vadr file " + vadr_file)
     vadr_df = pd.read_csv(vadr_file, dtype = str, usecols = ['name', 'p/f', 'model', 'alerts'], index_col= False)
+    vadr_df = vadr_df[vadr_df['name'] != 'name']
+    vadr_df = vadr_df[vadr_df['name'] != 'seq']
     vadr_df = vadr_df.add_prefix('vadr_')
     vadr_columns = list(vadr_df.columns)
     vadr_columns.remove('vadr_name')
@@ -291,7 +299,8 @@ if exists(vadr_file) :
         summary_df.drop('vadr_name', axis=1, inplace=True)
         columns = ['vadr_p/f'] + columns + vadr_columns
     else:
-        vadr_df['sample_match'] = vadr_df['vadr_name'].str.replace('Consensus_', '', regex =  False).str.split(".").str[0]
+        vadr_df['sample_match'] = vadr_df['vadr_name'].str.replace('Consensus_', '', regex =  False).apply(vadr_sample_name)
+
         summary_df = pd.merge(summary_df, vadr_df, left_on = 'sample_id', right_on = 'sample_match', how = 'outer')
         summary_df['sample_id'].fillna(summary_df['sample_match'], inplace=True)
         summary_df.drop('vadr_name', axis=1, inplace=True)
@@ -301,9 +310,9 @@ if exists(vadr_file) :
 if exists(nextclade_file) :
     print("Getting results from nextclade file " + nextclade_file)
 
-    use_cols = ['Sample', 'clade', 'qc_overallstatus', 'qc_overallscore']
+    use_cols = ['seqName', 'clade', 'qc.overallStatus', 'qc.overallScore']
 
-    first = pd.read_table(nextclade_file, sep = '\t' , dtype = str, nrows=1)
+    first = pd.read_table(nextclade_file, sep = ';' , dtype = str, nrows=1)
     if 'clade_who' in first.columns:
         use_cols.append('clade_who')
     if 'outbreak' in first.columns:
@@ -311,32 +320,32 @@ if exists(nextclade_file) :
     if 'lineage' in first.columns:
         use_cols.append('lineage')
 
-    nextclade_df = pd.read_table(nextclade_file, sep = '\t' , dtype = str, usecols = use_cols)
+    nextclade_df = pd.read_table(nextclade_file, sep = ';' , dtype = str, usecols = use_cols)
     nextclade_df=nextclade_df.add_prefix('nextclade_')
     nextclade_columns = list(nextclade_df.columns)
-    nextclade_df['sample_match'] = nextclade_df['nextclade_Sample'].str.replace('Consensus_', '', regex =  False)
-    nextclade_columns.remove('nextclade_Sample')
+    nextclade_df['sample_match'] = nextclade_df['nextclade_seqName'].str.replace('Consensus_', '', regex =  False).str.split(' ').str[0]
+    nextclade_columns.remove('nextclade_seqName')
     nextclade_columns.remove('nextclade_clade')
 
     summary_df = pd.merge(summary_df, nextclade_df, left_on = 'sample_id', right_on = 'sample_match', how = 'outer')
     summary_df['sample_id'].fillna(summary_df['sample_match'], inplace=True)
-    summary_df.drop('nextclade_Sample', axis=1, inplace=True)
+    summary_df.drop('nextclade_seqName', axis=1, inplace=True)
     summary_df.drop('sample_match', axis = 1, inplace = True )
     columns = ['nextclade_clade'] + columns + nextclade_columns
 
 if exists(pangolin_file) :
     print("Getting results from pangolin file " + pangolin_file)
 
-    pangolin_df = pd.read_table(pangolin_file, dtype = str)
+    pangolin_df = pd.read_csv(pangolin_file, dtype = str)
     pangolin_df = pangolin_df.add_prefix('pangolin_')
     pangolin_columns = list(pangolin_df.columns)
-    pangolin_df['sample_match'] = pangolin_df['pangolin_Sample'].str.replace('Consensus_', '', regex= False)
-    pangolin_columns.remove('pangolin_Sample')
+    pangolin_df['sample_match'] = pangolin_df['pangolin_taxon'].str.replace('Consensus_', '', regex= False).str.split(' ').str[0]
+    pangolin_columns.remove('pangolin_taxon')
     pangolin_columns.remove('pangolin_lineage')
 
     summary_df = pd.merge(summary_df, pangolin_df, left_on = 'sample_id', right_on = 'sample_match', how = 'outer')
     summary_df['sample_id'].fillna(summary_df['sample_match'], inplace=True)
-    summary_df.drop('pangolin_Sample', axis=1, inplace=True)
+    summary_df.drop('pangolin_taxon', axis=1, inplace=True)
     summary_df.drop('sample_match', axis=1, inplace=True)
     columns = ['pangolin_lineage'] + columns + pangolin_columns
 
