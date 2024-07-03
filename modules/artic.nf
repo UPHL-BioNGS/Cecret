@@ -35,7 +35,7 @@ process artic {
     # time stamp + capturing tool versions
     date > \$log
     artic --version >> \$log
-    artic_version=\$(artic --version)
+    artic_version=\$(artic --version | awk '{print \$NF}')
 
     cp ${reference} schema/cecret/V1/cecret.reference.fasta
     cp ${bed}       schema/cecret/V1/cecret.scheme.bed
