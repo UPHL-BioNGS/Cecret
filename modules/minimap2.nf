@@ -34,7 +34,7 @@ process minimap2 {
     # time stamp + capturing tool versions
     date > \$log
     minimap2 --version >> \$log
-    minimap2_version=\$(echo "minimap2 : "\$(minimap2 --version))
+    minimap2_version=\$(minimap2 --version | awk '{print \$NF}')
 
     minimap2 ${args} \
       -ax sr -t ${task.cpus} \

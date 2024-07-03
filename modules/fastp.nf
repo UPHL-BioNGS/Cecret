@@ -37,7 +37,7 @@ process fastp {
       # time stamp + capturing tool versions
       date > \$log
       fastp --version >> \$log
-      cleaner_version="\$(fastp --version 2>&1 | head -n 1)"
+      cleaner_version=\$(fastp --version 2>&1 | awk '{print \$NF}')
 
       fastp ${args} \
         -i ${reads[0]} \
@@ -63,7 +63,7 @@ process fastp {
       # time stamp + capturing tool versions
       date > \$log
       fastp --version >> \$log
-      cleaner_version="\$(fastp --version 2>&1 | head -n 1)"
+      cleaner_version=\$(fastp --version 2>&1 | awk '{print \$NF}')
 
       fastp ${args} \
         -i ${reads} \
