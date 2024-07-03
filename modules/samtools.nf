@@ -405,7 +405,7 @@ process samtools_ampliconclip {
     # time stamp + capturing tool versions
     date > \$log
     samtools --version >> \$log
-    trimmer_version="samtools ampliconclip : \$(samtools --version | head -n 1)"
+    trimmer_version=\$(samtools --version | head -n 1 | awk '{print \$NF}')
 
     # trimming the reads
     samtools ampliconclip ${args} -b ${primer_bed} ${bam} | \
