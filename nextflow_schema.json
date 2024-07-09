@@ -4,584 +4,640 @@
     "title": "Cecret Parameters",
     "description": "Cecret is a workflow for reference-based sequencing of organisms with small genomes, such as SARS-CoV-2",
     "type": "object",
-    "properties": {
-        "aci": {
-            "type": "boolean",
-            "description": "Specifies if process should be used",
-            "hidden": true,
-            "default": true
-        },
-        "aligner": { 
-            "type": "string", 
-            "description": "Specifies which aligner is going to be used.",
-            "hidden": true,
-            "default": "bwa",
-            "enum": [
-                "bwa", 
-                "minimap2"
-            ]
-        },
-        "amplicon_bed": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Bedfile for amplicons"
-        },
-        "artic_options": {
-            "type": "string",
-            "description": "Options for process",
-            "hidden": true,
-            "default": "--normalise 200 --skip-nanopolish --medaka --medaka-model r941_min_high_g360"
-        },
-        "artic_read_filtering_options": {
-            "type": "string",
-            "description": "Options for process",
-            "hidden": true,
-            "default": "--min-length 400 --max-length 700"
-        },
-        "bbnorm": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": false,
-            "description": "Specifies if process should be used"
-        },
-        "bbnorm_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "target=200 min=5",
-            "description": "Options for process"
-        },
-        "bcftools_variants": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "bcftools_variants_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "cleaner": { 
-            "type": "string",
-            "hidden": true,
-            "default": "seqyclean",
-            "description": "Specifies what tool to use to remove low quality reads",
-            "enum": [
-                "seqyclean", 
-                "fastp"
-            ]
-        },
-        "config_file": {
-            "type": "boolean",
-            "hidden": true,
-            "default": false,
-            "description" : "Specifies if a config file is copied for the end user. Ends script."
-        },
-        "download_nextclade_dataset": {
-            "type": "boolean",
-            "hidden": false,
-            "description" : "Specifies if nextclade should download its dataset. Set to false to use included dataset.",
-            "default" : false
-        },
-        "fastas": { 
-            "type": "string",
-            "description": "input channel for fastas"
-        },
-        "fastp_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "fastqc": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "fastqc_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "filter": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": false,
-            "description": "Specifies if process should be used"
-        },
-        "filter_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "freyja": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "freyja_aggregate": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "freyja_aggregate_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "freyja_demix_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "freyja_plot_filetype": { 
-            "type": "string",
-            "hidden": true,
-            "default": "png",
-            "description": "Specifies filetype for freyja plot",
-            "enum": [
-                ".pdf", 
-                ".png"
-            ]
-        },
-        "freyja_plot_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "freyja_variants_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "gff": { 
-            "type": "string",
-            "hidden": true,
-            "description": "File used in ivar variants. Must correspond with reference genome."
-        },
-        "heatcluster": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "heatcluster_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "-t png",
-            "description": "Options for process"
-        },
-        "igv_reports": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "igv_reports_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "--flanking 1000",
-            "description": "Options for process"
-        },
-        "iqtree2": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "iqtree2_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "-ninit 2 -n 2 -me 0.05 -m GTR",
-            "description": "Options for process"
-        },
-        "iqtree2_outgroup": { 
-            "type": "string",
-            "hidden": true,
-            "default": "MN908947",
-            "description": "outgroup for multiple sequence alignment"
-        },
-        "ivar_consensus_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "-q 20 -t 0.6 -n N",
-            "description": "Options for process"
-        },
-        "ivar_trim_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "ivar_variants": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "ivar_variants_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "-q 20 -t 0.6",
-            "description": "Options for process"
-        },
-        "kraken2": { 
-            "type": "boolean",
-            "default": false,
-            "description": "Specifies if process should be used"
-        },
-        "kraken2_db": { 
-            "type": "string",
-            "default": "false",
-            "description": "directory to kraken2 database"
-        },
-        "kraken2_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "mafft_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "--maxambiguous 0.5",
-            "description": "Options for process"
-        },
-        "markdup": {
-            "type": "boolean",
-            "hidden": true,
-            "default": false,
-            "description": "Deduplication toggle"
-        },
-        "maxcpus": { 
-            "type": "string",
-            "hidden": true,
-            "default": 8,
-            "description": "maximum number of cpus per process"
-        },
-        "medcpus": { 
-            "type": "string",
-            "hidden": true,
-            "default": 4,
-            "description": "medium amount of cpus for some processes"
-        },
-        "minimap2_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "-K 20M",
-            "description": "Options for process"
-        },
-        "minimum_depth": { 
-            "type": "number",
-            "hidden": true,
-            "default": 100,
-            "description": "minimum depth for calling a variant"
-        },
-        "mpileup_depth": { 
-            "type": "number",
-            "hidden": true,
-            "default": 8000,
-            "description": "number of reads put into memory by samtools/bcftools"
-        },
-        "msa": { 
-            "type": "string",
-            "hidden": true,
-            "default": "mafft",
-            "description": "Specifies what tool to use for multiple sequence alignment. Current options are nextclade and mafft.",
-            "enum": [
-                "nextclade", 
-                "mafft"
-            ]
-        },
-        "multifastas": { 
-            "type": "string",
-            "description": "input channel for multifasta files"
-        },
-        "multiqc": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "multiqc_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "nanopore": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Directory with nanopore fastq files"
-        },
-        "nextclade": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "nextclade_dataset": { 
-            "type": "string",
-            "hidden": true,
-            "default": "sars-cov-2",
-            "description": "Specifies nextclade dataset"
-        },
-        "nextclade_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "outdir": { 
-            "type": "string",
-            "default": "cecret",
-            "description": "Specifies where results are saved"
-        },
-        "pango_collapse":{
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "pango_collapse_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "pangolin": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "pangolin_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "phytreeviz": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "phytreeviz_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "predownloaded_nextclade_dataset": {
-            "type": "string",
-            "hidden": true,
-            "description": "Specifies a zipped nextclade dataset to use instead of downloading during runtime."
-        },
-        "primer_bed": { 
-            "type": "string",
-            "hidden": true,
-            "description": "File with bedfile of primers used in the analysis"
-        },
-        "primer_set": { 
-            "type": "string",
-            "hidden": true,
-            "default": "ncov_V4",
-            "description": "Specifies a primer set included in repo",
-            "enum": [
-                "midnight_idt_V1", 
-                "midnight_ont_V1", 
-                "midnight_ont_V2", 
-                "midnight_ont_V3", 
-                "ncov_V3", 
-                "ncov_V4", 
-                "ncov_V4.1", 
-                "ncov_V5.3.2", 
-                "mpx_primalseq", 
-                "mpx_idt"
-            ]
-        },
-        "reads": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Directory with paired-end fastq files"
-        },
-        "reference_genome": { 
-            "type": "string",
-            "hidden": true,
-            "description": "THE Reference genome"
-        },
-        "relatedness": { 
-            "type": "boolean",
-            "default": false,
-            "description": "Specifies if subworkflow should be used"
-        },
-        "sample_sheet": { 
-            "type": "string", 
-            "description": "sample sheet with sample, fastq_1, and fastq_2 columns"
-        },
-        "samtools_ampliconclip_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "samtools_ampliconstats": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "samtools_ampliconstats_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "--max-amplicon-length 3000 --max-amplicons 3000",
-            "description": "Options for process"
-        },
-        "samtools_coverage": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "samtools_coverage_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "samtools_depth": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "samtools_depth_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "samtools_fixmate_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "samtools_flagstat": {
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "samtools_flagstat_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "samtools_markdup_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "samtools_plot_ampliconstats": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "samtools_plot_ampliconstats_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "-size 1200,900 -size2 1200,900 -size3 1200,900",
-            "description": "Options for process"
-        },
-        "samtools_stats": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "samtools_stats_options": { 
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-        },
-        "seqyclean_contaminant_file": { 
-            "type": "string",
-            "hidden": true,
-            "default": "/Adapters_plus_PhiX_174.fasta",
-            "description": "Specifies contaminant file in seqyclean container"
-        },
-        "seqyclean_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "-minlen 25 -qual",
-            "description": "Options for process"
-        },
-        "single_reads": { 
-            "type": "string", 
-            "description": "Specifies directory for single reads"
-        },
-        "snpdists": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "snpdists_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "-c",
-            "description": "Options for process"
-        },
-        "species": { 
-            "type": "string", 
-            "default": "sarscov2",
-            "description": "specifies SARS-CoV-2 or MPX options",
-            "enum": [
-                "other", 
-                "mpx", 
-                "sarscov2"
-            ]
-        },
-        "sra_accessions":{
-            "type": "string",
-            "hidden": true,
-            "default": [],
-            "description": "list of sra acessions to download with wget from ENA"
-        },
-        "trimmer": { 
-            "type": "string",
-            "hidden": true,
-            "default": "ivar",
-            "description": "Specifies which tool to use to trim primers from primerbedfile",
-            "enum": [
-                "samtools", 
-                "ivar", 
-                "none"
-            ]
-        },
-        "vadr": { 
-            "type": "boolean",
-            "hidden": true,
-            "default": true,
-            "description": "Specifies if process should be used"
-        },
-        "vadr_mdir": { 
-            "type": "string",
-            "hidden": true,
-            "default": "/opt/vadr/vadr-models",
-            "description": "Specifies model directory in container"
-        },
-        "vadr_options": { 
-            "type": "string",
-            "hidden": true,
-            "default": "--split --glsearch -s -r --nomisc --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn",
-            "description": "Options for process"
-        },
-        "vadr_reference": { 
-            "type": "string",
-            "hidden": true,
-            "default": "sarscov2",
-            "description": "Specifies reference for vadr in container"
-        },
-        "vadr_trim_options": { 
-            "type": "string",
-            "default": "--minlen 50 --maxlen 30000",
-            "hidden": true,
-            "description": "Options for process"
+    "definitions":{
+        "input_output_options": {
+            "title": "Input/output options",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Define where the pipeline should find input data and save output data.",
+            "required": [
+                "sample_sheet",
+                "outdir"
+            ],
+            "properties": {
+                "amplicon_bed": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Bedfile for amplicons"
+                },
+                "fastas": { 
+                    "type": "string",
+                    "description": "input channel for fastas"
+                },       
+                "gff": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "File used in ivar variants. Must correspond with reference genome."
+                },
+                "kraken2_db": { 
+                    "type": "string",
+                    "default": "false",
+                    "description": "directory to kraken2 database"
+                },
+                "multifastas": { 
+                    "type": "string",
+                    "description": "input channel for multifasta files"
+                },
+                "nanopore": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Directory with nanopore fastq files"
+                },
+                "outdir": { 
+                    "type": "string",
+                    "default": "cecret",
+                    "description": "Specifies where results are saved"
+                },
+                "predownloaded_nextclade_dataset": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Specifies a zipped nextclade dataset to use instead of downloading during runtime."
+                },
+                "primer_bed": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "File with bedfile of primers used in the analysis"
+                },
+                "reads": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Directory with paired-end fastq files"
+                },
+                "reference_genome": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "THE Reference genome"
+                },
+                "sample_sheet": { 
+                    "type": "string", 
+                    "description": "sample sheet with sample, fastq_1, and fastq_2 columns"
+                }
+            }
+        },
+        "pipeline_configuration_options": {
+            "title": "Pipeline Configuration options",
+            "type": "object",
+            "description": "Options to configure how the workflow runs.",
+            "properties": {
+                "aci": {
+                    "type": "boolean",
+                    "description": "Specifies if process should be used",
+                    "hidden": true,
+                    "default": true
+                },
+                "aligner": { 
+                    "type": "string", 
+                    "description": "Specifies which aligner is going to be used.",
+                    "hidden": true,
+                    "default": "bwa",
+                    "enum": [
+                        "bwa", 
+                        "minimap2"
+                    ]
+                },
+                "artic_options": {
+                    "type": "string",
+                    "description": "Options for process",
+                    "hidden": true,
+                    "default": "--normalise 200 --skip-nanopolish --medaka --medaka-model r941_min_high_g360"
+                },
+                "artic_read_filtering_options": {
+                    "type": "string",
+                    "description": "Options for process",
+                    "hidden": true,
+                    "default": "--min-length 400 --max-length 700"
+                },
+                "bbnorm": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": false,
+                    "description": "Specifies if process should be used"
+                },
+                "bbnorm_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "target=200 min=5",
+                    "description": "Options for process"
+                },
+                "bcftools_variants": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "bcftools_variants_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "cleaner": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "seqyclean",
+                    "description": "Specifies what tool to use to remove low quality reads",
+                    "enum": [
+                        "seqyclean", 
+                        "fastp"
+                    ]
+                },
+                "download_nextclade_dataset": {
+                    "type": "boolean",
+                    "hidden": false,
+                    "description" : "Specifies if nextclade should download its dataset. Set to false to use included dataset.",
+                    "default" : false
+                },
+                "fastp_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "fastqc": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "fastqc_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "filter": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": false,
+                    "description": "Specifies if process should be used"
+                },
+                "filter_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "freyja": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "freyja_aggregate": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "freyja_aggregate_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "freyja_demix_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "freyja_plot_filetype": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "png",
+                    "description": "Specifies filetype for freyja plot",
+                    "enum": [
+                        ".pdf", 
+                        ".png"
+                    ]
+                },
+                "freyja_plot_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "freyja_variants_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "heatcluster": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "heatcluster_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "-t png",
+                    "description": "Options for process"
+                },
+                "igv_reports": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "igv_reports_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "--flanking 1000",
+                    "description": "Options for process"
+                },
+                "iqtree2": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "iqtree2_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "-ninit 2 -n 2 -me 0.05 -m GTR",
+                    "description": "Options for process"
+                },
+                "iqtree2_outgroup": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "MN908947",
+                    "description": "outgroup for multiple sequence alignment"
+                },
+                "ivar_consensus_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "-q 20 -t 0.6 -n N",
+                    "description": "Options for process"
+                },
+                "ivar_trim_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "ivar_variants": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "ivar_variants_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "-q 20 -t 0.6",
+                    "description": "Options for process"
+                },
+                "kraken2": { 
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Specifies if process should be used"
+                },
+                "kraken2_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "mafft_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "--maxambiguous 0.5",
+                    "description": "Options for process"
+                },
+                "markdup": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": false,
+                    "description": "Deduplication toggle"
+                },
+                "maxcpus": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": 8,
+                    "description": "maximum number of cpus per process"
+                },
+                "medcpus": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": 4,
+                    "description": "medium amount of cpus for some processes"
+                },
+                "minimap2_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "-K 20M",
+                    "description": "Options for process"
+                },
+                "minimum_depth": { 
+                    "type": "number",
+                    "hidden": true,
+                    "default": 100,
+                    "description": "minimum depth for calling a variant"
+                },
+                "mpileup_depth": { 
+                    "type": "number",
+                    "hidden": true,
+                    "default": 8000,
+                    "description": "number of reads put into memory by samtools/bcftools"
+                },
+                "msa": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "mafft",
+                    "description": "Specifies what tool to use for multiple sequence alignment. Current options are nextclade and mafft.",
+                    "enum": [
+                        "nextclade", 
+                        "mafft"
+                    ]
+                },
+                "multiqc": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "multiqc_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "nextclade": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "nextclade_dataset": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "sars-cov-2",
+                    "description": "Specifies nextclade dataset"
+                },
+                "nextclade_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "pango_collapse":{
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "pango_collapse_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "pangolin": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "pangolin_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "phytreeviz": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "phytreeviz_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "primer_set": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "ncov_V4",
+                    "description": "Specifies a primer set included in repo",
+                    "enum": [
+                        "midnight_idt_V1", 
+                        "midnight_ont_V1", 
+                        "midnight_ont_V2", 
+                        "midnight_ont_V3", 
+                        "ncov_V3", 
+                        "ncov_V4", 
+                        "ncov_V4.1", 
+                        "ncov_V5.3.2", 
+                        "mpx_primalseq", 
+                        "mpx_idt"
+                    ]
+                },
+                "relatedness": { 
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Specifies if subworkflow should be used"
+                },
+                "samtools_ampliconclip_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_ampliconstats": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "samtools_ampliconstats_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "--max-amplicon-length 3000 --max-amplicons 3000",
+                    "description": "Options for process"
+                },
+                "samtools_coverage": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "samtools_coverage_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_depth": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "samtools_depth_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_fixmate_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_flagstat": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "samtools_flagstat_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_markdup_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_plot_ampliconstats": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "samtools_plot_ampliconstats_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "-size 1200,900 -size2 1200,900 -size3 1200,900",
+                    "description": "Options for process"
+                },
+                "samtools_stats": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "samtools_stats_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "seqyclean_contaminant_file": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "/Adapters_plus_PhiX_174.fasta",
+                    "description": "Specifies contaminant file in seqyclean container"
+                },
+                "seqyclean_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "-minlen 25 -qual",
+                    "description": "Options for process"
+                },
+                "single_reads": { 
+                    "type": "string", 
+                    "description": "Specifies directory for single reads"
+                },
+                "snpdists": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "snpdists_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "-c",
+                    "description": "Options for process"
+                },
+                "species": { 
+                    "type": "string", 
+                    "default": "sarscov2",
+                    "description": "specifies SARS-CoV-2 or MPX options",
+                    "enum": [
+                        "other", 
+                        "mpx", 
+                        "sarscov2"
+                    ]
+                },
+                "sra_accessions":{
+                    "type": "string",
+                    "hidden": true,
+                    "default": [],
+                    "description": "list of sra acessions to download with wget from ENA"
+                },
+                "trimmer": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "ivar",
+                    "description": "Specifies which tool to use to trim primers from primerbedfile",
+                    "enum": [
+                        "samtools", 
+                        "ivar", 
+                        "none"
+                    ]
+                },
+                "vadr": { 
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "vadr_mdir": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "/opt/vadr/vadr-models",
+                    "description": "Specifies model directory in container"
+                },
+                "vadr_options": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "--split --glsearch -s -r --nomisc --lowsim5seq 6 --lowsim3seq 6 --alt_fail lowscore,insertnn,deletinn",
+                    "description": "Options for process"
+                },
+                "vadr_reference": { 
+                    "type": "string",
+                    "hidden": true,
+                    "default": "sarscov2",
+                    "description": "Specifies reference for vadr in container"
+                },
+                "vadr_trim_options": { 
+                    "type": "string",
+                    "default": "--minlen 50 --maxlen 30000",
+                    "hidden": true,
+                    "description": "Options for process"
+                }
+            }
+        },
+        "generic_options": {
+            "title": "Generic options",
+            "type": "object",
+            "fa_icon": "fas fa-file-import",
+            "description": "Less common options for the pipeline, typically set in a config file.",
+            "help_text": "These options are common to all nf-core pipelines and allow you to customize some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
+            "properties": {
+                "config_file": {
+                    "type": "boolean",
+                    "description" : "Specifies if a config file is copied for the end user. Ends script.",
+                    "hidden" : true,
+                    "default" : false
+                }
+            }
         }
-    }
+    },
+    "allOf": [
+        {
+            "$ref": "#/definitions/input_output_options"
+        },
+        {
+            "$ref": "#/definitions/pipeline_configuration_options"
+        },
+        {
+            "$ref": "#/definitions/generic_options"
+        }
+    ]
 }
+
+ 
+
+
+
+ 
+ 
+
+
+
+
+
+    
+
+    
+ 
+     

@@ -36,7 +36,7 @@ process ivar_consensus {
     date > \$log
     samtools --version >> \$log
     ivar version >> \$log
-    ivar_version=\$(ivar version | grep "version")
+    ivar_version=\$(ivar version | head -n 1 | awk '{print \$NF}')
 
     samtools mpileup -A -d ${params.mpileup_depth} -B -Q 0 --reference ${reference_genome} ${bam} | \
       ivar consensus ${args} -m ${params.minimum_depth} -p ivar_consensus/${prefix}.consensus | tee -a \$log
@@ -160,7 +160,7 @@ process ivar_trim {
     # time stamp + capturing tool versions
     date > \$log
     ivar version >> \$log
-    trimmer_version="ivar : \$(ivar version | grep version)"
+    trimmer_version=\$(ivar version | head -n 1 | awk '{print \$NF}')
     
     # trimming the reads
     ivar trim ${args} -e -i ${bam} -b ${primer_bed} -p ivar_trim/${prefix}.primertrim | tee -a \$log

@@ -36,7 +36,7 @@ process seqyclean {
     # time stamp + capturing tool versions
     date > \$log
     echo "seqyclean version: \$(seqyclean -h | grep Version)" >> \$log
-    cleaner_version="seqyclean : \$(seqyclean -h | grep Version)"
+    cleaner_version=\$(seqyclean -h | grep Version | head -n 1 | awk '{print \$2 "_" \$3}' )
 
     seqyclean ${args} \
       -c ${params.seqyclean_contaminant_file} \
@@ -59,7 +59,7 @@ process seqyclean {
     # time stamp + capturing tool versions
     date > \$log
     echo "seqyclean version: \$(seqyclean -h | grep Version)" >> \$log
-    cleaner_version="seqyclean : \$(seqyclean -h | grep Version)"
+    cleaner_version=\$(seqyclean -h | grep Version | head -n 1 | awk '{print \$2 "_" \$3}' )
 
     seqyclean ${args} \
       -c ${params.seqyclean_contaminant_file} \

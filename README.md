@@ -230,13 +230,16 @@ params.minimum_depth = 10
 The defaults for Cecret continue to be for SARS-CoV-2, but there are growing demands for a workflow for Monkeypox Virus. As such, there are a few parameters that might benefit the **End User**.
 
 ### Using the Monkeypox profile
-There are three profiles for Monkeypox Virus sequencing : `mpx`, `mpx_idt` and `mpx_primalseq`. The `mpx` profile has some defaults for a metagenomic-type sequencing, while `mpx_idt` is for libraries prepped with [IDT](https://www.idtdna.com/)'s primers, and `mpx_primalseq` which has been [validated](https://www.medrxiv.org/content/10.1101/2022.10.14.22280783v1.full-text) with Illumina library prep methods and sequencing platforms.
+There are three profiles for Monkeypox Virus sequencing : `mpx`, `mpx_idt`, `mpx_yale`, and `mpx_primalseq`. The `mpx` profile has some defaults for a metagenomic-type sequencing, while `mpx_idt` is for libraries prepped with [IDT](https://www.idtdna.com/)'s primers, and `mpx_primalseq` which has been [validated](https://www.medrxiv.org/content/10.1101/2022.10.14.22280783v1.full-text) with Illumina library prep methods and sequencing platforms.
 ```
 # metagenomic
 nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx
 
 # using IDT's primers
 nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_idt
+
+# using primalseq with Yale's reference
+nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_yale
 
 # using Illumina library prep methods and sequencing platforms
 nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_primalseq

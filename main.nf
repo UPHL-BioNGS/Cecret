@@ -513,7 +513,7 @@ ch_reads.ifEmpty     { println("No fastq or fastq.gz files were found at ${param
 
 workflow CECRET {
     ch_for_dataset = Channel.empty()
-    ch_for_version = Channel.from("Cecret version", workflow.manifest.version).first()
+    ch_for_version = Channel.from("Cecret version", workflow.manifest.version).collect()
     ch_prealigned  = Channel.empty()
     ch_versions    = Channel.empty()
 

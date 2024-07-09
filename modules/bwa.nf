@@ -34,7 +34,7 @@ process bwa {
     # time stamp + capturing tool versions
     date > \$log
     echo "bwa \$(bwa 2>&1 | grep Version )" >> \$log
-    bwa_version="bwa : "\$(bwa 2>&1 | grep Version)
+    bwa_version=\$(bwa 2>&1 | grep Version | awk '{print \$NF}')
 
     # index the reference fasta file
     bwa index ${reference_genome}
