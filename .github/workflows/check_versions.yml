@@ -36,6 +36,8 @@ jobs:
               echo "New version for $base! Upgrade to $latest_version from $workflow_version." | tee -a versions.txt
               issue_text="$issue_text<br>- $base from $workflow_version to $latest_version  "
             fi
+
+            docker rmi $base:latest
           done
 
           latest_nextclade_version=$(docker run nextstrain/nextclade:latest nextclade --version | awk '{print $2}')
