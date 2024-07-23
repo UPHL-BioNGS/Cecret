@@ -2,7 +2,7 @@ process nextclade_dataset {
   tag        "Downloading Dataset"
   label      "process_medium"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'nextstrain/nextclade:3.8.1'
+  container  'nextstrain/nextclade:3.8.2'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -47,7 +47,7 @@ process nextclade {
   tag        "Clade Determination"
   label      "process_medium"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'nextstrain/nextclade:3.8.1'
+  container  'nextstrain/nextclade:3.8.2'
 
   //#UPHLICA maxForks 10
   //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
