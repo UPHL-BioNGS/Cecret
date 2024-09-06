@@ -4,7 +4,7 @@ process ivar_consensus {
   memory        { 2.GB * task.attempt }
   //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container     'staphb/ivar:1.4.2'
+  container     'staphb/ivar:1.4.3'
 
   //#UPHLICA maxForks      10
   //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
@@ -61,7 +61,7 @@ process ivar_variants {
   memory        { 2.GB * task.attempt }
   //errorStrategy { task.attempt < 3 ? 'retry' : 'ignore'}
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container     'staphb/ivar:1.4.2'
+  container     'staphb/ivar:1.4.3'
 
   //#UPHLICA maxForks 10
   //#UPHLICA \\//errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
@@ -127,7 +127,7 @@ process ivar_trim {
   tag        "${sample}"
   label      "process_medium"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/ivar:1.4.2'
+  container  'staphb/ivar:1.4.3'
   
   //#UPHLICA maxForks      10
   //#UPHLICA \\//errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
