@@ -87,7 +87,7 @@ workflow cecret {
   }
 
   if ( params.trimmer == 'ivar' ) {
-    ivar_trim(ch_bam.filter{ it -> it[1].size() > 500 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
+    ivar_trim(ch_bam.filter{ it -> it[1].size() > 50 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
 
     ch_trim_bam    = ivar_trim.out.bam_bai
     ch_for_version = ch_for_version.mix(ivar_trim.out.trimmer_version)
