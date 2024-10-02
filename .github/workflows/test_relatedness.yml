@@ -41,6 +41,7 @@ jobs:
             cp ncbi_dataset/data/genomic.fna $accession.fasta
             rm -rf ncbi_dataset*
             rm -rf README.md
+            rm -rf md5sum.txt
           done
 
           cd ../
