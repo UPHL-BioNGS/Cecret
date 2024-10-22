@@ -133,7 +133,7 @@ Cecret can also use a sample sheet for input with the sample name and reads sepa
 Rows match files with their processing needs.
 - paired-end reads: `sample,read1.fastq.gz,read2.fastq.gz`
 - single-reads reads: `sample,sample.fastq.gz,single`
-- nanopore reads : `sample,sample.fastq.gz,nanopore`
+- nanopore reads : `sample,sample.fastq.gz,ont`
 - fasta files: `sample,sample.fasta,fasta`
 - multifasta files: `multifasta,multifasta.fasta,multifasta`
 
@@ -144,7 +144,7 @@ SRR13957125,/home/eriny/sandbox/test_files/cecret/reads/SRR13957125_1.fastq.gz,/
 SRR13957170,/home/eriny/sandbox/test_files/cecret/reads/SRR13957170_1.fastq.gz,/home/eriny/sandbox/test_files/cecret/reads/SRR13957170_2.fastq.gz
 SRR13957177S,/home/eriny/sandbox/test_files/cecret/single_reads/SRR13957177_1.fastq.gz,single
 OQ255990.1,/home/eriny/sandbox/test_files/cecret/fastas/OQ255990.1.fasta,fasta
-SRR22452244,/home/eriny/sandbox/test_files/cecret/nanopore/SRR22452244.fastq.gz,nanopore
+SRR22452244,/home/eriny/sandbox/test_files/cecret/nanopore/SRR22452244.fastq.gz,ont
 ```
 
 Example usage with sample sheet using docker to manage containers
