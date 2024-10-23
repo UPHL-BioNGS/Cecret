@@ -262,7 +262,8 @@ if ( params.sample_sheet ) {
   ch_single_reads = inputs.single.map{     it -> tuple(it[0], it[1][0], 'single')}
   ch_fastas       = inputs.fasta.map{      it -> tuple(it[0], it[1])}
   ch_multifastas  = inputs.multifasta.map{ it -> tuple(it[1])}
-  ch_nanopore     = inputs.ont.map{        it -> tuple(it[0], it[1])}
+  ch_nanopore     = inputs.ont.map{        it -> tuple(it[0], it[1][0])}
+
 } else {
   Channel
     .fromFilePairs(["${params.reads}/*_R{1,2}*.{fastq,fastq.gz,fq,fq.gz}",
@@ -276,7 +277,7 @@ if ( params.sample_sheet ) {
     .map { reads -> tuple(reads.simpleName, reads, 'single' ) }
     .set { ch_single_reads }
 
-    Channel
+  Channel
     .fromPath("${params.nanopore}/*.{fastq,fastq.gz,fq,fq.gz}")
     .map { reads -> tuple(reads.simpleName, reads ) }
     .set { ch_nanopore }
