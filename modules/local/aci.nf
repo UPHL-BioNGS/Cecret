@@ -1,32 +1,25 @@
-process aci {
-    tag        "${sample}"
+process ACI {
+    tag        "${meta.id}"
     label      "process_high"
     publishDir params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
     container  'staphb/aci:1.4.20240116'
-    errorStrategy { task.attempt < 3 ? 'retry' : 'ignore'}
-  
-    //#UPHLICA maxForks      10
-    //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-    //#UPHLICA memory 60.GB
-    //#UPHLICA cpus 14
-    //#UPHLICA time '45m'
 
     when:
     params.aci && (task.ext.when == null || task.ext.when)
 
     input:
-    tuple val(sample), file(bam), file(bed)
+    tuple val(meta), file(bam), file(bed)
 
     output:
-    path "aci/${sample}/${sample}_amplicon_depth.csv", emit: cov, optional: true
-    path "aci/${sample}/${sample}_amplicon_depth.png", emit: for_multiqc, optional: true
-    path "aci/${sample}/*", emit: everything
-    path "logs/${task.process}/*.log"
+    path "aci/*/*_amplicon_depth.csv", emit: cov, optional: true
+    path "aci/*/*_amplicon_depth.png", emit: for_multiqc, optional: true
+    path "aci/*/*", emit: everything
+    path "logs/${task.process}/*.log", emit: log
     path "versions.yml", emit: versions
   
     shell:
     def args   = task.ext.args   ?: ''
-    def prefix = task.ext.prefix ?: "${sample}"
+    def prefix = task.ext.prefix ?: "${meta.id}"
     """
         mkdir -p aci/${prefix} logs/${task.process}
         log=logs/${task.process}/${prefix}.${workflow.sessionId}.log

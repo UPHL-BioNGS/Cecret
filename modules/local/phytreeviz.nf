@@ -1,15 +1,8 @@
-process phytreeviz {
+process PHYTREEVIZ {
   tag           "Tree visualization"
   label         "maxcpus"
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/phytreeviz:0.2.0'
-  maxForks      10
-  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA cpus 14
-  //#UPHLICA memory 60.GB
-  //#UPHLICA time '24h'
   
   when:
   params.phytreeviz && (task.ext.when == null || task.ext.when)
@@ -19,7 +12,7 @@ process phytreeviz {
 
   output:
   path "phytreeviz/tree.png", emit: for_multiqc
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log", emit: log
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:

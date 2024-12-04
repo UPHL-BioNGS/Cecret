@@ -1,13 +1,8 @@
-process heatcluster {
+process HEATCLUSTER {
   tag           "HeatCluster"
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/heatcluster:1.0.2c'
-  maxForks      10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-  //#UPHLICA memory 1.GB
-  //#UPHLICA cpus 3
-  //#UPHLICA time '10m'
+
 
   when:
   params.heatcluster && (task.ext.when == null || task.ext.when)
@@ -17,7 +12,7 @@ process heatcluster {
 
   output:
   path "heatcluster/*", optional : true, emit: for_multiqc
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log", emit: log_files
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:

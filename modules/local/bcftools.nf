@@ -1,31 +1,24 @@
-process bcftools_variants {
-  tag           "${sample}"
+process BCFTOOLS {
+  tag           "${meta.id}"
   publishDir    params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  container     'staphb/bcftools:1.20'
+  container     'staphb/bcftools:1.21'
   label         'process_single'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-  //#UPHLICA memory 1.GB
-  //#UPHLICA cpus 3
-  //#UPHLICA time '45m'
 
   when:
   params.bcftools_variants && (task.ext.when == null || task.ext.when)
 
   input:
-  tuple val(sample), file(bam), file(reference_genome)
+  tuple val(meta), file(bam), file(reference_genome)
 
   output:
-  tuple val(sample), file("bcftools_variants/${sample}.vcf"), emit: vcf, optional: true
-  path "bcftools_variants/${sample}.vcf", emit: bcftools_variants_file, optional: true
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+  tuple val(meta), file("bcftools_variants/*.vcf"), emit: vcf, optional: true
+  path "bcftools_variants/*.vcf", emit: bcftools_variants_file, optional: true
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:
   def args   = task.ext.args   ?: "-mv -Ov"
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p bcftools_variants logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log

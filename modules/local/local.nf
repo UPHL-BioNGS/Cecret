@@ -1,15 +1,9 @@
-process download {
+process DOWNLOAD {
   tag        "${sra}"
   publishDir "${params.outdir}", mode: 'copy'
   container  'quay.io/biocontainers/pandas:1.5.2'
   label      "process_single"
 
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-  //#UPHLICA memory 1.GB
-  //#UPHLICA cpus 3
-  //#UPHLICA time '45m'
 
   when:
   task.ext.when == null || task.ext.when
@@ -44,30 +38,24 @@ process download {
 }
 
 //# some fastas are created with the header of >reference, so this changes the header
-process fasta_prep {
+process PREP {
   tag        "${fasta}"
   //# nothing to publish in publishDir
   container  'quay.io/biocontainers/pandas:1.5.2'
   label      "process_single"
 
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-  //#UPHLICA memory 1.GB
-  //#UPHLICA cpus 3
-  //#UPHLICA time '45m'
 
   when:
   fasta != null && (task.ext.when == null || task.ext.when)
 
   input:
-  tuple val(sample), file(fasta)
+  tuple val(meta), file(fasta)
 
   output:
   path "fasta_prep/${fasta}", optional: true, emit: fastas
 
   shell:
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   """
   mkdir -p fasta_prep
 
@@ -76,18 +64,11 @@ process fasta_prep {
   """
 }
 
-process summary {
+process SUMMARY {
   tag        "Creating summary files"
   label      "process_single"
   publishDir path: params.outdir, mode: 'copy'
   container  'quay.io/biocontainers/pandas:1.5.2'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-  //#UPHLICA memory 1.GB
-  //#UPHLICA cpus 3
-  //#UPHLICA time '45m'
 
   when:
   task.ext.when == null || task.ext.when
@@ -125,18 +106,11 @@ process summary {
   """
 }
 
-process unzip {
+process UNZIP {
   tag        "unzipping nextclade dataset"
   label      "process_single"
   //# nothing to publish in publishDir
   container  'quay.io/biocontainers/pandas:1.5.2'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-  //#UPHLICA memory 1.GB
-  //#UPHLICA cpus 3
-  //#UPHLICA time '45m'
 
   when:
   params.nextclade && (task.ext.when == null || task.ext.when)

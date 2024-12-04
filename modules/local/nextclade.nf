@@ -1,22 +1,15 @@
-process nextclade_dataset {
+process DOWNLOAD_DATASET {
   tag        "Downloading Dataset"
   label      "process_medium"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'nextstrain/nextclade:3.9.1'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
 
   when:
   params.nextclade && (task.ext.when == null || task.ext.when)
 
   output:
   path "dataset", emit: dataset
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:
@@ -43,18 +36,11 @@ process nextclade_dataset {
   """
 }
 
-process nextclade {
+process NEXTCLADE {
   tag        "Clade Determination"
   label      "process_medium"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'nextstrain/nextclade:3.9.1'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
 
   when:
   params.nextclade && (task.ext.when == null || task.ext.when)
@@ -67,7 +53,7 @@ process nextclade {
   path "nextclade/nextclade.csv", emit: nextclade_file
   path "nextclade/*", emit: results
   tuple file("nextclade/nextclade.aligned.fasta"), file("nextclade/nextclade.nwk"), emit: prealigned, optional: true
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:

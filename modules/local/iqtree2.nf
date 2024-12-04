@@ -1,15 +1,8 @@
-process iqtree2 {
+process IQTREE2 {
   tag        "Creating phylogenetic tree with iqtree"
   label      "process_high"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/iqtree2:2.3.1'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
+  container  'staphb/iqtree2:2.3.6'
 
   when:
   params.iqtree2 && (task.ext.when == null || task.ext.when)
@@ -20,7 +13,7 @@ process iqtree2 {
   output:
   path "iqtree2/iqtree2.{iqtree,treefile*,mldist,log}", emit: tree
   path "iqtree2/iqtree2.treefile.nwk", emit: newick, optional: true
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:

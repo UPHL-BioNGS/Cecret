@@ -1,30 +1,23 @@
-process igv_reports {
-  tag         "${sample}"
+process IGV_REPORTS {
+  tag         "${meta.id}"
   label       "process_high"
   publishDir  path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container   'quay.io/biocontainers/igv-reports:1.12.0--pyh7cba7a3_0'
-  
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
+  container   'quay.io/biocontainers/igv-reports:1.14.1--pyh7e72e81_0'
 
   when:
   params.igv_reports && (task.ext.when == null || task.ext.when)
 
   input:
-  tuple val(sample), file(vcf), file(bam), file(bai), file(reference_genome)
+  tuple val(meta), file(vcf), file(bam), file(bai), file(reference_genome)
 
   output:
-  path "igv_reports/*"
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+  path "igv_reports/*", emit: report
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:
   def args   = task.ext.args   ?: "${params.igv_reports_options}"
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p igv_reports logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log

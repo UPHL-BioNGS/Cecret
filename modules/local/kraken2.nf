@@ -1,31 +1,24 @@
-process kraken2 {
-  tag        "${sample}"
+process KRAKEN2 {
+  tag        "${meta.id}"
   label      "process_high"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/kraken2:2.1.3'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
 
   when:
   params.kraken2 && (task.ext.when == null || task.ext.when)
 
   input:
-  tuple val(sample), file(clean), path(kraken2_db)
+  tuple val(meta), file(clean), path(kraken2_db)
 
   output:
-  path "kraken2/${sample}_kraken2_report.txt", emit: kraken2_files
+  path "kraken2/*_kraken2_report.txt", emit: kraken2_files
   path "kraken2/*", emit: everything
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:
   def args   = task.ext.args   ?: "${params.kraken2_options}"
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   def reads  = clean.join(" ")
   if ( clean =~ "cln" ) {
   """

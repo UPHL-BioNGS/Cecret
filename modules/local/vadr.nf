@@ -1,15 +1,8 @@
-process vadr {
+process VADR {
   tag           "QC metrics"
   label         "process_medium"
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/vadr:1.6.3'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
 
   when:
   params.vadr && (task.ext.when == null || task.ext.when)
@@ -20,7 +13,7 @@ process vadr {
   output:
   path "vadr/*", emit: vadr_files, optional: true
   path "vadr/vadr.vadr.sqa", emit: vadr_file,  optional: true
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:

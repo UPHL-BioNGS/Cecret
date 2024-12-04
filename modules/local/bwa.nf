@@ -1,32 +1,25 @@
-process bwa {
-  tag         "${sample}"
+process BWA {
+  tag         "${meta.id}"
   label       "process_high"
   publishDir  path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log'
-  container   'staphb/bwa:0.7.17'
-  
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
+  container   'staphb/bwa:0.7.18'
 
   when:
   task.ext.when == null || task.ext.when
 
   input:
-  tuple val(sample), file(reads), file(reference_genome)
+  tuple val(meta), file(reads), file(reference_genome)
 
   output:
-  tuple val(sample), file("bwa/${sample}.sam"), emit: sam
+  tuple val(meta), file("bwa/*.sam"), emit: sam
   tuple val("${params.aligner}"), env(bwa_version), emit: aligner_version
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+  ppath "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:
   def args   = task.ext.args   ?: ''
   def fastq  = reads.join(" ")
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p bwa logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log

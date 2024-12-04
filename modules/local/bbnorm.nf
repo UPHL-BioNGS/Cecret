@@ -1,17 +1,15 @@
-process bbnorm {
-    tag           "${sample}"
+process BBNORM {
+    tag           "${meta.id}"
     label         'process_medium'
-    tag           "${sample}"
     publishDir    params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-    //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-    container     'staphb/bbtools:39.06'
+    container     'staphb/bbtools:39.10'
 
     input:
-    tuple val(sample), file(reads), val(paired_single)
+    tuple val(meta), file(reads), val(paired_single)
 
     output:
-    tuple val(sample), path("bbnorm/*.fastq.gz"), val(paired_single), emit: fastq, optional: true
-    tuple val(sample), path("logs/*/*.log"), emit: log
+    tuple val(meta), path("bbnorm/*.fastq.gz"), val(paired_single), emit: fastq, optional: true
+    path("logs/*/*.log"), emit: log
     path "versions.yml", emit: versions
 
     when:
@@ -19,7 +17,7 @@ process bbnorm {
 
     shell:
     def args   = task.ext.args   ?: "${params.bbnorm_options}"
-    def prefix = task.ext.prefix ?: "${sample}"
+    def prefix = task.ext.prefix ?: "${meta.id}"
     if ( paired_single == 'paired' ) {
         """
         mkdir -p bbnorm logs/${task.process}

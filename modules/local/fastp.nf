@@ -1,33 +1,26 @@
-process fastp {
-  tag        "${sample}"
+process FASTP {
+  tag        "${meta.id}"
   label      "process_single"
   publishDir params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/fastp:0.23.4'
 
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-  //#UPHLICA memory 1.GB
-  //#UPHLICA cpus 3
-  //#UPHLICA time '45m'
-
   when:
-  sample != null && (task.ext.when == null || task.ext.when)
+  task.ext.when == null || task.ext.when
 
   input:
-  tuple val(sample), file(reads), val(paired_single)
+  tuple val(meta), file(reads), val(paired_single)
 
   output:
-  tuple val(sample), file("fastp/${sample}_{clean_PE1,clean_PE2,cln}.fastq.gz"), optional: true,  emit: clean_reads
-  path "fastp/${sample}_fastp.html",                                                              emit: html
-  tuple val(sample), file("fastp/${sample}_fastp.json"),                                          emit: fastp_files
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.{log,err}"
+  tuple val(meta), file("fastp/*_{clean_PE1,clean_PE2,cln}.fastq.gz"), optional: true,  emit: clean_reads
+  path "fastp/*_fastp.html",                                                              emit: html
+  tuple val(meta), file("fastp/*_fastp.json"),                                          emit: fastp_files
+  path "logs/${task.process}/*", emit: log
   tuple val("${params.cleaner}"), env(cleaner_version),                                           emit: cleaner_version
   path "versions.yml", emit: versions
 
   shell:
   def args   = task.ext.args   ?: "${params.fastp_options}"
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   if ( paired_single == 'paired' ) {
     """
       mkdir -p fastp logs/${task.process}

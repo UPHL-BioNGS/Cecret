@@ -1,15 +1,8 @@
-process multiqc_combine {
+process MULTIQC {
   tag        "multiqc"
   label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/multiqc:1.19'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-  //#UPHLICA memory 1.GB
-  //#UPHLICA cpus 3
-  //#UPHLICA time '45m'
+  container  'staphb/multiqc:1.25'
 
   when:
   params.multiqc && (task.ext.when == null || task.ext.when)
@@ -23,7 +16,7 @@ process multiqc_combine {
   path "multiqc/multiqc_data/*", optional: true, emit: files
   path "multiqc/multiqc_data", optional: true, emit: multiqc_data
   path "software_versions.yml", optional: true, emit: versions
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
+  path "logs/${task.process}/*.log", emit: log
 
   shell:
   def args = task.ext.args ?: "${params.multiqc_options}"

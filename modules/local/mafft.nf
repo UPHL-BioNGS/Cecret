@@ -1,15 +1,8 @@
-process mafft {
+process MAFFT {
   tag           "Multiple Sequence Alignment"
   label         "process_high"
-  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container     'staphb/mafft:7.520'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '2h'
+  container     'staphb/mafft:7.526'
 
   when:
   task.ext.when == null || task.ext.when
@@ -21,7 +14,7 @@ process mafft {
   output:
   path "mafft/mafft_aligned.fasta", emit: msa, optional: true
   path "mafft/*", emit: files
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:

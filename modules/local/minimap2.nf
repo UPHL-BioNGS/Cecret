@@ -1,32 +1,26 @@
-process minimap2 {
-  tag         "${sample}"
+process MINIMAP2 {
+  tag         "${meta.id}"
   label       "process_high"
   publishDir  path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log'
   container   'staphb/minimap2:2.28'
 
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
 
   when:
   task.ext.when == null || task.ext.when
 
   input:
-  tuple val(sample), file(reads), file(reference_genome)
+  tuple val(meta), file(reads), file(reference_genome)
 
   output:
-  tuple val(sample), file("aligned/${sample}.sam"), emit: sam
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+  tuple val(meta), file("aligned/*.sam"), emit: sam
+  path "logs/${task.process}/*.log", emit: log
   tuple val("${params.aligner}"), env(minimap2_version), emit: aligner_version
   path "versions.yml", emit: versions
 
   shell:
   def args   = task.ext.args   ?: "${params.minimap2_options}"
   def fastq  = reads.join(" ")
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p aligned logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log

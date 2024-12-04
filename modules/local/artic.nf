@@ -1,33 +1,26 @@
-process artic {
-    tag        "${sample}"
+process ARTIC {
+    tag        "${meta.id}"
     label      "process_high"
     publishDir params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
     container  'staphb/artic:1.2.4-1.12.0'
-
-    //#UPHLICA maxForks      10
-    //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-    //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-    //#UPHLICA memory 60.GB
-    //#UPHLICA cpus 14
-    //#UPHLICA time '45m'
 
     when:
     task.ext.when == null || task.ext.when
 
     input:
-    tuple val(sample), file(fastq), file(reference), file(bed)
+    tuple val(meta), file(fastq), file(reference), file(bed)
 
     output:
-    tuple val(sample), file("artic/${sample}.primertrim.sorted.bam"), file("artic/${sample}.primertrim.sorted.bam.bai"), emit: bam, optional: true
-    path "consensus/${sample}.consensus.fa", emit: consensus, optional: true
+    tuple val(meta), file("artic/*.primertrim.sorted.bam"), file("artic/*.primertrim.sorted.bam.bai"), emit: bam, optional: true
+    path "consensus/*.consensus.fa", emit: consensus, optional: true
     tuple val("artic"), env(artic_version), emit: artic_version
-    path "artic/${sample}*"
-    path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+    path "artic/*", emit: files
+    path "logs/${task.process}/*.log", emit: log
     path "versions.yml", emit: versions
   
     shell:
     def args   = task.ext.args   ?: "${params.artic_options}"
-    def prefix = task.ext.prefix ?: "${sample}"
+    def prefix = task.ext.prefix ?: "${meta.id}"
     """
     mkdir -p artic consensus schema/cecret/V1 logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
@@ -36,6 +29,14 @@ process artic {
     date > \$log
     artic --version >> \$log
     artic_version=\$(artic --version | awk '{print \$NF}')
+
+        artic guppyplex ${args} \
+            --directory . \
+            --prefix ${fastq} \
+            --output artic/${prefix}_filtered.fastq.gz \
+            | tee -a \$log
+
+
 
     cp ${reference} schema/cecret/V1/cecret.reference.fasta
     cp ${bed}       schema/cecret/V1/cecret.scheme.bed
@@ -71,30 +72,23 @@ process artic {
     """
 }
 
-process artic_read_filtering {
-    tag        "${sample}"
+process ARTIC_FILTERING {
+    tag        "${meta.id}"
     publishDir    params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
     container  'staphb/artic:1.2.4-1.12.0'
     label      "process_single"
-  
-    //#UPHLICA maxForks      10
-    //#UPHLICA \\errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-    //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-    //#UPHLICA memory 1.GB
-    //#UPHLICA cpus 3
-    //#UPHLICA time '45m'
 
     input:
-    tuple val(sample), file(fastq)
+    tuple val(meta), file(fastq)
 
     output:
-    tuple val(sample), file("artic/${sample}_filtered.fastq.gz"), emit: fastq
-    path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+    tuple val(meta), file("artic/*_filtered.fastq.gz"), emit: fastq
+    path "logs/${task.process}/*.log", emit: log
     path "versions.yml", emit: versions
   
     shell:
     def args   = task.ext.args   ?: "${params.artic_read_filtering_options}"
-    def prefix = task.ext.prefix ?: "${sample}"
+    def prefix = task.ext.prefix ?: "${meta.id}"
     """
         mkdir -p artic logs/${task.process}
         log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
@@ -103,11 +97,7 @@ process artic_read_filtering {
         date > \$log
         artic --version >> \$log
 
-        artic guppyplex ${args} \
-            --directory . \
-            --prefix ${fastq} \
-            --output artic/${prefix}_filtered.fastq.gz \
-            | tee -a \$log
+
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":

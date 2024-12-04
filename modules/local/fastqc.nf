@@ -1,33 +1,26 @@
-process fastqc {
-  tag        "${sample}"
+process FASTQC {
+  tag        "${meta.id}"
   label      "process_single"
   publishDir params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/fastqc:0.12.1'
 
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-medium'
-  //#UPHLICA memory 1.GB
-  //#UPHLICA cpus 3
-  //#UPHLICA time '45m'
-
   when:
-  params.fastqc && sample != null && (task.ext.when == null || task.ext.when)
+  params.fastqc && (task.ext.when == null || task.ext.when)
 
   input:
-  tuple val(sample), file(fastq), val(type)
+  tuple val(meta), file(fastq), val(type)
 
   output:
   path "fastqc/*.html",                   emit: files
   path "fastqc/*_fastqc.zip",             emit: fastqc_files
-  path "fastqc/${sample}_fastq_name.csv", emit: fastq_name
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+  path "fastqc/*_fastq_name.csv", emit: fastq_name
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:
   def args   = task.ext.args   ?: "${params.fastqc_options}"
   def reads  = fastq.join(" ")
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p fastqc logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log

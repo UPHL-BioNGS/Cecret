@@ -1,31 +1,24 @@
-process freyja_variants {
-  tag           "${sample}"
+process FREYJA {
+  tag           "${meta.id}"
   label         "process_medium"
-  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container     'staphb/freyja:1.5.2-11_18_2024-01-35-2024-11-18'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
+  container     'staphb/freyja:1.5.2-11_30_2024-02-00-2024-12-02'
 
   when:
   params.freyja && (task.ext.when == null || task.ext.when)
 
   input:
-  tuple val(sample), file(bam), file(reference_genome)
+  tuple val(meta), file(bam), file(reference_genome)
 
   output:
-  tuple val(sample), file("freyja/${sample}_{depths,variants}.tsv"), optional: true, emit: variants
-  path "freyja/${sample}*", optional: true, emit: files
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+  tuple val(meta), file("freyja/*_{depths,variants}.tsv"), optional: true, emit: variants
+  path "freyja/*", optional: true, emit: files
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:
   def args   = task.ext.args   ?: "${params.freyja_variants_options}"
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p freyja logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
@@ -40,57 +33,11 @@ process freyja_variants {
       --ref ${reference_genome} \
       | tee -a \$log
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-      freyja: \$(freyja --version | awk '{print \$NF}')
-      container: ${task.container}
-    END_VERSIONS
-  """
-}
-
-process freyja_demix {
-  tag           "${sample}"
-  label         "process_medium"
-  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container     'staphb/freyja:1.5.2-11_18_2024-01-35-2024-11-18'
-
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
-
-  when:
-  params.freyja && (task.ext.when == null || task.ext.when)
-
-  input:
-  tuple val(sample), file(variants)
-
-  output:
-  path "freyja/${sample}_demix.tsv", optional: true, emit: demix
-  path "freyja/${sample}*",          optional: true, emit: files
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
-  path "versions.yml", emit: versions
-
-  shell:
-  def args   = task.ext.args   ?: "${params.freyja_demix_options}"
-  def prefix = task.ext.prefix ?: "${sample}"
-  """
-    mkdir -p freyja logs/${task.process}
-    log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
-
-    date > \$log
-    freyja --version >> \$log
-
     freyja demix ${args} \
       ${variants[1]} \
       ${variants[0]} \
       --output freyja/${prefix}_demix.tsv \
       | tee -a \$log
-
-    freyja --help
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -101,18 +48,11 @@ process freyja_demix {
   """
 }
 
-process freyja_aggregate {
+process FREYJA_AGGREGATE {
   tag        "Aggregating results from freyja"
   label      "process_single"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/freyja:1.5.2-11_18_2024-01-35-2024-11-18'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
+  container  'staphb/freyja:1.5.2-11_30_2024-02-00-2024-12-02'
 
   when:
   params.freyja_aggregate && (task.ext.when == null || task.ext.when)
@@ -125,7 +65,7 @@ process freyja_aggregate {
   path "freyja/*", emit: files
   path "freyja/aggregated-freyja.tsv", emit: aggregated_freyja_file, optional: true
   path "freyja/*mqc.png", emit: for_multiqc
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:

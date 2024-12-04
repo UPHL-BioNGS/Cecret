@@ -1,34 +1,27 @@
-process ivar_consensus {
-  tag           "${sample}"
+process IVAR_CONSENSUS {
+  tag           "${meta.id}"
   label         "process_medium"
   memory        { 2.GB * task.attempt }
-  //errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/ivar:1.4.3'
-
-  //#UPHLICA maxForks      10
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
 
   when:
   task.ext.when == null || task.ext.when
 
   input:
-  tuple val(sample), file(bam), file(reference_genome)
+  tuple val(meta), file(bam), file(reference_genome)
 
   output:
-  path "consensus/${sample}.consensus.fa", emit: consensus
-  path "ivar_consensus/${sample}.consensus.qual.txt", emit: qual
+  path "consensus/*.consensus.fa", emit: consensus
+  path "ivar_consensus/*.consensus.qual.txt", emit: qual
   path "ivar_consensus/*"
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+  path "logs/${task.process}/*.log", emit: log
   tuple val("ivar consensus"), env(ivar_version), emit: ivar_version
   path "versions.yml", emit: versions
 
   shell:
   def args   = task.ext.args   ?: "${params.ivar_consensus_options}"
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p ivar_consensus consensus logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
@@ -55,36 +48,28 @@ process ivar_consensus {
   """
 }
 
-process ivar_variants {
-  tag           "${sample}"
+process IVAR_VARIANTS {
+  tag           "${meta.id}"
   label         "process_medium"
   memory        { 2.GB * task.attempt }
-  //errorStrategy { task.attempt < 3 ? 'retry' : 'ignore'}
   publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/ivar:1.4.3'
-
-  //#UPHLICA maxForks 10
-  //#UPHLICA \\//errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
 
   when:
   params.ivar_variants && (task.ext.when == null || task.ext.when)
 
   input:
-  tuple val(sample), file(bam), file(reference_genome), file(gff_file)
+  tuple val(meta), file(bam), file(reference_genome), file(gff_file)
 
   output:
-  path "ivar_variants/${sample}.variants.tsv", emit: variant_tsv
-  path "ivar_variants/${sample}.ivar_variants.vcf", emit: vcf
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
+  path "ivar_variants/*.variants.tsv", emit: variant_tsv
+  path "ivar_variants/*.ivar_variants.vcf", emit: vcf
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:
   def args   = task.ext.args   ?: "${params.ivar_variants_options}"
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p ivar_variants logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
@@ -123,36 +108,29 @@ process ivar_variants {
   """
 }
 
-process ivar_trim {
-  tag        "${sample}"
+process IVAR_TRIM {
+  tag        "${meta.id}"
   label      "process_medium"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/ivar:1.4.3'
-  
-  //#UPHLICA maxForks      10
-  //#UPHLICA \\//errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
 
   when:
   task.ext.when == null || task.ext.when
 
   input:
-  tuple val(sample), file(bam), file(primer_bed)
+  tuple val(meta), file(bam), file(primer_bed)
 
   output:
-  tuple val(sample), file("ivar_trim/${sample}.primertrim.sorted.bam"), emit: trimmed_bam
-  tuple val(sample), file("ivar_trim/${sample}.primertrim.sorted.bam"), file("ivar_trim/${sample}.primertrim.sorted.bam.bai"), emit: bam_bai
-  path "logs/${task.process}/${sample}.${workflow.sessionId}.log"
-  path "ivar_trim/${sample}_ivar.log", emit: ivar_trim_files
+  tuple val(meta), file("ivar_trim/*.primertrim.sorted.bam"), emit: trimmed_bam
+  tuple val(meta), file("ivar_trim/*.primertrim.sorted.bam"), file("ivar_trim/*.primertrim.sorted.bam.bai"), emit: bam_bai
+  path "logs/${task.process}/*.log", emit: log
+  path "ivar_trim/*_ivar.log", emit: ivar_trim_files
   tuple val("${params.trimmer}"), env(trimmer_version), emit: trimmer_version
   path "versions.yml", emit: versions
 
   shell:
   def args   = task.ext.args   ?: "${params.ivar_trim_options}"
-  def prefix = task.ext.prefix ?: "${sample}"
+  def prefix = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p ivar_trim logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log

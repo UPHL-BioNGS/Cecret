@@ -1,15 +1,8 @@
-process pangolin {
+process PANGOLIN {
   tag        "SARS-CoV-2 lineage Determination"
   label      "process_medium"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container  'staphb/pangolin:4.3.1-pdata-1.30'
-
-  //#UPHLICA maxForks      10
-  //#UPHLICA errorStrategy { task.attempt < 2 ? 'retry' : 'ignore'}
-  //#UPHLICA pod annotation: 'scheduler.illumina.com/presetSize', value: 'standard-xlarge'
-  //#UPHLICA memory 60.GB
-  //#UPHLICA cpus 14
-  //#UPHLICA time '45m'
+  container  'staphb/pangolin:4.3.1-pdata-1.31'
 
   when:
   params.pangolin && (task.ext.when == null || task.ext.when)
@@ -20,7 +13,7 @@ process pangolin {
   output:
   path "pangolin/*", emit: results
   path "pangolin/lineage_report.csv", emit: pangolin_file
-  path "logs/${task.process}/${task.process}.${workflow.sessionId}.log"
+  path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
   shell:
