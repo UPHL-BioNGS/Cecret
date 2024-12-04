@@ -10,7 +10,7 @@ include { samtools_filter as filter }             from '../modules/samtools'  ad
 include { samtools_markdup as markdup }           from '../modules/samtools'  addParams(params)
 include { seqyclean }                             from '../modules/seqyclean' addParams(params)
 
-workflow cecret {
+workflow LOCAL {
   take:
     ch_reads
     ch_nanopore

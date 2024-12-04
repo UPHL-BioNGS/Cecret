@@ -1,17 +1,16 @@
-include { aci }                                                 from '../modules/aci'       addParams(params)
-include { bcftools_variants }                                   from '../modules/bcftools'  addParams(params)
-include { igv_reports }                                         from '../modules/igvreports' addParams(params)
-include { ivar_variants }                                       from '../modules/ivar'      addParams(params)
-include { fastqc }                                              from '../modules/fastqc'    addParams(params)
-include { kraken2 }                                             from '../modules/kraken2'   addParams(params)
-include { samtools_stats as samtools_intial_stats }             from '../modules/samtools'  addParams(params)
-include { samtools_stats }                                      from '../modules/samtools'  addParams(params)
-include { samtools_depth }                                      from '../modules/samtools'  addParams(params)
-include { samtools_coverage }                                   from '../modules/samtools'  addParams(params)
-include { samtools_ampliconstats; samtools_plot_ampliconstats } from '../modules/samtools'  addParams(params)
-include { samtools_flagstat }                                   from '../modules/samtools'  addParams(params)
+include { aci }                                                 from '../modules/aci'  
+include { bcftools_variants }                                   from '../modules/bcftools'
+include { igv_reports }                                         from '../modules/igvreports' 
+include { ivar_variants }                                       from '../modules/ivar'    
+include { fastqc }                                              from '../modules/fastqc' 
+include { kraken2 }                                             from '../modules/kraken2' 
+include { SAMTOOLS_QC as INITIAL_QC }             from '../modules/samtools'  
+include { SAMTOOLS_QC as FINAL_QC }                                      from '../modules/samtools'   
+include { samtools_ampliconstats } from '../modules/samtools'
+include { samtools_plot_ampliconstats } from '../modules/samtools' 
 
-workflow qc {
+
+workflow QC {
   take:
     ch_raw_reads
     ch_clean_reads
