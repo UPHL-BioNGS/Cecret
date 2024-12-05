@@ -59,7 +59,7 @@ Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_to
 
 ## Usage
 
-This workflkow does not run without input files, and there are multiple ways to specify which input files should be used
+This workflow does not run without input files, and there are multiple ways to specify which input files should be used
 
 - using files in [directories](https://github.com/UPHL-BioNGS/Cecret#getting-files-from-directories)
 - using files specified in a [sample sheet](https://github.com/UPHL-BioNGS/Cecret#using-a-sample-sheet)
@@ -412,7 +412,7 @@ params.kraken2_db = 'kraken2_db'
 - [multiqc](https://multiqc.info/) - summary of results
 - [nextclade](https://clades.nextstrain.org/) - for SARS-CoV-2 clade classification (optional: aligned fasta can be used from this analysis when relatedness is set to "true" and msa is set to "nextclade")
 - [pangolin](https://github.com/cov-lineages/pangolin) - for SARS-CoV-2 lineage classification
-- [pango collapse](https://github.com/MDU-PHL/pango-collapse) - for SARS-CoV-2 lineage tracing
+- [pango aliasor](https://github.com/corneliusroemer/pango_aliasor) - for SARS-CoV-2 lineage tracing
 - [phytreeviz](https://github.com/moshi4/phyTreeViz) - for visualizing phylogenetic trees
 - [samtools](http://www.htslib.org/) - for QC metrics and sorting; optional primer trimmer; optional converting bam to fastq files; optional duplication marking
 - [seqyclean](https://github.com/ibest/seqyclean) - for cleaning reads
@@ -438,7 +438,7 @@ params.aci = false                        # coverage approximation of amplicons
 parms.igv_reports = false                 # SNP IGV images
 params.nextclade = true                   # SARS-CoV-2 clade determination
 params.pangolin = true                    # SARS-CoV-2 lineage determination
-params.pango_collapse = true              # SARS-CoV-2 lineage tracing
+params.pango_aliasor = true              # SARS-CoV-2 lineage tracing
 params.freyja = true                      # multiple SARS-CoV-2 lineage determination
 params.vadr = false                       # NCBI fasta QC
 params.relatedness = false                # create multiple sequence alignments with input fastq and fasta files
@@ -631,8 +631,8 @@ cecret                                # results from this workflow
 │   ├── nextclade.insertions.csv
 │   ├── nextclade.json
 │   └── nextclade.tsv
-├── pango_collapse
-│   └── pango_collapse.csv
+├── pango_aliasor
+│   └── pango_aliasor.tsv
 ├── pangolin                         # pangolin results
 │   ├── combined.fasta
 │   └── lineage_report.csv
@@ -1084,7 +1084,7 @@ params.samtools_ampliconstats = false
 params.samtools_plot_ampliconstats = false
 params.aci = false
 params.pangolin = false
-params.pango_collapse = false
+params.pango_aliasor = false
 params.freyja = false
 params.nextclade = false
 params.vadr = false
