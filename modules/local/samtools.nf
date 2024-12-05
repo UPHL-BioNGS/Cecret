@@ -210,8 +210,8 @@ process SAMTOOLS_FILTER {
   path "versions.yml", emit: versions
 
   shell:
-    def args   = task.ext.args   ?: '-F 4'
-    def prefix = task.ext.prefix ?: "${meta.id}"
+  def args   = task.ext.args   ?: '-F 4'
+  def prefix = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p filtered logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
@@ -302,7 +302,7 @@ process SAMTOOLS_MARKDUP {
   def args   = task.ext.args   ?: "${params.samtools_markdup_options}"
   def fmargs = task.ext.fmargs ?: "${params.samtools_fixmate_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
-  if ( type == 'single' ) {
+  if ( meta.single_end ) {
   """
     mkdir -p markdup logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
@@ -322,7 +322,7 @@ process SAMTOOLS_MARKDUP {
       container: ${task.container}
     END_VERSIONS
   """
-  } else if (type == 'paired') {
+  } else {
   """
     mkdir -p markdup logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
