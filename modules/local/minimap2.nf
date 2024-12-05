@@ -4,7 +4,6 @@ process MINIMAP2 {
   publishDir  path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log'
   container   'staphb/minimap2:2.28'
 
-
   when:
   task.ext.when == null || task.ext.when
 
