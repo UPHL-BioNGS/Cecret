@@ -1,38 +1,41 @@
-include { mafft }       from '../modules/mafft'       addParams(params)
-include { heatcluster } from '../modules/heatcluster' addParams(params)
-include { iqtree2 }     from '../modules/iqtree2'     addParams(params)
-include { phytreeviz }  from '../modules/phytreeviz'  addParams(params)
-include { snpdists }    from '../modules/snp-dists'   addParams(params)
+include { MAFFT }       from '../../modules/local/mafft'
+include { HEATCLUSTER } from '../../modules/local/heatcluster'
+include { IQTREE2 }     from '../../modules/local/iqtree2' 
+include { PHYTREEVIZ }  from '../../modules/local/phytreeviz'
+include { SNPDISTS }    from '../../modules/local/snp-dists'
 
-workflow msa {
+workflow MSA {
   take:
     ch_fasta
     ch_reference_genome
-    ch_prealigned
     
   main:
-    ch_msa      = Channel.empty()
-    ch_nwk      = Channel.empty()
     ch_versions = Channel.empty()
 
-    if ( params.msa == 'nextclade' ) {
-      ch_msa = ch_prealigned.map { it -> tuple(it[0])}
-    } else if ( params.msa == 'mafft' ) {
-      mafft(ch_fasta.collect(), ch_reference_genome)
-      ch_msa = mafft.out.msa
-      ch_versions = ch_versions.mix(mafft.out.versions)
+    if ( params.msa == 'mafft' ) {
+      MAFFT(ch_fasta.collect(), ch_reference_genome)
+      ch_msa = MAFFT.out.msa
+      ch_versions = ch_versions.mix(MAFFT.out.versions)
+    } else {
+      ch_msa = Channel.empty()
     }
     
-    iqtree2(ch_msa)
-    phytreeviz(iqtree2.out.newick)
-    snpdists(ch_msa)
-    heatcluster(snpdists.out.matrix)
-    ch_versions = ch_versions.mix(iqtree2.out.versions).mix(phytreeviz.out.versions).mix(snpdists.out.versions).mix(heatcluster.out.versions)
+    IQTREE2(ch_msa)
+    ch_versions = ch_versions.mix(IQTREE2.out.versions)
+
+    PHYTREEVIZ(IQTREE2.out.newick)
+    ch_versions = ch_versions.mix(PHYTREEVIZ.out.versions)
+
+    SNPDISTS(ch_msa)
+    ch_versions = ch_versions.mix(SNPDISTS.out.versions)
+
+    HEATCLUSTER(SNPDISTS.out.matrix)
+    ch_versions = ch_versions.mix(HEATCLUSTER.out.versions)
 
   emit:
-    tree        = iqtree2.out.newick
-    matrix      = snpdists.out.matrix
+    tree        = IQTREE2.out.newick
+    matrix      = SNPDISTS.out.matrix
     msa         = ch_msa
-    for_multiqc = phytreeviz.out.for_multiqc.mix(heatcluster.out.for_multiqc)
+    for_multiqc = PHYTREEVIZ.out.for_multiqc.mix(HEATCLUSTER.out.for_multiqc)
     versions    = ch_versions
 }
