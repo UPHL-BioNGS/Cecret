@@ -2,7 +2,7 @@ process MULTIQC {
   tag        "multiqc"
   label      "process_single"
   publishDir "${params.outdir}", mode: 'copy'
-  container  'staphb/multiqc:1.25'
+  container  'staphb/multiqc:1.19'
 
   when:
   params.multiqc && (task.ext.when == null || task.ext.when)
@@ -49,7 +49,7 @@ process MULTIQC {
       container: ${task.container}
     END_VERSIONS
 
-    python3 ${script}
+    python3 versions.py
 
     multiqc ${args} \
       --outdir multiqc \
