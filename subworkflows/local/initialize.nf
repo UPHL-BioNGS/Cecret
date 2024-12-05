@@ -67,16 +67,16 @@ workflow INITIALIZE {
     // Copy a config and params file for the end user
     //
 
-    //# copying the config template and ending the workflow
-    // TODO : add params file to this
-    params.config_file                          = false
-    if (params.config_file) {
-        def src = new File("${workflow.projectDir}/configs/cecret_config_template.config")
-        def dst = new File("${workflow.launchDir}/edit_me.config")
-        dst << src.text
-        println('A config file can be found at ' + workflow.launchDir + '/edit_me.config')
-        exit 0
-    }
+    // //# copying the config template and ending the workflow
+    // // TODO : add params file to this
+    // params.config_file                          = false
+    // if (params.config_file) {
+    //     def src = new File("${workflow.projectDir}/configs/cecret_config_template.config")
+    //     def dst = new File("${workflow.launchDir}/edit_me.config")
+    //     dst << src.text
+    //     println('A config file can be found at ' + workflow.launchDir + '/edit_me.config')
+    //     exit 0
+    // }
 
     //
     // Warn about deprecated params
