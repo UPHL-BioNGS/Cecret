@@ -36,8 +36,6 @@ process ARTIC {
             --output artic/${prefix}_filtered.fastq.gz \
             | tee -a \$log
 
-
-
     cp ${reference} schema/cecret/V1/cecret.reference.fasta
     cp ${bed}       schema/cecret/V1/cecret.scheme.bed
     samtools faidx  schema/cecret/V1/cecret.reference.fasta
@@ -72,7 +70,7 @@ process ARTIC {
     """
 }
 
-process ARTIC_FILTERING {
+process ARTIC_FILTER {
     tag        "${meta.id}"
     publishDir    params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
     container  'staphb/artic:1.2.4-1.12.0'
