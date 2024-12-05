@@ -18,7 +18,7 @@ process ACI {
     path "versions.yml", emit: versions
   
     shell:
-    def args   = task.ext.args   ?: ''
+    def args   = task.ext.args   ?: "${params.aci_options}"
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
         mkdir -p aci/${prefix} logs/${task.process}
