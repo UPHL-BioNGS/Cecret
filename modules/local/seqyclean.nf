@@ -8,8 +8,8 @@ process SEQYCLEAN {
   task.ext.when == null || task.ext.when
 
   input:
-  tuple val(meta), file(reads), val(paired_single)
-
+  tuple val(meta), file(reads)
+  
   output:
   tuple val(meta), file("seqyclean/*_{cln_SE,clean_PE1,clean_PE2}.fastq.gz"), optional: true, emit: clean_reads
   path "seqyclean/*_clean_SummaryStatistics.tsv", optional: true, emit: seqyclean_files_collect_paired
@@ -21,7 +21,7 @@ process SEQYCLEAN {
   shell:
   def args   = task.ext.args   ?: "${params.seqyclean_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
-  if ( paired_single == "single" ) {
+  if ( meta.single_end ) {
   """
     mkdir -p seqyclean logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
@@ -44,7 +44,7 @@ process SEQYCLEAN {
       container: ${task.container}
     END_VERSIONS
   """
-  } else if ( paired_single == 'paired' ) {
+  } else {
   """
     mkdir -p seqyclean logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
