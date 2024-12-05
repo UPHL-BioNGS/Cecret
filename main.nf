@@ -13,7 +13,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { INITIALIZE } from './subworkflows/local/initalize'
+include { INITIALIZE } from './subworkflows/local/initialize'
 include { CECRET     } from './workflows/cecret'
 
 /*
@@ -44,6 +44,7 @@ workflow {
       INITIALIZE.out.versions, // channel: value
       INITIALIZE.out.kraken2_db, // channel: path
       INITIALIZE.out.scripts, // channel: [scripts]
+      INITIALIZE.out.nextclade_dataset // channel: file
     )
 }
 
