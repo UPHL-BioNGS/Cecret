@@ -2,20 +2,19 @@ process DATASETS {
   tag           "${accession}"
   // because there's no way to specify threads
   label         "process_low"
-  publishDir    path: "${params.outdir}", mode: 'copy', pattern: "logs/*/*log"
   container     'staphb/ncbi-datasets:16.30.0'
-  
+
   input:
   val(accession)
 
   output:
-  path "genomes/*fasta",    emit: fasta, optional: true
+  path "genomes/*fasta", emit: fasta, optional: true
   path "versions.yml", emit: versions
 
   when:
   task.ext.when == null || task.ext.when
 
-  shell:
+  script:
   def args = task.ext.args   ?: "virus"
   """
     mkdir -p genomes

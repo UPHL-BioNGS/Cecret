@@ -1,11 +1,7 @@
 process FASTP {
   tag        "${meta.id}"
   label      "process_single"
-  publishDir params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/fastp:0.23.4'
-
-  when:
-  task.ext.when == null || task.ext.when
 
   input:
   tuple val(meta), file(reads)
@@ -18,7 +14,10 @@ process FASTP {
   tuple val("${params.cleaner}"), env(cleaner_version), emit: cleaner_version
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.fastp_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
   if ( meta.single_end ) {

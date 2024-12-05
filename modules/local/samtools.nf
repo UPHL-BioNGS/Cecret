@@ -1,16 +1,15 @@
 process SAMTOOLS_QC {
   tag        "${meta.id}"
   label      "process_single"
-  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/samtools:1.21'
 
-  when:
-  params.samtools_qc && (task.ext.when == null || task.ext.when)
+  
 
   input:
   tuple val(meta), file(bam)
 
   output:
+  val(meta), emit: meta // for linter
   path "samtools/*.stats.txt",       emit: stats
   path "samtools/*",                 emit: files
   path "samtools/*.cov.txt",         emit: coverage
@@ -19,7 +18,10 @@ process SAMTOOLS_QC {
   path "versions.yml",               emit: versions
   path "logs/${task.process}/*.log", emit: log
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def stats_args    = task.ext.stats_args     ?: "${params.samtools_stats_options}"
   def coverage_args = task.ext.coverage_args  ?: "${params.samtools_coverage_options}"
   def flagstat_args = task.ext.flagstat_args  ?: "${params.samtools_flagstat_options}"
@@ -74,12 +76,8 @@ process SAMTOOLS_QC {
 process SAMTOOLS_AMPLICONSTATS {
   tag        "${meta.id}"
   label      "process_single"
-  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/samtools:1.21'
   
-  when:
-  params.samtools_ampliconstats && ( params.trimmer != 'none' ) && (task.ext.when == null || task.ext.when)
-
   input:
   tuple val(meta), file(bam), file(primer_bed)
 
@@ -88,7 +86,10 @@ process SAMTOOLS_AMPLICONSTATS {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.samtools_ampliconstats_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
   """
@@ -114,21 +115,21 @@ process SAMTOOLS_AMPLICONSTATS {
 process SAMTOOLS_PLOT_AMPLICONSTATS {
   tag           "${meta.id}"
   label         "process_single"
-  publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/samtools:1.21'
-
-  when:
-  params.samtools_plot_ampliconstats && (task.ext.when == null || task.ext.when)
 
   input:
   tuple val(meta), file(ampliconstats)
 
   output:
+  val(meta), emit: meta // for linter
   path "samtools_plot_ampliconstats/*", emit: files, optional: true
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.samtools_plot_ampliconstats_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
   """
@@ -153,11 +154,7 @@ process SAMTOOLS_PLOT_AMPLICONSTATS {
 process SAMTOOLS_SORT {
   tag        "${meta.id}"
   label      "process_high"
-  publishDir  path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/samtools:1.21'
-
-  when:
-  task.ext.when == null || task.ext.when
 
   input:
   tuple val(meta), file(sam)
@@ -167,7 +164,10 @@ process SAMTOOLS_SORT {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def prefix = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p aligned logs/${task.process}
@@ -194,11 +194,7 @@ process SAMTOOLS_SORT {
 process SAMTOOLS_FILTER {
   tag        "${meta.id}"
   label      "process_single"
-  publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/samtools:1.21'
-
-  when:
-  params.filter && (task.ext.when == null || task.ext.when)
 
   input:
   tuple val(meta), file(sam)
@@ -209,7 +205,10 @@ process SAMTOOLS_FILTER {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: '-F 4'
   def prefix = task.ext.prefix ?: "${meta.id}"
   """
@@ -238,11 +237,8 @@ process SAMTOOLS_FILTER {
 process SAMTOOLS_AMPLICONCLIP {
   tag        "${meta.id}"
   label      "process_single"
-  publishDir  path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/samtools:1.21'
 
-  when:
-  task.ext.when == null || task.ext.when
 
   input:
   tuple val(meta), file(bam), file(primer_bed)
@@ -253,7 +249,10 @@ process SAMTOOLS_AMPLICONCLIP {
   tuple val("samtools ampliconclip"), env(trimmer_version), emit: trimmer_version
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.samtools_ampliconclip_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
   """
@@ -283,11 +282,7 @@ process SAMTOOLS_AMPLICONCLIP {
 process SAMTOOLS_MARKDUP {
   tag        "${meta.id}"
   label      "process_single"
-  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/samtools:1.21'
-
-  when:
-  task.ext.when == null || task.ext.when
 
   input:
   tuple val(meta), val(type), file(sam) 
@@ -298,7 +293,10 @@ process SAMTOOLS_MARKDUP {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
   
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.samtools_markdup_options}"
   def fmargs = task.ext.fmargs ?: "${params.samtools_fixmate_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"

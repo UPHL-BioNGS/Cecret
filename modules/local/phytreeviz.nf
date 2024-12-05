@@ -1,12 +1,9 @@
 process PHYTREEVIZ {
   tag           "Tree visualization"
-  label         "maxcpus"
-  publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
+  label         "process_medium"
   container     'staphb/phytreeviz:0.2.0'
   
-  when:
-  params.phytreeviz && (task.ext.when == null || task.ext.when)
-
+  
   input:
   file(newick)
 
@@ -15,7 +12,10 @@ process PHYTREEVIZ {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.phytreeviz_options}"
   def prefix = task.ext.prefix ?: "tree"
   """

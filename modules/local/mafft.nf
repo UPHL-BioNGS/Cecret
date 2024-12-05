@@ -1,11 +1,7 @@
 process MAFFT {
   tag           "Multiple Sequence Alignment"
   label         "process_high"
-  publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/mafft:7.526'
-
-  when:
-  task.ext.when == null || task.ext.when
 
   input:
   file(fasta)
@@ -17,10 +13,15 @@ process MAFFT {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.mafft_options}"
   def files  = fasta.join(" ")
   def prefix = task.ext.prefix ?: "mafft_aligned"
+  def frags  = reference_genome ? "--addfragments" : ""
+  def ref    = reference_genome ?: "" 
   """
     mkdir -p mafft logs/${task.process}
     log=logs/${task.process}/${task.process}.${workflow.sessionId}.log
@@ -37,8 +38,8 @@ process MAFFT {
     mafft --auto \
       ${args} \
       --thread ${task.cpus} \
-      --addfragments mafft/ultimate.fasta \
-      ${reference_genome} \
+      ${frags} mafft/ultimate.fasta \
+      ${ref} \
       > mafft/${prefix}.fasta
 
     cat <<-END_VERSIONS > versions.yml

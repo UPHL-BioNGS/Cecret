@@ -1,11 +1,7 @@
 process PANGO_ALIASOR {
   tag        "SARS-CoV-2 lineage mapping"
   label      "process_low"
-  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/pango_aliasor:0.3.0-20241203'
-
-  when:
-  params.pango_aliasor && (task.ext.when == null || task.ext.when)
 
   input:
   file(file)
@@ -15,7 +11,10 @@ process PANGO_ALIASOR {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.pango_aliasor_options}"
   def prefix = task.ext.prefix ?: "pango_aliasor"
   """
@@ -34,10 +33,8 @@ process PANGO_ALIASOR {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-      pango_aliasor: \$(pip show pango_aliasor | cut -f 2 -d "=")
+      pango_aliasor: \$(pip show pango_aliasor | grep "Version" | awk '{print \$2}')
       container: ${task.container}
     END_VERSIONS
-
-    exit 1
   """
 }

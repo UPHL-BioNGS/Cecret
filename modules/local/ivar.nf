@@ -1,25 +1,24 @@
 process IVAR_CONSENSUS {
   tag           "${meta.id}"
   label         "process_medium"
-  memory        { 2.GB * task.attempt }
-  publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/ivar:1.4.3'
-
-  when:
-  task.ext.when == null || task.ext.when
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
 
   output:
+  val(meta), emit: meta // for linter
   path "consensus/*.consensus.fa", emit: consensus
   path "ivar_consensus/*.consensus.qual.txt", emit: qual
-  path "ivar_consensus/*"
+  path "ivar_consensus/*", emit: everything
   path "logs/${task.process}/*.log", emit: log
   tuple val("ivar consensus"), env(ivar_version), emit: ivar_version
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.ivar_consensus_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
   """
@@ -51,23 +50,22 @@ process IVAR_CONSENSUS {
 process IVAR_VARIANTS {
   tag           "${meta.id}"
   label         "process_medium"
-  memory        { 2.GB * task.attempt }
-  publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/ivar:1.4.3'
-
-  when:
-  params.ivar_variants && (task.ext.when == null || task.ext.when)
 
   input:
   tuple val(meta), file(bam), file(reference_genome), file(gff_file)
 
   output:
+  val(meta), emit: meta // for linter
   path "ivar_variants/*.variants.tsv", emit: variant_tsv
   path "ivar_variants/*.ivar_variants.vcf", emit: vcf
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.ivar_variants_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
   """
@@ -111,11 +109,7 @@ process IVAR_VARIANTS {
 process IVAR_TRIM {
   tag        "${meta.id}"
   label      "process_medium"
-  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/ivar:1.4.3'
-
-  when:
-  task.ext.when == null || task.ext.when
 
   input:
   tuple val(meta), file(bam), file(primer_bed)
@@ -128,7 +122,10 @@ process IVAR_TRIM {
   tuple val("${params.trimmer}"), env(trimmer_version), emit: trimmer_version
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.ivar_trim_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
   """

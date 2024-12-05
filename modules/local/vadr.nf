@@ -1,11 +1,7 @@
 process VADR {
   tag           "QC metrics"
   label         "process_medium"
-  publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/vadr:1.6.3'
-
-  when:
-  params.vadr && (task.ext.when == null || task.ext.when)
 
   input:
   file(fasta)
@@ -15,8 +11,11 @@ process VADR {
   path "vadr/vadr.vadr.sqa", emit: vadr_file,  optional: true
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
+  
+  when:
+  task.ext.when == null || task.ext.when
 
-  shell:
+  script:
   def args      = task.ext.args      ?: "${params.vadr_options}"
   def trim_args = task.ext.trim_args ?: "${params.vadr_trim_options}"
   def fastas    = fasta.join(" ")

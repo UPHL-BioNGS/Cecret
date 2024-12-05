@@ -1,11 +1,7 @@
 process IQTREE2 {
   tag        "Creating phylogenetic tree with iqtree"
   label      "process_high"
-  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/iqtree2:2.3.6'
-
-  when:
-  params.iqtree2 && (task.ext.when == null || task.ext.when)
 
   input:
   file(msa)
@@ -16,7 +12,10 @@ process IQTREE2 {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.iqtree2_options}"
   def prefix = task.ext.prefix ?: "iqtree2"
   """

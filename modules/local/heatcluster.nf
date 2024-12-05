@@ -1,11 +1,7 @@
 process HEATCLUSTER {
-  tag           "HeatCluster"
-  publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
-  container     'staphb/heatcluster:1.0.2c'
-
-
-  when:
-  params.heatcluster && (task.ext.when == null || task.ext.when)
+  tag        "HeatCluster"
+  label      "process_low"
+  container  'staphb/heatcluster:1.0.2c'
 
   input:
   file(matrix)
@@ -15,7 +11,10 @@ process HEATCLUSTER {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.heatcluster_options}"
   def prefix = task.ext.prefix ?: "heatcluster"
   """

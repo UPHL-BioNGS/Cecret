@@ -1,11 +1,7 @@
 process MINIMAP2 {
   tag         "${meta.id}"
   label       "process_high"
-  publishDir  path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log'
   container   'staphb/minimap2:2.28'
-
-  when:
-  task.ext.when == null || task.ext.when
 
   input:
   tuple val(meta), file(reads), file(reference_genome)
@@ -16,7 +12,10 @@ process MINIMAP2 {
   tuple val("${params.aligner}"), env(minimap2_version), emit: aligner_version
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.minimap2_options}"
   def fastq  = reads.join(" ")
   def prefix = task.ext.prefix ?: "${meta.id}"

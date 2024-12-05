@@ -1,11 +1,7 @@
 process MULTIQC {
   tag        "multiqc"
   label      "process_single"
-  publishDir "${params.outdir}", mode: 'copy'
   container  'staphb/multiqc:1.19'
-
-  when:
-  params.multiqc && (task.ext.when == null || task.ext.when)
 
   input:
   file(input)
@@ -18,7 +14,10 @@ process MULTIQC {
   path "software_versions.yml", optional: true, emit: versions
   path "logs/${task.process}/*.log", emit: log
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args = task.ext.args ?: "${params.multiqc_options}"
   """
     mkdir -p multiqc logs/${task.process}

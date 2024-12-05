@@ -1,18 +1,17 @@
 process NEXTCLADE_DATASET {
   tag        "Downloading Dataset"
   label      "process_medium"
-  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'nextstrain/nextclade:3.9.1'
-
-  when:
-  params.nextclade && (task.ext.when == null || task.ext.when)
 
   output:
   path "dataset", emit: dataset
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args ?: "${params.nextclade_dataset}"
   """
     mkdir -p nextclade dataset logs/${task.process}
@@ -39,11 +38,7 @@ process NEXTCLADE_DATASET {
 process NEXTCLADE {
   tag        "Clade Determination"
   label      "process_medium"
-  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'nextstrain/nextclade:3.9.1'
-
-  when:
-  params.nextclade && (task.ext.when == null || task.ext.when)
 
   input:
   file(fasta)
@@ -56,7 +51,10 @@ process NEXTCLADE {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.nextclade_options}"
   def files  = fasta.join(" ")
   def prefix = task.ext.prefix ?: "combined"

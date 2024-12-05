@@ -1,23 +1,23 @@
 process ACI {
     tag        "${meta.id}"
     label      "process_high"
-    publishDir params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
     container  'staphb/aci:1.4.20240116'
-
-    when:
-    params.aci && (task.ext.when == null || task.ext.when)
 
     input:
     tuple val(meta), file(bam), file(bed)
 
     output:
+    val(meta), emit: meta // for linter
     path "aci/*/*_amplicon_depth.csv", emit: cov, optional: true
     path "aci/*/*_amplicon_depth.png", emit: for_multiqc, optional: true
     path "aci/*/*", emit: everything
     path "logs/${task.process}/*.log", emit: log
     path "versions.yml", emit: versions
   
-    shell:
+    when:
+    task.ext.when == null || task.ext.when
+
+    script:
     def args   = task.ext.args   ?: "${params.aci_options}"
     def prefix = task.ext.prefix ?: "${meta.id}"
     """

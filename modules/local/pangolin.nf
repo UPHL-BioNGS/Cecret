@@ -1,11 +1,7 @@
 process PANGOLIN {
   tag        "SARS-CoV-2 lineage Determination"
   label      "process_medium"
-  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/pangolin:4.3.1-pdata-1.31'
-
-  when:
-  params.pangolin && (task.ext.when == null || task.ext.when)
 
   input:
   file(fasta)
@@ -16,7 +12,10 @@ process PANGOLIN {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.pangolin_options}"
   def file   = fasta.join(" ")
   def prefix = task.ext.prefix ?: "combined"

@@ -1,11 +1,7 @@
 process ARTIC {
     tag        "${meta.id}"
     label      "process_high"
-    publishDir params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
     container  'staphb/artic:1.2.4-1.12.0'
-
-    when:
-    task.ext.when == null || task.ext.when
 
     input:
     tuple val(meta), file(fastq), file(reference), file(bed)
@@ -18,7 +14,10 @@ process ARTIC {
     path "logs/${task.process}/*.log", emit: log
     path "versions.yml", emit: versions
   
-    shell:
+    when:
+    task.ext.when == null || task.ext.when
+
+    script:
     def args   = task.ext.args   ?: "${params.artic_options}"
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
@@ -72,7 +71,6 @@ process ARTIC {
 
 process ARTIC_FILTER {
     tag        "${meta.id}"
-    publishDir    params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
     container  'staphb/artic:1.2.4-1.12.0'
     label      "process_single"
 
@@ -84,7 +82,10 @@ process ARTIC_FILTER {
     path "logs/${task.process}/*.log", emit: log
     path "versions.yml", emit: versions
   
-    shell:
+    when:
+    task.ext.when == null || task.ext.when
+
+    script:
     def args   = task.ext.args   ?: "${params.artic_read_filtering_options}"
     def prefix = task.ext.prefix ?: "${meta.id}"
     """

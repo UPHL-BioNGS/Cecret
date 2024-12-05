@@ -1,7 +1,6 @@
 process BBNORM {
     tag           "${meta.id}"
     label         'process_medium'
-    publishDir    params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
     container     'staphb/bbtools:39.10'
 
     input:
@@ -13,9 +12,9 @@ process BBNORM {
     path "versions.yml", emit: versions
 
     when:
-    params.bbnorm && (task.ext.when == null || task.ext.when)
+    task.ext.when == null || task.ext.when
 
-    shell:
+    script:
     def args   = task.ext.args   ?: "${params.bbnorm_options}"
     def prefix = task.ext.prefix ?: "${meta.id}"
     if ( meta.single_reads ) {

@@ -1,11 +1,7 @@
 process BCFTOOLS {
   tag           "${meta.id}"
-  publishDir    params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/bcftools:1.21'
   label         'process_single'
-
-  when:
-  params.bcftools_variants && (task.ext.when == null || task.ext.when)
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
@@ -16,7 +12,10 @@ process BCFTOOLS {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "-mv -Ov"
   def prefix = task.ext.prefix ?: "${meta.id}"
   """

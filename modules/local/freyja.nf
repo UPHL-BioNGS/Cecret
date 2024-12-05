@@ -1,22 +1,22 @@
 process FREYJA {
   tag           "${meta.id}"
   label         "process_medium"
-  publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/freyja:1.5.2-11_30_2024-02-00-2024-12-02'
-
-  when:
-  params.freyja && (task.ext.when == null || task.ext.when)
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
 
   output:
   tuple val(meta), file("freyja/*_{depths,variants}.tsv"), optional: true, emit: variants
+  tuple val(meta), file("freyja/*_demix.tsv"), optional: true, emit: demix
   path "freyja/*", optional: true, emit: files
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.freyja_variants_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
   """
@@ -34,8 +34,8 @@ process FREYJA {
       | tee -a \$log
 
     freyja demix ${args} \
-      ${variants[1]} \
-      ${variants[0]} \
+      freyja/${prefix}_variants.tsv \
+      freyja/${prefix}_depths.tsv \
       --output freyja/${prefix}_demix.tsv \
       | tee -a \$log
 
@@ -51,11 +51,7 @@ process FREYJA {
 process FREYJA_AGGREGATE {
   tag        "Aggregating results from freyja"
   label      "process_single"
-  publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container  'staphb/freyja:1.5.2-11_30_2024-02-00-2024-12-02'
-
-  when:
-  params.freyja_aggregate && (task.ext.when == null || task.ext.when)
 
   input:
   file(demix)
@@ -68,7 +64,10 @@ process FREYJA_AGGREGATE {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.freyja_aggregate_options}"
   def pltarg = task.ext.pltarg ?: "${params.freyja_plot_options}"
   def filtyp = task.ext.filtyp ?: "${params.freyja_plot_filetype}"

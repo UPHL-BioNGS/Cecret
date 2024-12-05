@@ -1,12 +1,7 @@
 process DOWNLOAD_FASTQ {
   tag        "${sra}"
-  publishDir "${params.outdir}", mode: 'copy'
   container  'quay.io/biocontainers/pandas:1.5.2'
   label      "process_single"
-
-
-  when:
-  task.ext.when == null || task.ext.when
 
   input:
   val(sra)
@@ -15,7 +10,10 @@ process DOWNLOAD_FASTQ {
   tuple val(sra), file("sra/paired/${sra}*fastq.gz"), val(false), optional: true, emit: paired
   tuple val(sra), file("sra/single/${sra}*fastq.gz"), val(true), optional: true, emit: single
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   """
     mkdir -p sra/{paired,single}
 
@@ -40,13 +38,8 @@ process DOWNLOAD_FASTQ {
 //# some fastas are created with the header of >reference, so this changes the header
 process PREP {
   tag        "${fasta}"
-  //# nothing to publish in publishDir
   container  'quay.io/biocontainers/pandas:1.5.2'
   label      "process_single"
-
-
-  when:
-  fasta != null && (task.ext.when == null || task.ext.when)
 
   input:
   tuple val(meta), file(fasta)
@@ -54,7 +47,10 @@ process PREP {
   output:
   path "fasta_prep/${fasta}", optional: true, emit: fastas
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def prefix = task.ext.prefix ?: "${meta.id}"
   """
   mkdir -p fasta_prep
@@ -67,11 +63,7 @@ process PREP {
 process SUMMARY {
   tag        "Creating summary files"
   label      "process_single"
-  publishDir path: params.outdir, mode: 'copy'
   container  'quay.io/biocontainers/pandas:1.5.2'
-
-  when:
-  task.ext.when == null || task.ext.when
 
   input:
   tuple file(files), file(script), val(versions), file(multiqc)
@@ -79,7 +71,10 @@ process SUMMARY {
   output:
   path "cecret_results.{csv,txt}", emit: summary_file
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def multiqc_files = multiqc.join(" ")
   """
     echo "${versions}" | cut -f 1,3,5,7,9,11  -d ',' | sed 's/\\[//g' | sed 's/\\]//g' | sed 's/, /,/g' >  versions.csv
@@ -109,11 +104,7 @@ process SUMMARY {
 process UNZIP {
   tag        "unzipping nextclade dataset"
   label      "process_single"
-  //# nothing to publish in publishDir
   container  'quay.io/biocontainers/pandas:1.5.2'
-
-  when:
-  params.nextclade && (task.ext.when == null || task.ext.when)
 
   input:
   file(input)
@@ -121,7 +112,10 @@ process UNZIP {
   output:
   path "dataset", emit: dataset
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   """
   mkdir dataset
   unzip ${input} -d dataset

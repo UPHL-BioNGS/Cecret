@@ -1,21 +1,21 @@
 process IGV_REPORTS {
   tag         "${meta.id}"
   label       "process_high"
-  publishDir  path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container   'quay.io/biocontainers/igv-reports:1.14.1--pyh7e72e81_0'
-
-  when:
-  params.igv_reports && (task.ext.when == null || task.ext.when)
 
   input:
   tuple val(meta), file(vcf), file(bam), file(bai), file(reference_genome)
 
   output:
+  val(meta), emit: meta // for linter
   path "igv_reports/*", emit: report
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.igv_reports_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
   """

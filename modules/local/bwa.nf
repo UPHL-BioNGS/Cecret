@@ -1,11 +1,7 @@
 process BWA {
   tag         "${meta.id}"
   label       "process_high"
-  publishDir  path: "${params.outdir}", mode: 'copy', pattern: 'logs/*/*log'
   container   'staphb/bwa:0.7.18'
-
-  when:
-  task.ext.when == null || task.ext.when
 
   input:
   tuple val(meta), file(reads), file(reference_genome)
@@ -16,7 +12,10 @@ process BWA {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: ''
   def fastq  = reads.join(" ")
   def prefix = task.ext.prefix ?: "${meta.id}"

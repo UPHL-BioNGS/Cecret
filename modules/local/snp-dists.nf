@@ -1,11 +1,7 @@
 process SNPDISTS {
   tag           "creating snp matrix with snp-dists"
   label         "process_single"
-  publishDir    path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
   container     'staphb/snp-dists:0.8.2'
-
-  when:
-  params.snpdists && (task.ext.when == null || task.ext.when)
 
   input:
   file(msa)
@@ -15,7 +11,10 @@ process SNPDISTS {
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 
-  shell:
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
   def args   = task.ext.args   ?: "${params.snpdists_options}"
   def prefix = task.ext.prefix ?: "snp-dists"
   """
