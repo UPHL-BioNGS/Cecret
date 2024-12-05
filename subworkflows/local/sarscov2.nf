@@ -35,7 +35,7 @@ workflow SARSCOV2 {
             ch_multiqc  = ch_multiqc.mix(PANGOLIN.out.pangolin_file)
         }
 
-        if (params.pango_aliasor) {
+        if (params.pango_aliasor && params.pangolin) {
             // running pango aliasor
             PANGO_ALIASOR(PANGOLIN.out.pangolin_file)
             ch_versions = ch_versions.mix(PANGO_ALIASOR.out.versions)
