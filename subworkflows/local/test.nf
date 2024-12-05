@@ -1,4 +1,5 @@
-include { DOWNLOAD } from '../modules/local/local'
+include { DOWNLOAD_FASTQ              } from '../../modules/local/local'
+include { DATASETS as DOWNLOAD_GENOME } from '../../modules/local/datasets'
 
 workflow TEST {
     take:
@@ -7,13 +8,18 @@ workflow TEST {
 
     main:
         DOWNLOAD_FASTQ(ch_sra_accessions)
-        DONWLOAD_GENOME(ch_genome_accessions)
 
-    //TODO: add meta to reads and fastas
-    // TODO : add datasets to download genomes
+        DOWNLOAD_FASTQ.out.paired
+            .mix(DOWNLOAD_FASTQ.out.single)
+            .map { it ->
+                meta = [id:it[0], single_end:it[2]]
+                tuple( meta, it[1]) }
+            .set { ch_reads }
+
+        DOWNLOAD_GENOME(ch_genome_accessions)
 
     emit:
         reads    = ch_reads
-        fastas   = ch_fastas
-        versions = Channel.empty()
+        fastas   = DOWNLOAD_GENOME.out.fasta
+        versions = DOWNLOAD_GENOME.out.versions
 }
