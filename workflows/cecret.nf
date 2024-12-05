@@ -4,14 +4,14 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { SUMMARY  } from './modules/cecret'
-include { LOCAL                } from './subworkflows/cecret'
-include { QC }                   from './subworkflows/qc'
-include { MSA }                  from './subworkflows/msa'
-include { MULTIQC } from './modules/multiqc'
-include { MPX }                  from './subworkflows/mpx'                             
-include { MPOX as OTHER }         from './subworkflows/mpx'
-include { SARSCOV2 }             from './subworkflows/sarscov2'
+include { SUMMARY       } from '../modules/local/local'
+include { CONSENSUS     } from '../subworkflows/local/consensus'
+include { QC            } from '../subworkflows/local/qc'
+include { MSA           } from '../subworkflows/local/msa'
+include { MULTIQC       } from '../modules/local/multiqc'
+include { MPOX          } from '../subworkflows/local/mpox'                             
+include { MPOX as OTHER } from '../subworkflows/local/mpox'
+include { SARSCOV2      } from '../subworkflows/local/sarscov2'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,31 +36,34 @@ workflow CECRET {
     ch_nextclade_dataset // channel: file
 
     main:
-    cecret(
+    ch_for_version = Channel.empty()
+
+    CONSENSUS(
         ch_reads,
         ch_nanopore,
         ch_reference,
         ch_primer
     )
-    ch_versions = ch_versions.mix(cecret.out.versions)
-    ch_consensus = cecret.out.consensus.mix(ch_fastas).mix(ch_multifasta)
+    ch_versions = ch_versions.mix(CONSENSUS.out.versions)
+    ch_consensus = CONSENSUS.out.consensus.mix(ch_fastas).mix(ch_multifasta)
+    ch_for_version = CONSENSUS.out.for_version
 
-    qc(ch_reads,
-      cecret.out.clean_reads,
+    QC(ch_reads,
+      CONSENSUS.out.clean_reads,
       ch_kraken2_db,
-      cecret.out.sam,
-      cecret.out.trim_bam,
+      CONSENSUS.out.sam,
+      CONSENSUS.out.trim_bam,
       ch_reference,
       ch_gff,
       ch_amplicon,
       ch_primer)
 
-    ch_for_multiqc = cecret.out.for_multiqc.mix(qc.out.for_multiqc)
-    ch_for_summary = qc.out.for_summary
-    ch_versions    = ch_versions.mix(qc.out.versions)
+    ch_for_multiqc = CONSENSUS.out.for_multiqc.mix(QC.out.for_multiqc)
+    ch_for_summary = QC.out.for_summary
+    ch_versions    = ch_versions.mix(QC.out.versions)
 
     if ( params.species == 'sarscov2' ) {
-      sarscov2(
+      SARSCOV2(
         ch_consensus,
         cecret.out.trim_bam,
         ch_reference,
@@ -68,44 +71,39 @@ workflow CECRET {
         ch_scripts
         )
 
-      ch_for_multiqc = ch_for_multiqc.mix(sarscov2.out.for_multiqc)
-      ch_for_summary = ch_for_summary.mix(sarscov2.out.for_summary)
-      ch_versions    = ch_versions.mix(sarscov2.out.versions)
+      ch_for_multiqc = ch_for_multiqc.mix(SARSCOV2.out.for_multiqc)
+      ch_for_summary = ch_for_summary.mix(SARSCOV2.out.for_summary)
+      ch_versions    = ch_versions.mix(SARSCOV2.out.versions)
     
     } else if ( params.species == 'mpx') {
-      mpx(
-        ch_consensus, 
-        ch_nextclade_dataset
-        )
+      MPOX(ch_consensus)
       
-      ch_for_multiqc = ch_for_multiqc.mix(mpx.out.for_multiqc)
-      ch_for_summary = ch_for_summary.mix(mpx.out.for_summary)
-      ch_versions    = ch_versions.mix(mpx.out.versions)
+      ch_for_multiqc = ch_for_multiqc.mix(MPOX.out.for_multiqc)
+      ch_for_summary = ch_for_summary.mix(MPOX.out.for_summary)
+      ch_versions    = ch_versions.mix(MPOX.out.versions)
 
     } else if ( params.species == 'other') {
-      other(ch_consensus, 
-        ch_nextclade_dataset
-        )
+      OTHER(ch_consensus)
       
-      ch_for_multiqc = ch_for_multiqc.mix(other.out.for_multiqc)
-      ch_for_summary = ch_for_summary.mix(other.out.for_summary)
-      ch_versions    = ch_versions.mix(other.out.versions)
+      ch_for_multiqc = ch_for_multiqc.mix(OTHER.out.for_multiqc)
+      ch_for_summary = ch_for_summary.mix(OTHER.out.for_summary)
+      ch_versions    = ch_versions.mix(OTHER.out.versions)
 
     } 
 
     if ( params.relatedness ) { 
       
-      msa(
+      MSA(
         ch_consensus,
-        ch_reference_genome
+        ch_reference
         ) 
 
-      tree      = msa.out.tree
-      alignment = msa.out.msa
-      matrix    = msa.out.matrix
+      tree      = MSA.out.tree
+      alignment = MSA.out.msa
+      matrix    = MSA.out.matrix
 
-      ch_for_multiqc = ch_for_multiqc.mix(msa.out.for_multiqc)
-      ch_versions    = ch_versions.mix(msa.out.versions)
+      ch_for_multiqc = ch_for_multiqc.mix(MSA.out.for_multiqc)
+      ch_versions    = ch_versions.mix(MSA.out.versions)
 
     } else {
       tree      = Channel.empty()
@@ -121,20 +119,18 @@ workflow CECRET {
 
     MULTIQC(
         ch_for_multiqc.mix(ch_collated_versions).collect(), 
-        ch_version_script
+        ch_scripts
     )
     ch_versions    = ch_versions.mix(MULTIQC.out.versions)
 
-    summary(
-      ch_for_summary
-        .mix(fasta_prep.out.fastas).mix(cecret.out.consensus).collect().map{it -> tuple([it])}
-        .combine(ch_script)
-        .combine(ch_versions).collect().map{it -> tuple([it])}
-        .combine(MULTIQC.out.files.ifEmpty([]).map{it -> tuple([it])})
-    )
+    SUMMARY(
+      ch_for_summary.mix(ch_fastas).mix(CONSENSUS.out.consensus).collect().map{it -> tuple([it])}
+        .combine(ch_scripts)
+        .combine(ch_for_version.mix(CONSENSUS.out.for_version).collect().map{it -> tuple([it])})
+        .combine(MULTIQC.out.files.ifEmpty([]).map{it -> tuple([it])}))
 
   emit:
-    bam       = cecret.out.trim_bam
+    bam       = CONSENSUS.out.trim_bam
     consensus = ch_consensus
     tree      = tree
     alignment = alignment
