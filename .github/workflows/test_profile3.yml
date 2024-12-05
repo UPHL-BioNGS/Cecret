@@ -1,8 +1,8 @@
-name: Test SARS-CoV-2 profile workflow
+name: Test SARS-CoV-2 profile 2 workflow
 
 on: [pull_request, workflow_dispatch]
 
-run-name: Test profile
+run-name: Profile 3
 
 jobs:
   test:
@@ -23,11 +23,13 @@ jobs:
 
       - name: Run Cecret
         run: |
-          nextflow run . -profile docker,test -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200
+          nextflow run . -profile docker,test3 -c .github/workflows/github_actions.config 
 
           ls cecret*
             
           cat cecret*/cecret_results.txt
+
+          head cecret*/snp-dists/snp-dists.txt
 
       - name: Clean
         run: rm -rf work .nextflow*

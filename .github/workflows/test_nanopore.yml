@@ -5,18 +5,17 @@ on: [pull_request, workflow_dispatch]
 run-name: nanopore
 
 jobs:
-
   test:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@master
-          
+
       - name: Install Nextflow
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
-      
+
       - name: Download reads
         run: |
           mkdir nanopore

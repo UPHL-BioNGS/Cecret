@@ -5,13 +5,12 @@ on: [pull_request, workflow_dispatch]
 run-name: MPX with IDT Primers
 
 jobs:
-
   mpx_idt:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
         uses: actions/checkout@master
-          
+
       - name: Install Nextflow
         run: |
           wget -qO- get.nextflow.io | bash

@@ -5,7 +5,6 @@ on: [pull_request, workflow_dispatch]
 run-name: Test profile
 
 jobs:
-
   test:
     runs-on: ubuntu-20.04
     steps:
@@ -16,7 +15,7 @@ jobs:
 
       - name: Checkout LFS objects
         run: git lfs checkout
-          
+
       - name: Install Nextflow
         run: |
           wget -qO- get.nextflow.io | bash
@@ -24,12 +23,12 @@ jobs:
 
       - name: Download Kraken2 Database
         run: |
-            mkdir kraken2_db
-            cd kraken2_db
-            wget https://genome-idx.s3.amazonaws.com/kraken/k2_viral_20240112.tar.gz 
-            tar -zxvf k2_viral_20240112.tar.gz
-            cd ../
-          
+          mkdir kraken2_db
+          cd kraken2_db
+          wget https://genome-idx.s3.amazonaws.com/kraken/k2_viral_20240112.tar.gz 
+          tar -zxvf k2_viral_20240112.tar.gz
+          cd ../
+
       - name: Run Cecret
         run: |
           nextflow run . -profile docker,test \
