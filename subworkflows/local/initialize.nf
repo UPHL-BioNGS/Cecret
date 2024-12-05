@@ -8,8 +8,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { FASTA_PREP } from './modules/local/local'
-include { TEST       } from './test'
+include { PREP } from '../../modules/local/local'
+include { TEST } from '../../subworkflows/local/test'
 
 
 def determine_type(it) {
@@ -29,7 +29,8 @@ def determine_type(it) {
 
 workflow INITIALIZE {
     main:
-    ch_for_version = Channel.from("Cecret version", workflow.manifest.version).collect()
+    ch_for_version = Channel.from("Cecret version", workflow.manifest.version)
+    ch_versions = Channel.empty()
 
     //# For aesthetics - and, yes, we are aware that there are better ways to write 
     //# this than a bunch of 'println' statements
@@ -60,6 +61,8 @@ workflow INITIALIZE {
     println('     \\__T______ ___________/                \\ C T G A G G T C G A T A') 
     println('                                                    A T G A C GTAGATA')
     println('')
+
+
 
     //
     // Copy a config and params file for the end user
@@ -106,6 +109,16 @@ workflow INITIALIZE {
         println('WARNING : params.pango_collapse_options no longer does anything!')
         println('WARNING : pango_collapse has been replaced by pango_aliasor')
     }
+    params.medcpus                              = false
+    if (params.medcpus ) {
+        println('WARNING : params.medcpus no longer does anything!')
+        println('WARNING : adjust computational resources with a config file')
+    }
+    params.maxcpus                              = false
+    if (params.pango_collapse_options ) {
+        println('WARNING : params.maxcpus no longer does anything!')
+        println('WARNING : adjust computational resources with a config file')
+    }
     if (params.msa == "nextalign" ) {
         println('WARNING : setting params.msa to nextalign no longer does anything!')
         println('WARNING : Use params.msa == "nextclade" instead!')
@@ -116,14 +129,14 @@ workflow INITIALIZE {
     //
 
     //# Ensuring that reads and single_reads are not set to the same directory
-    if params.reads && ( params.reads == params.single_reads ) {
+    if ( params.reads && params.reads == params.single_reads ) {
         println('\'params.reads\' and \'params.single_reads\' cannot point to the same directory!')
         println('\'params.reads\' is set to ' + params.reads)
         println('\'params.single_reads\' is set to ' + params.single_reads)
         exit 1
     }
 
-    if params.fastas && ( params.fastas == params.multifastas ) {
+    if ( params.fastas && params.fastas == params.multifastas ) {
         println('\'params.fastas\' and \'params.multifastas\' cannot point to the same directory!')
         println('\'params.fastas\' is set to ' + params.fastas)
         println('\'params.multifastas\' is set to ' + params.multifastas)
@@ -257,12 +270,11 @@ workflow INITIALIZE {
         }
     }
 
-    // getting sra accessions
+    // getting fastq files from sra accessions (Illumina only)
     ch_sra_accessions = Channel.from( params.sra_accessions )
 
-    // getting genome accessions
+    // getting genome accessions (ncbi virus is default)
     ch_genome_accessions = Channel.from( params.genome_accessions )
-
 
     //# getting a reference genome file
     if (params.reference_genome){
@@ -272,24 +284,21 @@ workflow INITIALIZE {
                 println("No reference genome was selected. Set with 'params.reference_genome'")
                 exit 1
             }
-            .set { ch_reference_genome }
+            .set { ch_reference }
     } else {
         if ( params.species == 'sarscov2' ) {
-            ch_reference_genome = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.fasta', type: 'file')
+            ch_reference = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.fasta', type: 'file')
         } else if ( params.species == 'mpx' && params.primer_set == 'mpx_yale') {
-            ch_reference_genome = Channel.fromPath(workflow.projectDir + '/genomes/MT903345.1.fasta', type: 'file')
+            ch_reference = Channel.fromPath(workflow.projectDir + '/genomes/MT903345.1.fasta', type: 'file')
         } else if ( params.species == 'mpx') {
-            ch_reference_genome = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.fasta', type: 'file')
+            ch_reference = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.fasta', type: 'file')
         } else {
-            println("No reference genome was selected. Set with 'params.reference_genome'")
+            println("WARN: No reference genome was selected. Set with 'params.reference_genome'")
             println("Or set species to one with an included genome ('sarscov2' or 'mpx')")
-            exit 1
-
-            // this is here so nextflow doesn't throw an error too
-            ch_reference_genome = Channel.empty()
+            ch_reference = Channel.empty()
         } 
     }
-    ch_reference_genome.view { "Reference Genome : $it"}
+    ch_reference.view { "Reference Genome : $it"}
 
     //# getting the gff file for ivar variants
     if ( params.ivar_variants ) {
@@ -300,17 +309,17 @@ workflow INITIALIZE {
                 println("No gff file was selected. Set with 'params.reference_genome'")
                 exit 1
             }
-            .set { ch_gff_file }
+            .set { ch_gff }
 
         } else {
             if ( params.species == 'sarscov2' ) {
-                ch_gff_file = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.gff', type: 'file')
+                ch_gff = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.gff', type: 'file')
 
             } else if ( params.species == 'mpx' && params.primer_set == 'mpx_yale') {
-                ch_gff_file = Channel.fromPath(workflow.projectDir + '/genomes/MT903345.1.gff', type: 'file')
+                ch_gff = Channel.fromPath(workflow.projectDir + '/genomes/MT903345.1.gff', type: 'file')
 
             } else if ( params.species == 'mpx') {
-                ch_gff_file = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.gff3', type: 'file')
+                ch_gff = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.gff3', type: 'file')
 
             } else {
                 println("No gff file was selected. Set with 'params.gff'")
@@ -319,16 +328,14 @@ workflow INITIALIZE {
                 exit 1
 
                 // so nextflow doesn't throw an error too
-                ch_gff_file = Channel.empty()
+                ch_gff = Channel.empty()
             } 
         }
-        ch_gff_file.view { "GFF file : $it"}
+        ch_gff.view { "GFF file : $it"}
     } else {
-        ch_gff_file = Channel.empty()
+        ch_gff = Channel.empty()
     }
     
-
-    // TODO : Add new primer sets
     //# channels of included files (no * for cloud support)
     included_primers     = [
         workflow.projectDir + '/schema/midnight_idt_V1_SARS-CoV-2.primer.bed',
@@ -384,22 +391,22 @@ workflow INITIALIZE {
                 exit 1
             }
             .set { ch_primer_bed }
+        } else if ( params.primer_set in available_primer_sets && params.species == 'sarscov2' ) {
+            Channel
+                .fromPath( included_primers )
+                .branch{ 
+                    match : it =~ /${params.primer_set}_*/
+                }
+                .first()
+                .set { ch_primer_bed }
+        } else {
+            println("WARN: No primers were found!")
+            println("Set primer schema with 'params.primer_bed' or specify to 'none' if primers were not used")
+            println("Or use included primer set by setting 'params.primer_set' to one of ${available_primer_sets}")
+        
+            ch_primer_bed = Channel.empty()
         }
-    } else if ( params.primer_set in available_primer_sets ) {
-        Channel
-            .fromPath( included_primers )
-            .branch{ 
-                match : it =~ /${params.primer_set}_*/
-            }
-            .first()
-            .set { ch_primer_bed } 
     } else {
-        println("No primers were found!")
-        println("Set primer schema with 'params.primer_bed' or specify to 'none' if primers were not used")
-        println("Or use included primer set by setting 'params.primer_set' to one of ${available_primer_sets}")
-        exit 1
-
-        // so nextflow doesn't throw an error too
         ch_primer_bed = Channel.empty()
     }
     ch_primer_bed.view { "Primer BedFile : $it"}
@@ -427,7 +434,7 @@ workflow INITIALIZE {
             println("An amplicon bedfile wasn't found!")
             println("Set amplicon schema with 'params.amplicon_bed'")
             println("Or use included primer set by setting 'params.primer_set' to one of ${available_primer_sets}")
-            println("Or set params.aci = False to skip this.")
+            println("Or set params.aci = false to skip this.")
             exit 1
 
             // so nextflow doesn't throw an error too
@@ -439,11 +446,13 @@ workflow INITIALIZE {
     }
 
     //# scripts for legacy reasons
-    ch_combine_results_script = Channel.fromPath("${workflow.projectDir}/bin/combine_results.py",  type:'file')
-    ch_freyja_script          = Channel.fromPath("${workflow.projectDir}/bin/freyja_graphs.py",    type:'file')
-    ch_version_script         = Channel.fromPath("${workflow.projectDir}/bin/versions.py",         type:'file')
+    scripts = [
+        "${workflow.projectDir}/bin/combine_results.py",
+        "${workflow.projectDir}/bin/freyja_graphs.py",
+        "${workflow.projectDir}/bin/versions.py"
+    ]
 
-    ch_scripts = ch_combine_results_script.concat(ch_freyja_script).concat(ch_version_script)
+    ch_scripts = Channel.fromPath(scripts, type: 'file').collect()
 
     if ( params.kraken2_db ) {
         Channel
@@ -472,14 +481,14 @@ workflow INITIALIZE {
         .unique()
         .set { ch_reads }
 
-    if params.sample_sheet || params.fastas || params.multifastas {
-        FASTA_PREP(ch_fastas)
+    if (params.sample_sheet || params.fastas || params.multifastas) {
+        PREP(ch_fastas)
         ch_prepped_fastas = FASTA_PREP.out.fastas
     } else {
-        ch_prepped_fastas = Channel.empty
+        ch_prepped_fastas = Channel.empty()
     }
 
-    if ( ! params.sra_accessions.isEmpty() ) { 
+    if ( ! params.sra_accessions.isEmpty() || ! params.genome_accessions.isEmpty() ) { 
       TEST(
         ch_sra_accessions,
         ch_genome_accessions
@@ -488,19 +497,19 @@ workflow INITIALIZE {
       ch_reads = ch_reads.mix(TEST.out.reads)
       ch_prepped_fastas = ch_prepped_fastas.mix(TEST.out.fastas)
       ch_versions = ch_versions.mix(TEST.out.versions)
-    } 
+    }
 
     emit:
     reads               = ch_reads // channel: [meta, reads]
-    fastas              = ch_prepped_fastas, // channel: [meta, fasta]
-    multifasta          = ch_multifasta, // channel: fasta
-    nanopore            = ch_nanopore, // channel: [meta, reads]
-    reference           = ch_reference, // channel: fasta
-    gff                 = ch_gff, // channel: gff file
-    primer              = ch_primer, // channel: bedfile
-    amplicon            = ch_amplicon, // channel: bedfile
-    version             = ch_versions, // channel: value
-    kraken2_db          = ch_kraken2_db, // channel: path
-    scripts             = ch_scripts, // channel: [scripts]
+    fastas              = ch_prepped_fastas // channel: [meta, fasta]
+    multifasta          = ch_multifastas // channel: fasta
+    nanopore            = ch_nanopore // channel: [meta, reads]
+    reference           = ch_reference // channel: fasta
+    gff                 = ch_gff // channel: gff file
+    primer              = ch_primer_bed // channel: bedfile
+    amplicon            = ch_amplicon_bed // channel: bedfile
+    versions            = ch_versions // channel: value
+    kraken2_db          = ch_kraken2_db // channel: path
+    scripts             = ch_scripts // channel: [scripts]
     nextclade_dataset   = ch_nextclade_dataset // channel: file
 }
