@@ -5,10 +5,10 @@ process BBNORM {
     container     'staphb/bbtools:39.10'
 
     input:
-    tuple val(meta), file(reads), val(paired_single)
+    tuple val(meta), file(reads)
 
     output:
-    tuple val(meta), path("bbnorm/*.fastq.gz"), val(paired_single), emit: fastq, optional: true
+    tuple val(meta), path("bbnorm/*.fastq.gz"), emit: fastq, optional: true
     path("logs/*/*.log"), emit: log
     path "versions.yml", emit: versions
 
@@ -18,16 +18,14 @@ process BBNORM {
     shell:
     def args   = task.ext.args   ?: "${params.bbnorm_options}"
     def prefix = task.ext.prefix ?: "${meta.id}"
-    if ( paired_single == 'paired' ) {
+    if ( meta.single_reads ) {
         """
         mkdir -p bbnorm logs/${task.process}
         log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
-        
+            
         bbnorm.sh ${args} \
-            in=${reads[0]} \
-            in2=${reads[1]} \
-            out=bbnorm/${prefix}_norm_R1.fastq.gz \
-            out2=bbnorm/${prefix}_norm_R2.fastq.gz \
+            in=${reads} \
+            out=bbnorm/${prefix}_norm.fastq.gz \
             threads=${task.cpus} \
             | tee -a \$log
 
@@ -37,14 +35,16 @@ process BBNORM {
             container: ${task.container}
         END_VERSIONS
         """
-    } else if ( paired_single == 'single' ) {
+    } else {
         """
         mkdir -p bbnorm logs/${task.process}
         log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
         
         bbnorm.sh ${args} \
-            in=${reads} \
-            out=bbnorm/${prefix}_norm.fastq.gz \
+            in=${reads[0]} \
+            in2=${reads[1]} \
+            out=bbnorm/${prefix}_norm_R1.fastq.gz \
+            out2=bbnorm/${prefix}_norm_R2.fastq.gz \
             threads=${task.cpus} \
             | tee -a \$log
 
