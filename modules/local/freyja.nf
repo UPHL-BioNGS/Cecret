@@ -92,7 +92,7 @@ process FREYJA_AGGREGATE {
       --output freyja/${prefix}.${filtyp} \
       | tee -a \$log
 
-    python3 ${graphs}
+    python3 freyja_graphs.py
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
