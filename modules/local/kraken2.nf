@@ -20,7 +20,8 @@ process KRAKEN2 {
   def args   = task.ext.args   ?: "${params.kraken2_options}"
   def prefix = task.ext.prefix ?: "${meta.id}"
   def reads  = clean.join(" ")
-  if ( clean =~ "cln" ) {
+  def paired = meta.single_end ? "" : "--paired"
+  if ( meta.single_end ) {
   """
     mkdir -p kraken2 logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
@@ -29,6 +30,7 @@ process KRAKEN2 {
     kraken2 --version >> \$log
 
     kraken2 ${args} \
+      ${paired} \
       --classified-out kraken2/${prefix}.cseqs#.fastq.gz \
       --unclassified-out kraken2/${prefix}.useqs#.fastq.gz \
       --threads ${task.cpus} \
@@ -40,30 +42,6 @@ process KRAKEN2 {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
       kraken2: \$(kraken2 --version | head -n 1 | awk '{print \$NF}')
-    END_VERSIONS
-  """
-  } else {
-  """
-    mkdir -p kraken2 logs/${task.process}
-    log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
-
-    date > \$log
-    kraken2 --version >> \$log
-
-    kraken2 ${args} \
-      --paired \
-      --classified-out kraken2/${prefix}.cseqs#.fastq.gz \
-      --unclassified-out kraken2/${prefix}.useqs#.fastq.gz \
-      --threads ${task.cpus} \
-      --db ${kraken2_db} \
-      ${reads} \
-      --report kraken2/${prefix}_kraken2_report.txt \
-      | tee -a \$log
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-      kraken2: \$(kraken2 --version | head -n 1 | awk '{print \$NF}')
-      container: ${task.container}
     END_VERSIONS
   """
   }
