@@ -9,24 +9,40 @@ include { VADR                          } from '../../modules/local/vadr'
 
 workflow SARSCOV2 {
     take:
-        ch_fastas
-        ch_bam
-        ch_reference_genome
-        ch_input_dataset
-        ch_script
+        ch_fastas // channel: fasta
+        ch_bam // channel: [meta, bam]
+        ch_reference_genome // channel: fasta
+        ch_input_dataset // channel: zipped file
+        ch_script // channel: workflow scripts
 
     main:
         ch_versions = Channel.empty()
+        ch_multiqc  = Channel.empty()
+        ch_summary  = Channel.empty()
 
-        VADR(ch_fastas.collect())
-        ch_versions = ch_versions.mix(VADR.out.versions)
+        if (params.vadr) {
+            // running vadr
+            VADR(ch_fastas.collect())
+            ch_versions = ch_versions.mix(VADR.out.versions)
+            ch_summary  = ch_summary.mix(VADR.out.vadr_file)
+        }
 
-        PANGOLIN(ch_fastas.collect())
-        ch_versions = ch_versions.mix(PANGOLIN.out.versions)
+        if (params.pangolin) {
+            // running pangolin
+            PANGOLIN(ch_fastas.collect())
+            ch_versions = ch_versions.mix(PANGOLIN.out.versions)
+            ch_summary  = ch_summary.mix(PANGOLIN.out.pangolin_file)
+            ch_multiqc  = ch_multiqc.mix(PANGOLIN.out.pangolin_file)
+        }
 
-        PANGO_ALIASOR(pangolin.out.pangolin_file)
-        ch_versions = ch_versions.mix(PANGO_ALIASOR.out.versions)
-        
+        if (params.pango_aliasor) {
+            // running pango aliasor
+            PANGO_ALIASOR(PANGOLIN.out.pangolin_file)
+            ch_versions = ch_versions.mix(PANGO_ALIASOR.out.versions)
+            ch_summary  = ch_summary.mix(PANGO_ALIASOR.out.results)
+        }
+
+        // running nextclade
         if ( params.download_nextclade_dataset ) {
             DATASET()
             ch_dataset = DATASET.out.dataset
@@ -36,18 +52,28 @@ workflow SARSCOV2 {
             ch_dataset = UNZIP.out.dataset
         }
         
-        NEXTCLADE(ch_fastas.collect(), ch_dataset)
-        ch_versions = ch_versions.mix(NEXTCLADE.out.versions)
+        if (params.nextclade) {
+            NEXTCLADE(ch_fastas.collect(), ch_dataset)
+            ch_versions = ch_versions.mix(NEXTCLADE.out.versions)
+            ch_summary  = ch_summary.mix(NEXTCLADE.out.nextclade_file)
+            ch_multiqc  = ch_multiqc.mix(NEXTCLADE.out.nextclade_file)
+        }
 
-        FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
-        ch_versions = ch_versions.mix(FREYJA.out.versions.first())
+        if (params.freyja) {
+            // running freyja
+            FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
+            ch_versions = ch_versions.mix(FREYJA.out.versions.first())
 
-        AGGREGATE(FREYJA.out.demix.collect(), ch_script)
-        ch_versions = ch_versions.mix(AGGREGATE.out.versions)
+            if (params.freyja_aggregate) {
+                AGGREGATE(FREYJA.out.demix.collect(), ch_script)
+                ch_versions = ch_versions.mix(AGGREGATE.out.versions)
+                ch_multiqc  = ch_multiqc.mix(AGGREGATE.out.for_multiqc)
+                ch_summary  = ch_summary.mix(AGGREGATE.out.aggregated_freyja_file)
+            }
+        }
 
     emit:
-        dataset     = ch_dataset
-        for_multiqc = PANGOLIN.out.pangolin_file.mix(NEXTCLADE.out.nextclade_file).mix(AGGREGATE.out.for_multiqc)
-        for_summary = AGGREGATE.out.aggregated_freyja_file.mix(VADR.out.vadr_file).mix(PANGO_ALIASOR.out.results).mix(NEXTCLADE.out.nextclade_file).mix(PANGOLIN.out.pangolin_file)
+        for_multiqc = ch_multiqc
+        for_summary = ch_summary
         versions    = ch_versions
 }

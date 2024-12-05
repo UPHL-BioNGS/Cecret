@@ -63,7 +63,6 @@ workflow INITIALIZE {
     println('')
 
 
-
     //
     // Copy a config and params file for the end user
     //
@@ -508,6 +507,7 @@ workflow INITIALIZE {
     gff                 = ch_gff // channel: gff file
     primer              = ch_primer_bed // channel: bedfile
     amplicon            = ch_amplicon_bed // channel: bedfile
+    for_version         = ch_for_version // channel: value 
     versions            = ch_versions // channel: value
     kraken2_db          = ch_kraken2_db // channel: path
     scripts             = ch_scripts // channel: [scripts]
