@@ -1,6 +1,6 @@
 version: "v.3.7.20230502"
 workflows:
-   - name: Cecret
-     subclass: NFL
-     publish: True
-     primaryDescriptorPath: ./nextflow.config
+  - name: Cecret
+    subclass: NFL
+    publish: True
+    primaryDescriptorPath: ./nextflow.config
