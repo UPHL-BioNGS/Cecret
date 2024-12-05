@@ -1,4 +1,4 @@
-process DOWNLOAD_DATASET {
+process NEXTCLADE_DATASET {
   tag        "Downloading Dataset"
   label      "process_medium"
   publishDir path: params.outdir, mode: 'copy', saveAs: { filename -> filename.equals('versions.yml') ? null : filename }
