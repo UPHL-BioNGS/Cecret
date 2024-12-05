@@ -11,7 +11,7 @@ aci_file                = 'aci_coverage_summary.csv'
 ampliconstats_file      = 'ampliconstats.summary'
 samtools_coverage_file  = 'samtools_coverage_summary.tsv'
 pangolin_file           = 'lineage_report.csv'
-pango_collapse_file     = 'pango_collapse.csv'
+pango_aliasor_file      = 'pango_aliasor.csv'
 nextclade_file          = 'nextclade.csv'
 vadr_file               = 'vadr.csv'
 fastp_file              = 'multiqc_data/multiqc_general_stats.txt'
@@ -349,15 +349,15 @@ if exists(pangolin_file) :
     summary_df.drop('sample_match', axis=1, inplace=True)
     columns = ['pangolin_lineage'] + columns + pangolin_columns
 
-if exists(pango_collapse_file) :
-    print("Getting results from pango collapse file " + pango_collapse_file)
+if exists(pango_aliasor_file) :
+    print("Getting results from pango aliasor file " + pango_aliasor_file)
 
-    pangocollapse_df = pd.read_csv(pango_collapse_file, dtype = str, usecols=['lineage','Lineage_full', 'Lineage_expanded', 'Lineage_family'])
-    pangocollapse_df = pangocollapse_df.add_prefix('pangocollapse_')
-    pangocollapse_columns = list(pangocollapse_df.columns)
+    pango_aliasor_df = pd.read_table(pango_aliasor_file, dtype = str, usecols=['lineage','unaliased_lineage'])
+    pango_aliasor_df = pango_aliasor_df.add_prefix('pango_aliasor_')
+    pango_aliasor_columns = list(pango_aliasor_df.columns)
 
-    summary_df = pd.merge(summary_df, pangocollapse_df, left_on = 'pangolin_lineage', right_on = 'pangocollapse_lineage', how = 'left')
-    columns = columns + pangocollapse_columns
+    summary_df = pd.merge(summary_df, pango_aliasor_df, left_on = 'pangolin_lineage', right_on = 'pango_aliasor_lineage', how = 'left')
+    columns = columns + pango_aliasor_columns
 
 if exists(freyja_file) :
     print("Getting results from freyja file " + freyja_file)
