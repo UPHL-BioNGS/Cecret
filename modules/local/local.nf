@@ -1,4 +1,4 @@
-process DOWNLOAD {
+process DOWNLOAD_FASTQ {
   tag        "${sra}"
   publishDir "${params.outdir}", mode: 'copy'
   container  'quay.io/biocontainers/pandas:1.5.2'
@@ -12,8 +12,8 @@ process DOWNLOAD {
   val(sra)
 
   output:
-  tuple val(sra), file("sra/paired/${sra}*fastq.gz"), val("paired"), optional: true, emit: paired
-  tuple val(sra), file("sra/single/${sra}*fastq.gz"), val("single"), optional: true, emit: single
+  tuple val(sra), file("sra/paired/${sra}*fastq.gz"), val(false), optional: true, emit: paired
+  tuple val(sra), file("sra/single/${sra}*fastq.gz"), val(true), optional: true, emit: single
 
   shell:
   """
@@ -102,7 +102,7 @@ process SUMMARY {
 
     if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | grep -v "#-" | tr -s '[:blank:]' ',' > vadr.csv ; fi
 
-    python ${script} ${params.minimum_depth}
+    python combine_results.py ${params.minimum_depth}
   """
 }
 
