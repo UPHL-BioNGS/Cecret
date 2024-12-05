@@ -2,20 +2,19 @@
 
 UPDATE : THIS README IS (albiet slowly) GETTING TURNED INTO A WIKI. YOU CAN CHECK OUR PROGRESS HERE: https://github.com/UPHL-BioNGS/Cecret/wiki
 
-
 Named after the beautiful [Cecret lake](https://en.wikipedia.org/wiki/Cecret_Lake)
 
 Location: 40.570°N 111.622°W , Elevation: 9,875 feet (3,010 m), [Hiking level: easy](https://www.alltrails.com/trail/us/utah/cecret-lake-trail)
 
-|                                       ||
-|:-------------------------------------:|:-------------------------------------:|
-| <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-13.jpg" width="500"/> | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-1.jpg" width="500" /> |
+|                                                                                                                                                                |                                                                                                                                                                |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-13.jpg" width="500"/>  | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-1.jpg" width="500" />  |
 | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-10.jpg" width="500" /> | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-11.jpg" width="500" /> |
 
 ([Image credit: Intermountain Healthcare](https://intermountainhealthcare.org/services/wellness-preventive-medicine/live-well/move-well/healthy-hikes/find-a-hike/cecret-lake/))
 
-
 Table of Contents:
+
 - [Introduction](https://github.com/UPHL-BioNGS/Cecret#introduction)
 - [Dependencies](https://github.com/UPHL-BioNGS/Cecret#dependencies)
 - [Usage](https://github.com/UPHL-BioNGS/Cecret#usage)
@@ -38,7 +37,7 @@ Table of Contents:
 - [Turning off unneeded processes](https://github.com/UPHL-BioNGS/Cecret#turning-off-unneeded-processes)
 - [Final file structure](https://github.com/UPHL-BioNGS/Cecret#final-file-structure)
 - [Config files](https://github.com/UPHL-BioNGS/Cecret#config-files)
-   - [Using config files](https://github.com/UPHL-BioNGS/Cecret#using-config-files)
+  - [Using config files](https://github.com/UPHL-BioNGS/Cecret#using-config-files)
 - [Frequently Asked Questions (aka FAQ)](https://github.com/UPHL-BioNGS/Cecret#frequently-asked-questions-aka-faq)
 
 ## Introduction
@@ -61,6 +60,7 @@ Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_to
 ## Usage
 
 This workflkow does not run without input files, and there are multiple ways to specify which input files should be used
+
 - using files in [directories](https://github.com/UPHL-BioNGS/Cecret#getting-files-from-directories)
 - using files specified in a [sample sheet](https://github.com/UPHL-BioNGS/Cecret#using-a-sample-sheet)
 - using params, directories and files specified in a [config file](https://github.com/UPHL-BioNGS/Cecret#using-config-files)
@@ -83,9 +83,11 @@ A file summarizing all results is found in `'params.outdir'/cecret_results.csv` 
 Consensus sequences can be found in `'params.outdir'/consensus` and end with `*.consensus.fa`.
 
 ### Getting files from directories
+
 (can be adjusted with 'params.reads', 'params.single_reads', 'params.fastas', and 'params.nanopore')
 
 Paired-end fastq.gz (ending with 'fastq', 'fastq.gz', 'fq', or 'fq.gz') reads as follows or designate directory with 'params.reads' or '--reads'
+
 ```
 directory
 └── reads
@@ -105,6 +107,7 @@ directory
 WARNING : single and paired-end reads **cannot** be in the same directory
 
 Nanopore/ONT reads as follows or designate directory with 'params.nanopore' or '--nanopore'
+
 ```
 directory
 └── nanopore
@@ -112,6 +115,7 @@ directory
 ```
 
 Fasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.fastas' or '--fastas'
+
 ```
 directory
 └── fastas
@@ -119,6 +123,7 @@ directory
 ```
 
 MultiFasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.multifastas' or '--multifastas'
+
 ```
 directory
 └── multifastas
@@ -128,9 +133,11 @@ directory
 WARNING : fastas and multifastas **cannot** be in the same directory. If no fasta preprocessing is necessary, put the single fastas in the multifastas directory.
 
 ### Using a sample sheet
+
 Cecret can also use a sample sheet for input with the sample name and reads separated by commas. The header must be `sample,fastq_1,fastq_2`. The general rule is the identifier for the file(s), the file locations, and the type if not paired-end fastq files.
 
 Rows match files with their processing needs.
+
 - paired-end reads: `sample,read1.fastq.gz,read2.fastq.gz`
 - single-reads reads: `sample,sample.fastq.gz,single`
 - nanopore reads : `sample,sample.fastq.gz,ont`
@@ -138,6 +145,7 @@ Rows match files with their processing needs.
 - multifasta files: `multifasta,multifasta.fasta,multifasta`
 
 Example sample sheet:
+
 ```
 sample,fastq_1,fastq_2
 SRR13957125,/home/eriny/sandbox/test_files/cecret/reads/SRR13957125_1.fastq.gz,/home/eriny/sandbox/test_files/cecret/reads/SRR13957125_2.fastq.gz
@@ -148,17 +156,21 @@ SRR22452244,/home/eriny/sandbox/test_files/cecret/nanopore/SRR22452244.fastq.gz,
 ```
 
 Example usage with sample sheet using docker to manage containers
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile docker --sample_sheet SampleSheet.csv
 ```
 
 ## Full workflow
+
 ![alt text](images/Cecret.png)
 
 ## Determining primer and amplicon bedfiles
-The default primer scheme of the 'Cecret' workflow is the 'V4' primer scheme developed by [artic network for SARS-CoV-2](https://artic.network/ncov-2019). Releases prior to and including '2.2.20211221' used the 'V3' primer scheme as the default. As many public health laboratories are still using 'V3', the 'V3' files are still in this repo, but now the 'V4', 'V4.1' ('V4' with a spike-in of additional primers), and 'V5.3.2' are also included. The original primer and amplicon bedfiles can be found at [artic's github repo](https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019). 
+
+The default primer scheme of the 'Cecret' workflow is the 'V4' primer scheme developed by [artic network for SARS-CoV-2](https://artic.network/ncov-2019). Releases prior to and including '2.2.20211221' used the 'V3' primer scheme as the default. As many public health laboratories are still using 'V3', the 'V3' files are still in this repo, but now the 'V4', 'V4.1' ('V4' with a spike-in of additional primers), and 'V5.3.2' are also included. The original primer and amplicon bedfiles can be found at [artic's github repo](https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019).
 
 Setting primers with a parameter on the command line (these can also be defined in a config file)
+
 ```
 # using artic V3 primers
 nextflow run UPHL-BioNGS/Cecret -profile singularity --primer_set 'ncov_V3'
@@ -178,6 +190,7 @@ Some "Midnight" primers are also included and can be set with `midnight_idt_V1`,
 It is still possible to set 'params.primer_bed' and 'params.amplicon_bed' via the command line or in a config file with the path to the corresponding file.
 
 ## Using the included nextclade dataset
+
 It has been requested by some of our more sofisticated colleagues to include a way to upload a nextclade dataset separately. We expect that is mostly for cloud usage. To accomadate this, there is now a sars.zip file in [data](./data/sars.zip) with a nextclade dataset. To use this included dataset, `params.download_nextclade_dataset` must be set to false in either the command line of in a config file.
 
 ```
@@ -187,11 +200,13 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --sample_sheet input.csv --
 This included dataset, however, will only be as current as Cecret's maintainers are able to upload it. There is a Github actions that should attempt to update the [nextclade dataset every Tuesday](.github/workflows/update_nextclade.yml), but this still has be merged and go through testing. The end user can also create a nextclade dataset, and then feed that into this workflow with `params.predownloaded_nextclade_dataset`.
 
 To create the nextclade dataset with nextclade
+
 ```
 nextclade dataset get --name sars-cov-2 --output-zip sars.zip
 ```
 
 To use with Cecret
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --sample_sheet input.csv --download_nextclade_dataset false --predownloaded_nextclade_dataset sars.zip
 ```
@@ -199,38 +214,48 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --sample_sheet input.csv --
 Or the corresponding params can be set in a config file.
 
 ## Determining CPU usage
+
 For the sake of simplicity, processes in this workflow are designated 1 CPU, a medium amount of CPUs (5), or the largest amount of CPUs (the number of CPUs of the environment launching the workflow if using the main [workflow](./Cecret.nf) and a simple config file or 8 if using profiles and the [config template](./configs/cecret_config_template.config)). The medium amount of CPUs can be adjusted by the **End User** by adjusting `'params.medcpus'`, the largest amount can be adjusted with `'params.maxcpus'`, or the cpus can be specified for each process individually in a config file.
 
 The **End User** can adjust this by specifying the maximum cpus that one process can take in the config file `'params.maxcpus = <new value>'` or on the command line
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --maxcpus <new value>
 ```
+
 It is important to remember that nextflow will attempt to utilize all CPUs available, and this value is restricted to one process. As a specific example, the prcoess 'bwa' will be allocated `'params.maxcpus'`. If there are 48 CPUs available and `'params.maxcpus = 8'`, then 6 samples will be run simultaneously.
 
 ## Determining depth for base calls
+
 Sequencing has an intrinsic amount of error for every predicted base on a read. This error is reduced the more reads there are. As such, there is a minimum amount of depth that is required to call a base with ivar consensus, ivar variants, and bcftools variants. The main assumption of using this workflow is that the virus is clonal (i.e. only one infection represented in a sample) and created via pcr amplified libraries. The default depth for calling bases or finding variants is set with 'params.minimum_depth' with the default value being `'params.minimum_depth = 100'`. This parameter can be adjusted by the **END USER** in a config file or on the command line.
 
 A corresponding parameter is 'params.mpileup_depth' (default of `'params.mpileup_depth = 8000'`), which is the number of reads that samtools (used by ivar) or bcftools uses to put into memory for any given position. If the **END USER** is experiencing memory issues, this number may need to be decreased.
 
 ## Determining if duplicates should be taken into account
+
 For library preparation methods with baits followed by PCR amplification, it is recommended to remove duplicate reads. For most other methods, removing deplicates will generally not harm anything. To remove duplicates, set the `'params.markdup'` to true. This removes duplicate reads from the aligned sam file, which is before the primer trimming and after the filter processes. This will likely enable a lower minimum depth for variant calling (default is 100).
 
 On the command line:
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --markdup true --minimum_depth 10
 ```
 
 In a config file:
+
 ```
 params.markdup = true
 params.minimum_depth = 10
 ```
 
 ## Monkeypox
+
 The defaults for Cecret continue to be for SARS-CoV-2, but there are growing demands for a workflow for Monkeypox Virus. As such, there are a few parameters that might benefit the **End User**.
 
 ### Using the Monkeypox profile
+
 There are three profiles for Monkeypox Virus sequencing : `mpx`, `mpx_idt`, `mpx_yale`, and `mpx_primalseq`. The `mpx` profile has some defaults for a metagenomic-type sequencing, while `mpx_idt` is for libraries prepped with [IDT](https://www.idtdna.com/)'s primers, and `mpx_primalseq` which has been [validated](https://www.medrxiv.org/content/10.1101/2022.10.14.22280783v1.full-text) with Illumina library prep methods and sequencing platforms.
+
 ```
 # metagenomic
 nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx
@@ -247,12 +272,14 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_primalseq
 
 ### Other library prep methods
 
-There are amplicon-based methods, bait, and amplicon-bait hybrid library preparation methods which increases the portion of reads for a relevant organism. If there is a common preparation for the **End User**, please submit an [issue](https://github.com/UPHL-BioNGS/Cecret/issues), and we can create a profile or config file. Remember that the bedfiles for the primer schemes and amplicons MUST match the reference. 
+There are amplicon-based methods, bait, and amplicon-bait hybrid library preparation methods which increases the portion of reads for a relevant organism. If there is a common preparation for the **End User**, please submit an [issue](https://github.com/UPHL-BioNGS/Cecret/issues), and we can create a profile or config file. Remember that the bedfiles for the primer schemes and amplicons MUST match the reference.
 
 ## Wastewater
+
 This workflow has also been used with primer-amplified Illumina sequencing of wastewater. Patient samples conceptually are different than wastewater samples, but many of the bioinformatic steps are the same. The files from [Freyja](https://github.com/andersen-lab/Freyja) are likely the most significant for this analysis. Freyja uses the bam files after primer trimming has been completed to look for variants and their proportions to assign expected pangolin lineages.
 
 Recommended parameter adjustements for wastewater
+
 ```
 params.species           = 'sarscov2' //this is the default, but it is required for the subworkflow that involves freyja
 params.bcftools_variants = false
@@ -265,17 +292,19 @@ params.vadr              = false
 Pangolin, Nextclade, and any analysis that evaluates the consensus fasta are not as useful in the context of wastewater. There is currently not a way to remove consensus sequence generation from Cecret, but an option may be available in the future if there is "enough" demand.
 
 ## Updating Cecret
+
 ```
 nextflow pull UPHL-BioNGS/Cecret
 ```
 
-Cecret has a weekly update schedule. Cecret's versions have three numbers : X.Y.Z. If the first number, X, changes, there has been a major modification. Params may have changed or subworkflows/channels may have been modified. If the second number, Y, changes, there has been a minor to moderate change. These are mainly for bug fixes or the changing the defaults of params. If the last number has been modified, Z, the workflow is basically the same, there have just been some updates in the containers pulled for the workflow. Most of these updates are to keep Freyja, NextClade, and Pangolin current for SARS-CoV-2 analysis. 
+Cecret has a weekly update schedule. Cecret's versions have three numbers : X.Y.Z. If the first number, X, changes, there has been a major modification. Params may have changed or subworkflows/channels may have been modified. If the second number, Y, changes, there has been a minor to moderate change. These are mainly for bug fixes or the changing the defaults of params. If the last number has been modified, Z, the workflow is basically the same, there have just been some updates in the containers pulled for the workflow. Most of these updates are to keep Freyja, NextClade, and Pangolin current for SARS-CoV-2 analysis.
 
 ## Quality Assessment
+
 The quality of a sequencing run is very important. As such, many values are recorded so that the **End User** can assess the quality of the results produced from a sequencing run.
 
 - `fastqc_raw_reads_1` and `fastqc_raw_reads_2` are the number of reads prior to cleaning by either seqyclean or fastp.
-- `seqyclean_Perc_Kept` (params.cleaner = 'seqyclean') or `fastp_pct_surviving` (params.cleaner = 'fastp') indicate how many reads remain after removal of low-quality reads (more = better). 
+- `seqyclean_Perc_Kept` (params.cleaner = 'seqyclean') or `fastp_pct_surviving` (params.cleaner = 'fastp') indicate how many reads remain after removal of low-quality reads (more = better).
 - `num_N` is the number of uncalled bases in the generated consensus sequence (less = better).
 - `num_total` is the total number of called bases in the generated consensus sequequence (more = better). As many consensus sequences are generated with this workflow via amplicon sequencing, the intitial and end of the reference often has little coverage. This means that the number of bases in the consensus sequence is less than the length of the reference sequence.
 - `num_pos_${params.minimum_depth}X` (which is `num_pos_100X` by default) is the number of positions for which there is sufficient depth to call variants (more = better). Any sequence below this value will be an `N`.
@@ -285,6 +314,7 @@ The quality of a sequencing run is very important. As such, many values are reco
 More imformation on evaluating amplicon/primer failure can be found in the [FAQ](https://github.com/UPHL-BioNGS/Cecret#is-there-a-way-to-determine-if-certain-amplicons-are-failing) under the question 'Is there a way to determine if certain amplicons are failing?'
 
 Kraken2 is optional for this workflow, but can provide additional quality assessment metrics:
+
 - `top_organism` is the most common organism identified in the reads.
 - `percent_reads_top_organism` is the percentage of reads assigned that organism (more = better).
 - `%_human_reads` is the percentage of human reads reads (less = better).
@@ -292,59 +322,78 @@ Kraken2 is optional for this workflow, but can provide additional quality assess
 ## Optional toggles:
 
 ### Using fastp to clean reads instead of seqyclean
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --cleaner fastp
 ```
+
 Or set `params.cleaner = 'fastp'` in a config file
 
 ### Using samtools to trim amplicons instead of ivar
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --trimmer samtools
 ```
+
 Or set `params.trimmer = 'samtools'` in a config file
 
 ### Skipping primer trimming completely
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --trimmer none
 ```
+
 Or set `params.trimmer = 'none'` in a config file
 
 ### Using minimap2 to align reads instead of bwa
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --aligner minimap2
 ```
+
 Or set `params.aligner = 'minimap2'` in a config file
 
 ## Determining relatedness
+
 To create a multiple sequence alignment and corresponding phylogenetic tree and SNP matrix, set `params.relatedness = true` or
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true
 ```
+
 ### Using nextclade to for multiple sequence alignement instead of mafft
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --msa nextclade
 ```
+
 Or set `params.msa = 'nextclade'` and `params.relatedness = true` in a config file
 
 And then you get trees like this which can visualized with [itol](https://itol.embl.de/) or [ggtree](https://github.com/YuLab-SMU/ggtree).
 ![alt text](images/w5IMLiHfkMm3fS3kgJVpRg.png)
 
 ### Classify reads with kraken2
+
 To classify reads with kraken2 to identify reads from human or the organism of choice
+
 #### Step 1. Get a kraken2 database
+
 ```
 mkdir kraken2_db
 cd kraken2_db
 wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20230605.tar.gz
 tar -zxvf minikraken2_v2_8GB_201904.tgz
 ```
+
 #### Step 2. Set the paramaters accordingly
+
 ```
 params.kraken2 = true
 params.kraken2_db = 'kraken2_db'
 ```
 
 ## The main components of Cecret are:
+
 - [aci](https://github.com/erinyoung/ACI) - for depth estimation over amplicons (optional, set params.aci = true)
 - [artic network](https://github.com/artic-network) - for aligning and consensus creation of nanopore reads
 - [bbnorm](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbnorm-guide/) - for normalizing reads (optional, set params.bbnorm = true)
@@ -371,7 +420,9 @@ params.kraken2_db = 'kraken2_db'
 - [vadr](https://github.com/ncbi/vadr) - for annotating fastas like NCBI
 
 ### Turning off unneeded processes
+
 It came to my attention that some processes (like bcftools) do not work consistently. Also, they might take longer than wanted and might not even be needed for the end user. Here's the processes that can be turned off with their default values:
+
 ```
 params.bcftools_variants = true           # vcf of variants
 params.fastqc = true                      # qc on the sequencing reads
@@ -400,6 +451,7 @@ params.multiqc = true                     # aggregates data into single report
 ```
 
 ## Final file structure
+
 <details>
    <summary>Final File Tree after running cecret.nf</summary>
 
@@ -788,21 +840,25 @@ work                                 # nextflow's working directories
 **A FILE THAT THE END USER CAN COPY AND EDIT IS FOUND AT [configs/cecret_config_template.config](configs/cecret_config_template.config)**
 
 To get a copy of the config file, the **End User** can use the following command. This creates an `edit_me.config` file in the current directory.
+
 ```
 nextflow run UPHL-BioNGS/Cecret --config_file true
 ```
 
-This file contains all of the configurable parameters with their default values. Use `'-c'` to specify the edited config file. 
+This file contains all of the configurable parameters with their default values. Use `'-c'` to specify the edited config file.
 
 ### Using config files
+
 The **End User** should not have to change the files in the Cecret repository in order to get the analyses that they need. Nextflow has a wonderful system of config files, which are recommended. Please read nextflow's documentation about config files at [https://www.nextflow.io/docs/latest/config.html](https://www.nextflow.io/docs/latest/config.html?highlight=profile#configuration-file)
 
 The general format of a config file is
+
 ```
 param.<parameter that needs adjusting> = <what it needs to be adjusted to>
 ```
 
 Then this config file is used with the workflow via the following
+
 ```
 nextflow run UPHL-BioNGS/Cecret -c <path to custom config file>
 ```
@@ -812,39 +868,48 @@ In theory, the values specified in this config file will be used over the defaul
 If the **End User** is using some sort of cloud or HPC setup, it is highly recommended that this file is copied and edited appropriately. A limited list of parameters is listed below:
 
 ### Input and output directories
-* params.reads = workflow.launchDir + '/reads'
-* params.single_reads = workflow.launchDir + '/single_reads'
-* params.fastas = workflow.launchDir + '/fastas'
-* params.multifastas = workflow.launchDir + '/multifastas'
-* params.outdir = workflow.launchDir + '/cecret'
+
+- params.reads = workflow.launchDir + '/reads'
+- params.single_reads = workflow.launchDir + '/single_reads'
+- params.fastas = workflow.launchDir + '/fastas'
+- params.multifastas = workflow.launchDir + '/multifastas'
+- params.outdir = workflow.launchDir + '/cecret'
 
 ## Other useful nextflow options
-* To "resume" a workflow, use `-resume` with the nextflow command
-* To create a report, use `-with-report` with the nextflow command
-* To use nextflow tower, use `-with-tower` with the nextflow command (reports will not be available for download from nextflow tower using this method)
+
+- To "resume" a workflow, use `-resume` with the nextflow command
+- To create a report, use `-with-report` with the nextflow command
+- To use nextflow tower, use `-with-tower` with the nextflow command (reports will not be available for download from nextflow tower using this method)
 
 ## Frequently Asked Questions (aka FAQ)
+
 ### What do I do if I encounter an error?
 
 **TELL US ABOUT IT!!!**
-* [Github issue](https://github.com/UPHL-BioNGS/Cecret/issues)
-* Send someone from UPHL on slack
+
+- [Github issue](https://github.com/UPHL-BioNGS/Cecret/issues)
+- Send someone from UPHL on slack
 
 Be sure to include the command that was used, what config file was used, and what the **nextflow** error was.
 
 ### What is the MultiQC report?
+
 The multiqc report aggregates data across your samples into one file. Open the 'cecret/multiqc/multiqc_report.html' file with your favored browser. There tables and graphs are generated for 'General Statistics', 'Samtools stats', 'Samtools flagstats', 'FastQC', 'iVar', 'SeqyClean', 'Fastp', 'Pangolin', and 'Kraken2'.
 
 #### Example fastqc graph
+
 ![alt text](images/multiqc_fastqc.png)
 
 #### Example kraken2 graph
+
 ![alt text](images/multiqc_kraken2.png)
 
 #### Example iVar graph
+
 ![alt text](images/multiqc_ivar.png)
 
 #### Example pangolin graph
+
 ![alt text](images/multiqc_pangolin.png)
 
 ### What if I want to test the workflow?
@@ -852,6 +917,7 @@ The multiqc report aggregates data across your samples into one file. Open the '
 In the history of this repository, there actually was an attempt to store fastq files here that the **End User** could use to test out this workflow. This made the repository very large and difficult to download.
 
 There are several test profiles. These download fastq files from the ENA to use in the workflow. This does not always work due to local internet connectivity issues, but may work fine for everyone else.
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile {docker or singularity},test
 ```
@@ -861,6 +927,7 @@ Another great resources is [SARS-CoV-2 datasets](https://github.com/CDCgov/datas
 The expected amount of time to run this workflow with 250 G RAM and 48 CPUs, 'params.maxcpus = 8', and 'params.medcpus = 4' is ~42 minutes. This corresponded with 25.8 CPU hours.
 
 ### What if I just want to annotate some SARS-CoV-2 fastas with pangolin, freyja, nextclade and vadr?
+
 ```
 # for a collection of fastas
 nextflow run UPHL-BioNGS/Cecret -profile singularity --fastas <directory with fastas>
@@ -872,19 +939,23 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --fastas <directory with fa
 ### How do I compare a bunch of sequences? How do I create a phylogenetic tree?
 
 The **End User** can run mafft, snpdists, and iqtree on a collection of fastas as well with
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas> --multifastas <directory with multifastas>
 ```
 
 The **End User** can have paired-end, singled-end, and fastas that can all be put together into one analysis.
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas> --multifastas <directory with multifastas> --reads <directory with paire-end reads> --single_reads <directory with single-end reads>
 ```
 
 ### Where is an example config file?
+
 The **End User** is more than welcome to look at an example [here](./configs/cecret_config_template.config). Just remove the comments for the parameters that need to be adjusted and specify with `-c`.
 
 To get a copy of the config file, the **End User** can use the following command. This created edit_me.config in the current directory.
+
 ```
 nextflow run UPHL-BioNGS/Cecret --config_file true
 ```
@@ -903,6 +974,7 @@ params {
 ```
 
 And then run with
+
 ```
 nextflow run UPHL-BioNGS/Cecret -c <path to custom config file>
 ```
@@ -912,11 +984,13 @@ nextflow run UPHL-BioNGS/Cecret -c <path to custom config file>
 There are two ways to do this.
 
 #### With ACI :
+
 `cecret/aci` has two files : amplicon_depth.csv and amplicon_depth.png. There is a row for each sample in 'amplicon_depth.csv', and a column for each primer in the amplicon bedfile. The values contained within are reads that only map to the region specified in the amplicon bedfile and excludes reads that do not. A boxplot of these values is visualized in amplicon_depth.png.
 
 ![alt text](images/amplicon_depth.png)
 
 #### With samtools ampliconstats :
+
 `cecret/samtools_ampliconstats` has a file for each sample.
 
 Row number 126 (FDEPTH) has a column for each amplicon (also without a header). To get this row for all of the samples, `grep` the keyword "FDEPTH" from each sample.
@@ -928,6 +1002,7 @@ grep "^FDEPTH" cecret/samtools_ampliconstats/* > samtools_ampliconstats_all.tsv
 There are corresponding images in `cecret/samtools_plot_ampliconstats` for each sample.
 
 #### Sample samtools plot ampliconstats depth graph
+
 ![alt text](images/example-combined-depth.png)
 
 ### What is the difference between `params.amplicon_bed` and `params.primer_bed`?
@@ -947,7 +1022,9 @@ MN908947.3	1312	1337	nCoV-2019_4_RIGHT	nCoV-2019_2	-
 MN908947.3	1242	1264	nCoV-2019_5_LEFT	nCoV-2019_1	+
 MN908947.3	1623	1651	nCoV-2019_5_RIGHT	nCoV-2019_1	-
 ```
+
 The amplicon bedfile is the file with the start and stop of each intended **amplicon**.
+
 ```
 $ head configs/artic_V3_nCoV-2019.insert.bed <==
 MN908947.3	54	385	1	1	+
@@ -961,6 +1038,7 @@ MN908947.3	2205	2568	8	2	+
 MN908947.3	2529	2880	9	1	+
 MN908947.3	2850	3183	10	2	+
 ```
+
 Due to the many varieties of primer bedfiles, it is best if the **End User** supplied this file for custom primer sequences.
 
 ### What if I am using an amplicon-based library that is not SARS-CoV-2?
@@ -968,13 +1046,16 @@ Due to the many varieties of primer bedfiles, it is best if the **End User** sup
 First of all, this is a great thing! [Let us know](https://github.com/UPHL-BioNGS/Cecret/issues) if tools specific for your organism should be added to this workflow. There are already options for 'mpx' and 'other' species.
 
 In a config file, change the following relevant parameters:
+
 ```
 params.reference_genome
 params.primer_bed
 params.amplicon_bed #or set params.aci = false
 params.gff_file #or set params.ivar_variants = false
 ```
+
 And set
+
 ```
 params.species = 'other'
 params.pangolin = false
@@ -982,6 +1063,7 @@ params.freyja = false
 params.nextclade = false #or adjust nexclade_prep_options from '--name sars-cov-2' to the name of the relevent dataset
 params.vadr = false #or configure the vadr container appropriately and params.vadr_reference
 ```
+
 ### What if I need to filter out human reads or I only want reads that map to my reference?
 
 Although not perfect, if `'params.filter = true'`, then only the reads that were mapped to the reference are returned. This _should_ eliminate all human contamination (as long as human is not part of the supplied reference) and all "problematic" incidental findings.
@@ -1008,6 +1090,7 @@ params.nextclade = false
 params.vadr = false
 params.multiqc = false
 ```
+
 And, yes, this means I added some bells and whistles so the **End User** could turn off the bells and whistles. /irony
 
 ### Can I get images of my SNPs and indels?
@@ -1018,7 +1101,7 @@ No. Prior versions supported a tool called bamsnap, which had the potential to b
 
 Never fear, they are still in nextflow's work directory if the **End User** really needs them. They are no longer included in `publishDir` because of size issues. The BAM files are still included in `publishDir`, and most analyses for SAM files can be done with BAM files.
 
-### Where did the *err files go?
+### Where did the \*err files go?
 
 Personally, we liked having `stderr` saved to a file because some of the tools using in this workflow print to `stderr` instead of `stdout`. We have found, however, that this puts all the error text into a file, which a lot of new-to-nextflow users had a hard time finding. It was easier to assist and troubleshoot with **End Users** when `stderr` was printed normally.
 
@@ -1034,5 +1117,6 @@ Personally, we liked having `stderr` saved to a file because some of the tools u
 Bedtools multicov was replaced by ACI due to processing times, but there are other processes that take longer.
 
 Right now, the processes that take the most time are
+
 - ivar trim
 - freyja
