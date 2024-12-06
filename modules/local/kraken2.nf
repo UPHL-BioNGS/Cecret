@@ -21,7 +21,6 @@ process KRAKEN2 {
   def prefix = task.ext.prefix ?: "${meta.id}"
   def reads  = clean.join(" ")
   def paired = meta.single_end ? "" : "--paired"
-  if ( meta.single_end ) {
   """
     mkdir -p kraken2 logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
@@ -44,5 +43,4 @@ process KRAKEN2 {
       kraken2: \$(kraken2 --version | head -n 1 | awk '{print \$NF}')
     END_VERSIONS
   """
-  }
 }
