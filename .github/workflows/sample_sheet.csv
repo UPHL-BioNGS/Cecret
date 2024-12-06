@@ -1,0 +1,6 @@
+sample,fastq_1,fastq_2
+paired_test,reads/SRR13957123_1.fastq.gz,reads/SRR13957123_2.fastq.gz
+single_test,reads/SRR25097869.fastq.gz,single
+wastewater_test,reads/SRR31220305_1.fastq.gz,reads/SRR31220305_2.fastq.gz
+fasta_test,fastas/SRR13957123DB.fa,fasta
+nanopore_test,nanopore/SRR31458670_1.fastq.gz,ont

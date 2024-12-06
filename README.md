@@ -2,20 +2,19 @@
 
 UPDATE : THIS README IS (albiet slowly) GETTING TURNED INTO A WIKI. YOU CAN CHECK OUR PROGRESS HERE: https://github.com/UPHL-BioNGS/Cecret/wiki
 
-
 Named after the beautiful [Cecret lake](https://en.wikipedia.org/wiki/Cecret_Lake)
 
 Location: 40.570°N 111.622°W , Elevation: 9,875 feet (3,010 m), [Hiking level: easy](https://www.alltrails.com/trail/us/utah/cecret-lake-trail)
 
-|                                       ||
-|:-------------------------------------:|:-------------------------------------:|
-| <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-13.jpg" width="500"/> | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-1.jpg" width="500" /> |
+|                                                                                                                                                                |                                                                                                                                                                |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-13.jpg" width="500"/>  | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-1.jpg" width="500" />  |
 | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-10.jpg" width="500" /> | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-11.jpg" width="500" /> |
 
 ([Image credit: Intermountain Healthcare](https://intermountainhealthcare.org/services/wellness-preventive-medicine/live-well/move-well/healthy-hikes/find-a-hike/cecret-lake/))
 
-
 Table of Contents:
+
 - [Introduction](https://github.com/UPHL-BioNGS/Cecret#introduction)
 - [Dependencies](https://github.com/UPHL-BioNGS/Cecret#dependencies)
 - [Usage](https://github.com/UPHL-BioNGS/Cecret#usage)
@@ -38,7 +37,7 @@ Table of Contents:
 - [Turning off unneeded processes](https://github.com/UPHL-BioNGS/Cecret#turning-off-unneeded-processes)
 - [Final file structure](https://github.com/UPHL-BioNGS/Cecret#final-file-structure)
 - [Config files](https://github.com/UPHL-BioNGS/Cecret#config-files)
-   - [Using config files](https://github.com/UPHL-BioNGS/Cecret#using-config-files)
+  - [Using config files](https://github.com/UPHL-BioNGS/Cecret#using-config-files)
 - [Frequently Asked Questions (aka FAQ)](https://github.com/UPHL-BioNGS/Cecret#frequently-asked-questions-aka-faq)
 
 ## Introduction
@@ -60,7 +59,8 @@ Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_to
 
 ## Usage
 
-This workflkow does not run without input files, and there are multiple ways to specify which input files should be used
+This workflow does not run without input files, and there are multiple ways to specify which input files should be used
+
 - using files in [directories](https://github.com/UPHL-BioNGS/Cecret#getting-files-from-directories)
 - using files specified in a [sample sheet](https://github.com/UPHL-BioNGS/Cecret#using-a-sample-sheet)
 - using params, directories and files specified in a [config file](https://github.com/UPHL-BioNGS/Cecret#using-config-files)
@@ -83,9 +83,11 @@ A file summarizing all results is found in `'params.outdir'/cecret_results.csv` 
 Consensus sequences can be found in `'params.outdir'/consensus` and end with `*.consensus.fa`.
 
 ### Getting files from directories
+
 (can be adjusted with 'params.reads', 'params.single_reads', 'params.fastas', and 'params.nanopore')
 
 Paired-end fastq.gz (ending with 'fastq', 'fastq.gz', 'fq', or 'fq.gz') reads as follows or designate directory with 'params.reads' or '--reads'
+
 ```
 directory
 └── reads
@@ -105,6 +107,7 @@ directory
 WARNING : single and paired-end reads **cannot** be in the same directory
 
 Nanopore/ONT reads as follows or designate directory with 'params.nanopore' or '--nanopore'
+
 ```
 directory
 └── nanopore
@@ -112,6 +115,7 @@ directory
 ```
 
 Fasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.fastas' or '--fastas'
+
 ```
 directory
 └── fastas
@@ -119,6 +123,7 @@ directory
 ```
 
 MultiFasta files (ending with 'fa', 'fasta', or 'fna') as follows or designate directory with 'params.multifastas' or '--multifastas'
+
 ```
 directory
 └── multifastas
@@ -128,9 +133,11 @@ directory
 WARNING : fastas and multifastas **cannot** be in the same directory. If no fasta preprocessing is necessary, put the single fastas in the multifastas directory.
 
 ### Using a sample sheet
+
 Cecret can also use a sample sheet for input with the sample name and reads separated by commas. The header must be `sample,fastq_1,fastq_2`. The general rule is the identifier for the file(s), the file locations, and the type if not paired-end fastq files.
 
 Rows match files with their processing needs.
+
 - paired-end reads: `sample,read1.fastq.gz,read2.fastq.gz`
 - single-reads reads: `sample,sample.fastq.gz,single`
 - nanopore reads : `sample,sample.fastq.gz,ont`
@@ -138,6 +145,7 @@ Rows match files with their processing needs.
 - multifasta files: `multifasta,multifasta.fasta,multifasta`
 
 Example sample sheet:
+
 ```
 sample,fastq_1,fastq_2
 SRR13957125,/home/eriny/sandbox/test_files/cecret/reads/SRR13957125_1.fastq.gz,/home/eriny/sandbox/test_files/cecret/reads/SRR13957125_2.fastq.gz
@@ -148,17 +156,21 @@ SRR22452244,/home/eriny/sandbox/test_files/cecret/nanopore/SRR22452244.fastq.gz,
 ```
 
 Example usage with sample sheet using docker to manage containers
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile docker --sample_sheet SampleSheet.csv
 ```
 
 ## Full workflow
+
 ![alt text](images/Cecret.png)
 
 ## Determining primer and amplicon bedfiles
-The default primer scheme of the 'Cecret' workflow is the 'V4' primer scheme developed by [artic network for SARS-CoV-2](https://artic.network/ncov-2019). Releases prior to and including '2.2.20211221' used the 'V3' primer scheme as the default. As many public health laboratories are still using 'V3', the 'V3' files are still in this repo, but now the 'V4', 'V4.1' ('V4' with a spike-in of additional primers), and 'V5.3.2' are also included. The original primer and amplicon bedfiles can be found at [artic's github repo](https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019). 
+
+The default primer scheme of the 'Cecret' workflow is the 'V4' primer scheme developed by [artic network for SARS-CoV-2](https://artic.network/ncov-2019). Releases prior to and including '2.2.20211221' used the 'V3' primer scheme as the default. As many public health laboratories are still using 'V3', the 'V3' files are still in this repo, but now the 'V4', 'V4.1' ('V4' with a spike-in of additional primers), and 'V5.3.2' are also included. The original primer and amplicon bedfiles can be found at [artic's github repo](https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019).
 
 Setting primers with a parameter on the command line (these can also be defined in a config file)
+
 ```
 # using artic V3 primers
 nextflow run UPHL-BioNGS/Cecret -profile singularity --primer_set 'ncov_V3'
@@ -178,6 +190,7 @@ Some "Midnight" primers are also included and can be set with `midnight_idt_V1`,
 It is still possible to set 'params.primer_bed' and 'params.amplicon_bed' via the command line or in a config file with the path to the corresponding file.
 
 ## Using the included nextclade dataset
+
 It has been requested by some of our more sofisticated colleagues to include a way to upload a nextclade dataset separately. We expect that is mostly for cloud usage. To accomadate this, there is now a sars.zip file in [data](./data/sars.zip) with a nextclade dataset. To use this included dataset, `params.download_nextclade_dataset` must be set to false in either the command line of in a config file.
 
 ```
@@ -187,11 +200,13 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --sample_sheet input.csv --
 This included dataset, however, will only be as current as Cecret's maintainers are able to upload it. There is a Github actions that should attempt to update the [nextclade dataset every Tuesday](.github/workflows/update_nextclade.yml), but this still has be merged and go through testing. The end user can also create a nextclade dataset, and then feed that into this workflow with `params.predownloaded_nextclade_dataset`.
 
 To create the nextclade dataset with nextclade
+
 ```
 nextclade dataset get --name sars-cov-2 --output-zip sars.zip
 ```
 
 To use with Cecret
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --sample_sheet input.csv --download_nextclade_dataset false --predownloaded_nextclade_dataset sars.zip
 ```
@@ -199,38 +214,48 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --sample_sheet input.csv --
 Or the corresponding params can be set in a config file.
 
 ## Determining CPU usage
+
 For the sake of simplicity, processes in this workflow are designated 1 CPU, a medium amount of CPUs (5), or the largest amount of CPUs (the number of CPUs of the environment launching the workflow if using the main [workflow](./Cecret.nf) and a simple config file or 8 if using profiles and the [config template](./configs/cecret_config_template.config)). The medium amount of CPUs can be adjusted by the **End User** by adjusting `'params.medcpus'`, the largest amount can be adjusted with `'params.maxcpus'`, or the cpus can be specified for each process individually in a config file.
 
 The **End User** can adjust this by specifying the maximum cpus that one process can take in the config file `'params.maxcpus = <new value>'` or on the command line
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --maxcpus <new value>
 ```
+
 It is important to remember that nextflow will attempt to utilize all CPUs available, and this value is restricted to one process. As a specific example, the prcoess 'bwa' will be allocated `'params.maxcpus'`. If there are 48 CPUs available and `'params.maxcpus = 8'`, then 6 samples will be run simultaneously.
 
 ## Determining depth for base calls
+
 Sequencing has an intrinsic amount of error for every predicted base on a read. This error is reduced the more reads there are. As such, there is a minimum amount of depth that is required to call a base with ivar consensus, ivar variants, and bcftools variants. The main assumption of using this workflow is that the virus is clonal (i.e. only one infection represented in a sample) and created via pcr amplified libraries. The default depth for calling bases or finding variants is set with 'params.minimum_depth' with the default value being `'params.minimum_depth = 100'`. This parameter can be adjusted by the **END USER** in a config file or on the command line.
 
 A corresponding parameter is 'params.mpileup_depth' (default of `'params.mpileup_depth = 8000'`), which is the number of reads that samtools (used by ivar) or bcftools uses to put into memory for any given position. If the **END USER** is experiencing memory issues, this number may need to be decreased.
 
 ## Determining if duplicates should be taken into account
+
 For library preparation methods with baits followed by PCR amplification, it is recommended to remove duplicate reads. For most other methods, removing deplicates will generally not harm anything. To remove duplicates, set the `'params.markdup'` to true. This removes duplicate reads from the aligned sam file, which is before the primer trimming and after the filter processes. This will likely enable a lower minimum depth for variant calling (default is 100).
 
 On the command line:
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --markdup true --minimum_depth 10
 ```
 
 In a config file:
+
 ```
 params.markdup = true
 params.minimum_depth = 10
 ```
 
 ## Monkeypox
+
 The defaults for Cecret continue to be for SARS-CoV-2, but there are growing demands for a workflow for Monkeypox Virus. As such, there are a few parameters that might benefit the **End User**.
 
 ### Using the Monkeypox profile
+
 There are three profiles for Monkeypox Virus sequencing : `mpx`, `mpx_idt`, `mpx_yale`, and `mpx_primalseq`. The `mpx` profile has some defaults for a metagenomic-type sequencing, while `mpx_idt` is for libraries prepped with [IDT](https://www.idtdna.com/)'s primers, and `mpx_primalseq` which has been [validated](https://www.medrxiv.org/content/10.1101/2022.10.14.22280783v1.full-text) with Illumina library prep methods and sequencing platforms.
+
 ```
 # metagenomic
 nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx
@@ -247,12 +272,14 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity,mpx_primalseq
 
 ### Other library prep methods
 
-There are amplicon-based methods, bait, and amplicon-bait hybrid library preparation methods which increases the portion of reads for a relevant organism. If there is a common preparation for the **End User**, please submit an [issue](https://github.com/UPHL-BioNGS/Cecret/issues), and we can create a profile or config file. Remember that the bedfiles for the primer schemes and amplicons MUST match the reference. 
+There are amplicon-based methods, bait, and amplicon-bait hybrid library preparation methods which increases the portion of reads for a relevant organism. If there is a common preparation for the **End User**, please submit an [issue](https://github.com/UPHL-BioNGS/Cecret/issues), and we can create a profile or config file. Remember that the bedfiles for the primer schemes and amplicons MUST match the reference.
 
 ## Wastewater
+
 This workflow has also been used with primer-amplified Illumina sequencing of wastewater. Patient samples conceptually are different than wastewater samples, but many of the bioinformatic steps are the same. The files from [Freyja](https://github.com/andersen-lab/Freyja) are likely the most significant for this analysis. Freyja uses the bam files after primer trimming has been completed to look for variants and their proportions to assign expected pangolin lineages.
 
 Recommended parameter adjustements for wastewater
+
 ```
 params.species           = 'sarscov2' //this is the default, but it is required for the subworkflow that involves freyja
 params.bcftools_variants = false
@@ -265,17 +292,19 @@ params.vadr              = false
 Pangolin, Nextclade, and any analysis that evaluates the consensus fasta are not as useful in the context of wastewater. There is currently not a way to remove consensus sequence generation from Cecret, but an option may be available in the future if there is "enough" demand.
 
 ## Updating Cecret
+
 ```
 nextflow pull UPHL-BioNGS/Cecret
 ```
 
-Cecret has a weekly update schedule. Cecret's versions have three numbers : X.Y.Z. If the first number, X, changes, there has been a major modification. Params may have changed or subworkflows/channels may have been modified. If the second number, Y, changes, there has been a minor to moderate change. These are mainly for bug fixes or the changing the defaults of params. If the last number has been modified, Z, the workflow is basically the same, there have just been some updates in the containers pulled for the workflow. Most of these updates are to keep Freyja, NextClade, and Pangolin current for SARS-CoV-2 analysis. 
+Cecret has a weekly update schedule. Cecret's versions have three numbers : X.Y.Z. If the first number, X, changes, there has been a major modification. Params may have changed or subworkflows/channels may have been modified. If the second number, Y, changes, there has been a minor to moderate change. These are mainly for bug fixes or the changing the defaults of params. If the last number has been modified, Z, the workflow is basically the same, there have just been some updates in the containers pulled for the workflow. Most of these updates are to keep Freyja, NextClade, and Pangolin current for SARS-CoV-2 analysis.
 
 ## Quality Assessment
+
 The quality of a sequencing run is very important. As such, many values are recorded so that the **End User** can assess the quality of the results produced from a sequencing run.
 
 - `fastqc_raw_reads_1` and `fastqc_raw_reads_2` are the number of reads prior to cleaning by either seqyclean or fastp.
-- `seqyclean_Perc_Kept` (params.cleaner = 'seqyclean') or `fastp_pct_surviving` (params.cleaner = 'fastp') indicate how many reads remain after removal of low-quality reads (more = better). 
+- `seqyclean_Perc_Kept` (params.cleaner = 'seqyclean') or `fastp_pct_surviving` (params.cleaner = 'fastp') indicate how many reads remain after removal of low-quality reads (more = better).
 - `num_N` is the number of uncalled bases in the generated consensus sequence (less = better).
 - `num_total` is the total number of called bases in the generated consensus sequequence (more = better). As many consensus sequences are generated with this workflow via amplicon sequencing, the intitial and end of the reference often has little coverage. This means that the number of bases in the consensus sequence is less than the length of the reference sequence.
 - `num_pos_${params.minimum_depth}X` (which is `num_pos_100X` by default) is the number of positions for which there is sufficient depth to call variants (more = better). Any sequence below this value will be an `N`.
@@ -285,6 +314,7 @@ The quality of a sequencing run is very important. As such, many values are reco
 More imformation on evaluating amplicon/primer failure can be found in the [FAQ](https://github.com/UPHL-BioNGS/Cecret#is-there-a-way-to-determine-if-certain-amplicons-are-failing) under the question 'Is there a way to determine if certain amplicons are failing?'
 
 Kraken2 is optional for this workflow, but can provide additional quality assessment metrics:
+
 - `top_organism` is the most common organism identified in the reads.
 - `percent_reads_top_organism` is the percentage of reads assigned that organism (more = better).
 - `%_human_reads` is the percentage of human reads reads (less = better).
@@ -292,59 +322,78 @@ Kraken2 is optional for this workflow, but can provide additional quality assess
 ## Optional toggles:
 
 ### Using fastp to clean reads instead of seqyclean
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --cleaner fastp
 ```
+
 Or set `params.cleaner = 'fastp'` in a config file
 
 ### Using samtools to trim amplicons instead of ivar
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --trimmer samtools
 ```
+
 Or set `params.trimmer = 'samtools'` in a config file
 
 ### Skipping primer trimming completely
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --trimmer none
 ```
+
 Or set `params.trimmer = 'none'` in a config file
 
 ### Using minimap2 to align reads instead of bwa
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --aligner minimap2
 ```
+
 Or set `params.aligner = 'minimap2'` in a config file
 
 ## Determining relatedness
+
 To create a multiple sequence alignment and corresponding phylogenetic tree and SNP matrix, set `params.relatedness = true` or
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true
 ```
+
 ### Using nextclade to for multiple sequence alignement instead of mafft
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --msa nextclade
 ```
+
 Or set `params.msa = 'nextclade'` and `params.relatedness = true` in a config file
 
 And then you get trees like this which can visualized with [itol](https://itol.embl.de/) or [ggtree](https://github.com/YuLab-SMU/ggtree).
 ![alt text](images/w5IMLiHfkMm3fS3kgJVpRg.png)
 
 ### Classify reads with kraken2
+
 To classify reads with kraken2 to identify reads from human or the organism of choice
+
 #### Step 1. Get a kraken2 database
+
 ```
 mkdir kraken2_db
 cd kraken2_db
 wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20230605.tar.gz
 tar -zxvf minikraken2_v2_8GB_201904.tgz
 ```
+
 #### Step 2. Set the paramaters accordingly
+
 ```
 params.kraken2 = true
 params.kraken2_db = 'kraken2_db'
 ```
 
 ## The main components of Cecret are:
+
 - [aci](https://github.com/erinyoung/ACI) - for depth estimation over amplicons (optional, set params.aci = true)
 - [artic network](https://github.com/artic-network) - for aligning and consensus creation of nanopore reads
 - [bbnorm](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbnorm-guide/) - for normalizing reads (optional, set params.bbnorm = true)
@@ -363,7 +412,7 @@ params.kraken2_db = 'kraken2_db'
 - [multiqc](https://multiqc.info/) - summary of results
 - [nextclade](https://clades.nextstrain.org/) - for SARS-CoV-2 clade classification (optional: aligned fasta can be used from this analysis when relatedness is set to "true" and msa is set to "nextclade")
 - [pangolin](https://github.com/cov-lineages/pangolin) - for SARS-CoV-2 lineage classification
-- [pango collapse](https://github.com/MDU-PHL/pango-collapse) - for SARS-CoV-2 lineage tracing
+- [pango aliasor](https://github.com/corneliusroemer/pango_aliasor) - for SARS-CoV-2 lineage tracing
 - [phytreeviz](https://github.com/moshi4/phyTreeViz) - for visualizing phylogenetic trees
 - [samtools](http://www.htslib.org/) - for QC metrics and sorting; optional primer trimmer; optional converting bam to fastq files; optional duplication marking
 - [seqyclean](https://github.com/ibest/seqyclean) - for cleaning reads
@@ -371,7 +420,9 @@ params.kraken2_db = 'kraken2_db'
 - [vadr](https://github.com/ncbi/vadr) - for annotating fastas like NCBI
 
 ### Turning off unneeded processes
+
 It came to my attention that some processes (like bcftools) do not work consistently. Also, they might take longer than wanted and might not even be needed for the end user. Here's the processes that can be turned off with their default values:
+
 ```
 params.bcftools_variants = true           # vcf of variants
 params.fastqc = true                      # qc on the sequencing reads
@@ -387,7 +438,7 @@ params.aci = false                        # coverage approximation of amplicons
 parms.igv_reports = false                 # SNP IGV images
 params.nextclade = true                   # SARS-CoV-2 clade determination
 params.pangolin = true                    # SARS-CoV-2 lineage determination
-params.pango_collapse = true              # SARS-CoV-2 lineage tracing
+params.pango_aliasor = true              # SARS-CoV-2 lineage tracing
 params.freyja = true                      # multiple SARS-CoV-2 lineage determination
 params.vadr = false                       # NCBI fasta QC
 params.relatedness = false                # create multiple sequence alignments with input fastq and fasta files
@@ -400,104 +451,314 @@ params.multiqc = true                     # aggregates data into single report
 ```
 
 ## Final file structure
+
 <details>
    <summary>Final File Tree after running cecret.nf</summary>
 
 ```
-cecret                                # results from this workflow
+cecret/
 ├── aci
-│   ├── amplicon_depth.csv
-│   ├── amplicon_depth_mqc.png
-│   └── amplicon_depth.png
-├── aligned                           # aligned (with aligner) but untrimmed bam files with indexes
+│   ├── aci_coverage_summary.csv
+│   ├── SRR13957125
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR13957125_amplicon_depth.csv
+│   │   └── SRR13957125_amplicon_depth.png
+│   ├── SRR13957125_NTC
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR13957125_NTC_amplicon_depth.csv
+│   │   └── SRR13957125_NTC_amplicon_depth.png
+│   ├── SRR13957170
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR13957170_amplicon_depth.csv
+│   │   └── SRR13957170_amplicon_depth.png
+│   ├── SRR13957177
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR13957177_amplicon_depth.csv
+│   │   └── SRR13957177_amplicon_depth.png
+│   ├── SRR22452232
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR22452232_amplicon_depth.csv
+│   │   └── SRR22452232_amplicon_depth.png
+│   ├── SRR22452242
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR22452242_amplicon_depth.csv
+│   │   └── SRR22452242_amplicon_depth.png
+│   ├── SRR22452243
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR22452243_amplicon_depth.csv
+│   │   └── SRR22452243_amplicon_depth.png
+│   └── SRR22452255
+│       ├── amplicon_depth.csv
+│       ├── amplicon_depth.png
+│       ├── overall_depth.csv
+│       ├── overall_depth.png
+│       ├── SRR22452255_amplicon_depth.csv
+│       └── SRR22452255_amplicon_depth.png
+├── aligned
+│   ├── SRR13957125_NTC.sorted.bam
+│   ├── SRR13957125_NTC.sorted.bam.bai
 │   ├── SRR13957125.sorted.bam
 │   ├── SRR13957125.sorted.bam.bai
 │   ├── SRR13957170.sorted.bam
 │   ├── SRR13957170.sorted.bam.bai
 │   ├── SRR13957177.sorted.bam
 │   └── SRR13957177.sorted.bam.bai
-├── bcftools_variants                 # set to false by default; VCF files of variants identified
+├── artic
+│   ├── SRR22452232.1.hdf
+│   ├── SRR22452232.1.vcf
+│   ├── SRR22452232.2.hdf
+│   ├── SRR22452232.2.vcf
+│   ├── SRR22452232.alignreport.er
+│   ├── SRR22452232.alignreport.txt
+│   ├── SRR22452232.consensus.fasta
+│   ├── SRR22452232.coverage_mask.txt
+│   ├── SRR22452232.coverage_mask.txt.1.depths
+│   ├── SRR22452232.coverage_mask.txt.2.depths
+│   ├── SRR22452232.fail.vcf
+│   ├── SRR22452232_filtered.fastq.gz
+│   ├── SRR22452232.merged.vcf
+│   ├── SRR22452232.merged.vcf.gz
+│   ├── SRR22452232.merged.vcf.gz.tbi
+│   ├── SRR22452232.minion.log.txt
+│   ├── SRR22452232.muscle.in.fasta
+│   ├── SRR22452232.muscle.out.fasta
+│   ├── SRR22452232.pass.vcf.gz
+│   ├── SRR22452232.pass.vcf.gz.tbi
+│   ├── SRR22452232.preconsensus.fasta
+│   ├── SRR22452232.primersitereport.txt
+│   ├── SRR22452232.primers.vcf
+│   ├── SRR22452232.primertrimmed.rg.sorted.bam
+│   ├── SRR22452232.primertrimmed.rg.sorted.bam.bai
+│   ├── SRR22452232.primertrim.sorted.bam
+│   ├── SRR22452232.primertrim.sorted.bam.bai
+│   ├── SRR22452232.sorted.bam
+│   ├── SRR22452232.sorted.bam.bai
+│   ├── SRR22452232.trimmed.rg.sorted.bam
+│   ├── SRR22452232.trimmed.rg.sorted.bam.bai
+│   ├── SRR22452242.1.hdf
+│   ├── SRR22452242.1.vcf
+│   ├── SRR22452242.2.hdf
+│   ├── SRR22452242.2.vcf
+│   ├── SRR22452242.alignreport.er
+│   ├── SRR22452242.alignreport.txt
+│   ├── SRR22452242.consensus.fasta
+│   ├── SRR22452242.coverage_mask.txt
+│   ├── SRR22452242.coverage_mask.txt.1.depths
+│   ├── SRR22452242.coverage_mask.txt.2.depths
+│   ├── SRR22452242.fail.vcf
+│   ├── SRR22452242_filtered.fastq.gz
+│   ├── SRR22452242.merged.vcf
+│   ├── SRR22452242.merged.vcf.gz
+│   ├── SRR22452242.merged.vcf.gz.tbi
+│   ├── SRR22452242.minion.log.txt
+│   ├── SRR22452242.muscle.in.fasta
+│   ├── SRR22452242.muscle.out.fasta
+│   ├── SRR22452242.pass.vcf.gz
+│   ├── SRR22452242.pass.vcf.gz.tbi
+│   ├── SRR22452242.preconsensus.fasta
+│   ├── SRR22452242.primersitereport.txt
+│   ├── SRR22452242.primers.vcf
+│   ├── SRR22452242.primertrimmed.rg.sorted.bam
+│   ├── SRR22452242.primertrimmed.rg.sorted.bam.bai
+│   ├── SRR22452242.primertrim.sorted.bam
+│   ├── SRR22452242.primertrim.sorted.bam.bai
+│   ├── SRR22452242.sorted.bam
+│   ├── SRR22452242.sorted.bam.bai
+│   ├── SRR22452242.trimmed.rg.sorted.bam
+│   ├── SRR22452242.trimmed.rg.sorted.bam.bai
+│   ├── SRR22452243.1.hdf
+│   ├── SRR22452243.1.vcf
+│   ├── SRR22452243.2.hdf
+│   ├── SRR22452243.2.vcf
+│   ├── SRR22452243.alignreport.er
+│   ├── SRR22452243.alignreport.txt
+│   ├── SRR22452243.consensus.fasta
+│   ├── SRR22452243.coverage_mask.txt
+│   ├── SRR22452243.coverage_mask.txt.1.depths
+│   ├── SRR22452243.coverage_mask.txt.2.depths
+│   ├── SRR22452243.fail.vcf
+│   ├── SRR22452243_filtered.fastq.gz
+│   ├── SRR22452243.merged.vcf
+│   ├── SRR22452243.merged.vcf.gz
+│   ├── SRR22452243.merged.vcf.gz.tbi
+│   ├── SRR22452243.minion.log.txt
+│   ├── SRR22452243.muscle.in.fasta
+│   ├── SRR22452243.muscle.out.fasta
+│   ├── SRR22452243.pass.vcf.gz
+│   ├── SRR22452243.pass.vcf.gz.tbi
+│   ├── SRR22452243.preconsensus.fasta
+│   ├── SRR22452243.primersitereport.txt
+│   ├── SRR22452243.primers.vcf
+│   ├── SRR22452243.primertrimmed.rg.sorted.bam
+│   ├── SRR22452243.primertrimmed.rg.sorted.bam.bai
+│   ├── SRR22452243.primertrim.sorted.bam
+│   ├── SRR22452243.primertrim.sorted.bam.bai
+│   ├── SRR22452243.sorted.bam
+│   ├── SRR22452243.sorted.bam.bai
+│   ├── SRR22452243.trimmed.rg.sorted.bam
+│   ├── SRR22452243.trimmed.rg.sorted.bam.bai
+│   ├── SRR22452255.1.hdf
+│   ├── SRR22452255.1.vcf
+│   ├── SRR22452255.2.hdf
+│   ├── SRR22452255.2.vcf
+│   ├── SRR22452255.alignreport.er
+│   ├── SRR22452255.alignreport.txt
+│   ├── SRR22452255.consensus.fasta
+│   ├── SRR22452255.coverage_mask.txt
+│   ├── SRR22452255.coverage_mask.txt.1.depths
+│   ├── SRR22452255.coverage_mask.txt.2.depths
+│   ├── SRR22452255.fail.vcf
+│   ├── SRR22452255_filtered.fastq.gz
+│   ├── SRR22452255.merged.vcf
+│   ├── SRR22452255.merged.vcf.gz
+│   ├── SRR22452255.merged.vcf.gz.tbi
+│   ├── SRR22452255.minion.log.txt
+│   ├── SRR22452255.muscle.in.fasta
+│   ├── SRR22452255.muscle.out.fasta
+│   ├── SRR22452255.pass.vcf.gz
+│   ├── SRR22452255.pass.vcf.gz.tbi
+│   ├── SRR22452255.preconsensus.fasta
+│   ├── SRR22452255.primersitereport.txt
+│   ├── SRR22452255.primers.vcf
+│   ├── SRR22452255.primertrimmed.rg.sorted.bam
+│   ├── SRR22452255.primertrimmed.rg.sorted.bam.bai
+│   ├── SRR22452255.primertrim.sorted.bam
+│   ├── SRR22452255.primertrim.sorted.bam.bai
+│   ├── SRR22452255.sorted.bam
+│   ├── SRR22452255.sorted.bam.bai
+│   ├── SRR22452255.trimmed.rg.sorted.bam
+│   └── SRR22452255.trimmed.rg.sorted.bam.bai
+├── bcftools_variants
+│   ├── SRR13957125_NTC.vcf
 │   ├── SRR13957125.vcf
 │   ├── SRR13957170.vcf
-│   └── SRR13957177.vcf
-├── cecret_results.csv                # comma-delimeted summary of results
-├── cecret_results.txt                # tab-delimited summary of results
-├── consensus                         # the likely reason you are running this workflow
+│   ├── SRR13957177.vcf
+│   ├── SRR22452232.vcf
+│   ├── SRR22452242.vcf
+│   ├── SRR22452243.vcf
+│   └── SRR22452255.vcf
+├── cecret_results.csv
+├── cecret_results.txt
+├── consensus
 │   ├── SRR13957125.consensus.fa
+│   ├── SRR13957125_NTC.consensus.fa
 │   ├── SRR13957170.consensus.fa
-│   └── SRR13957177.consensus.fa
-├── dataset                           # generated by nextclade
-│   ├── genemap.gff
-│   ├── primers.csv
-│   ├── qc.json
+│   ├── SRR13957177.consensus.fa
+│   ├── SRR22452232.consensus.fa
+│   ├── SRR22452242.consensus.fa
+│   ├── SRR22452243.consensus.fa
+│   └── SRR22452255.consensus.fa
+├── dataset
+│   ├── CHANGELOG.md
+│   ├── genome_annotation.gff3
+│   ├── pathogen.json
+│   ├── README.md
 │   ├── reference.fasta
 │   ├── sequences.fasta
-│   ├── tag.json
-│   ├── tree.json
-│   └── virus_properties.json
-├── fasta_prep                        # optional for inputted fastas
-│   ├── SRR13957125.test.fa
-│   ├── SRR13957170.test.fa
-│   └── SRR13957177.test.fa
-├── fastp                             # optional tools for cleaning reads when 'params.cleaner = fastp'
-│   ├── SRR13957125_clean_PE1.fastq.gz
-│   ├── SRR13957125_clean_PE2.fastq.gz
-│   ├── SRR13957125_fastp.html
-│   ├── SRR13957125_fastp.json
-│   ├── SRR13957170_clean_PE1.fastq.gz
-│   ├── SRR13957170_clean_PE2.fastq.gz
-│   ├── SRR13957170_fastp.html
-│   ├── SRR13957170_fastp.json
-│   ├── SRR13957177_clean_PE1.fastq.gz
-│   ├── SRR13957177_clean_PE2.fastq.gz
-│   ├── SRR13957177_fastp.html
-│   └── SRR13957177_fastp.json
-├── fastqc                            # QC metrics for each fasta sequence
+│   └── tree.json
+├── fastqc
 │   ├── SRR13957125_1_fastqc.html
 │   ├── SRR13957125_1_fastqc.zip
 │   ├── SRR13957125_2_fastqc.html
 │   ├── SRR13957125_2_fastqc.zip
+│   ├── SRR13957125_fastq_name.csv
+│   ├── SRR13957125_NTC_1_fastqc.html
+│   ├── SRR13957125_NTC_1_fastqc.zip
+│   ├── SRR13957125_NTC_2_fastqc.html
+│   ├── SRR13957125_NTC_2_fastqc.zip
+│   ├── SRR13957125_NTC_fastq_name.csv
 │   ├── SRR13957170_1_fastqc.html
 │   ├── SRR13957170_1_fastqc.zip
 │   ├── SRR13957170_2_fastqc.html
 │   ├── SRR13957170_2_fastqc.zip
+│   ├── SRR13957170_fastq_name.csv
 │   ├── SRR13957177_1_fastqc.html
 │   ├── SRR13957177_1_fastqc.zip
 │   ├── SRR13957177_2_fastqc.html
-│   └── SRR13957177_2_fastqc.zip
-├── filter                           # fastq.gz files from reads that were aligned to the reference genome
-│   ├── SRR13957125_filtered_R1.fastq.gz
-│   ├── SRR13957125_filtered_R2.fastq.gz
-│   ├── SRR13957125_filtered_unpaired.fastq.gz
-│   ├── SRR13957170_filtered_R1.fastq.gz
-│   ├── SRR13957170_filtered_R2.fastq.gz
-│   ├── SRR13957170_filtered_unpaired.fastq.gz
-│   ├── SRR13957177_filtered_R1.fastq.gz
-│   ├── SRR13957177_filtered_R2.fastq.gz
-│   └── SRR13957177_filtered_unpaired.fastq.gz
-├── freyja                          # finding co-lineages
+│   ├── SRR13957177_2_fastqc.zip
+│   └── SRR13957177_fastq_name.csv
+├── freyja
 │   ├── aggregated-freyja.png
 │   ├── aggregated-freyja.tsv
-│   ├── SRR13957125_boot.tsv_lineages.csv
-│   ├── SRR13957125_boot.tsv_summarized.csv
 │   ├── SRR13957125_demix.tsv
 │   ├── SRR13957125_depths.tsv
+│   ├── SRR13957125_freyja_lineages_mqc.png
+│   ├── SRR13957125_freyja_lineages.png
+│   ├── SRR13957125_NTC_demix.tsv
+│   ├── SRR13957125_NTC_depths.tsv
+│   ├── SRR13957125_NTC_freyja_lineages_mqc.png
+│   ├── SRR13957125_NTC_freyja_lineages.png
+│   ├── SRR13957125_NTC_variants.tsv
 │   ├── SRR13957125_variants.tsv
-│   ├── SRR13957170_boot.tsv_lineages.csv
-│   ├── SRR13957170_boot.tsv_summarized.csv
 │   ├── SRR13957170_demix.tsv
 │   ├── SRR13957170_depths.tsv
+│   ├── SRR13957170_freyja_lineages_mqc.png
+│   ├── SRR13957170_freyja_lineages.png
 │   ├── SRR13957170_variants.tsv
-│   ├── SRR13957177_boot.tsv_lineages.csv
-│   ├── SRR13957177_boot.tsv_summarized.csv
 │   ├── SRR13957177_demix.tsv
 │   ├── SRR13957177_depths.tsv
-│   └── SRR13957177_variants.tsv
-├── iqtree2                          # phylogenetic tree that is generated with 'params.relatedness = true'
+│   ├── SRR13957177_freyja_lineages_mqc.png
+│   ├── SRR13957177_freyja_lineages.png
+│   ├── SRR13957177_variants.tsv
+│   ├── SRR22452232_demix.tsv
+│   ├── SRR22452232_depths.tsv
+│   ├── SRR22452232_freyja_lineages_mqc.png
+│   ├── SRR22452232_freyja_lineages.png
+│   ├── SRR22452232_variants.tsv
+│   ├── SRR22452242_demix.tsv
+│   ├── SRR22452242_depths.tsv
+│   ├── SRR22452242_freyja_lineages_mqc.png
+│   ├── SRR22452242_freyja_lineages.png
+│   ├── SRR22452242_variants.tsv
+│   ├── SRR22452243_demix.tsv
+│   ├── SRR22452243_depths.tsv
+│   ├── SRR22452243_freyja_lineages_mqc.png
+│   ├── SRR22452243_freyja_lineages.png
+│   ├── SRR22452243_variants.tsv
+│   ├── SRR22452255_demix.tsv
+│   ├── SRR22452255_depths.tsv
+│   ├── SRR22452255_freyja_lineages_mqc.png
+│   ├── SRR22452255_freyja_lineages.png
+│   └── SRR22452255_variants.tsv
+├── heatcluster
+│   ├── heatcluster.png
+│   └── sorted_matrix.csv
+├── igv_reports
+│   ├── SRR13957125_igvjs_viewer.html
+│   ├── SRR13957125_NTC_igvjs_viewer.html
+│   ├── SRR13957170_igvjs_viewer.html
+│   ├── SRR13957177_igvjs_viewer.html
+│   ├── SRR22452232_igvjs_viewer.html
+│   ├── SRR22452242_igvjs_viewer.html
+│   ├── SRR22452243_igvjs_viewer.html
+│   └── SRR22452255_igvjs_viewer.html
+├── iqtree2
 │   ├── iqtree2.iqtree
 │   ├── iqtree2.log
 │   ├── iqtree2.mldist
-│   └── iqtree2.treefile
+│   ├── iqtree2.treefile
+│   └── iqtree2.treefile.nwk
 ├── ivar_consensus
 │   ├── SRR13957125.consensus.fa
 │   ├── SRR13957125.consensus.qual.txt
@@ -507,8 +768,11 @@ cecret                                # results from this workflow
 │   ├── SRR13957170.consensus.qual.txt
 │   ├── SRR13957177.consensus.fa
 │   └── SRR13957177.consensus.qual.txt
-├── ivar_trim                        # bam files after primers have been trimmed off the reads with ivar
+├── ivar_trim
 │   ├── SRR13957125_ivar.log
+│   ├── SRR13957125_NTC_ivar.log
+│   ├── SRR13957125_NTC.primertrim.sorted.bam
+│   ├── SRR13957125_NTC.primertrim.sorted.bam.bai
 │   ├── SRR13957125.primertrim.sorted.bam
 │   ├── SRR13957125.primertrim.sorted.bam.bai
 │   ├── SRR13957170_ivar.log
@@ -517,108 +781,169 @@ cecret                                # results from this workflow
 │   ├── SRR13957177_ivar.log
 │   ├── SRR13957177.primertrim.sorted.bam
 │   └── SRR13957177.primertrim.sorted.bam.bai
-├── ivar_variants                    # tsv and vcf files of variants identified in sample
+├── ivar_variants
 │   ├── SRR13957125.ivar_variants.vcf
+│   ├── SRR13957125_NTC.ivar_variants.vcf
+│   ├── SRR13957125_NTC.variants.tsv
 │   ├── SRR13957125.variants.tsv
 │   ├── SRR13957170.ivar_variants.vcf
 │   ├── SRR13957170.variants.tsv
 │   ├── SRR13957177.ivar_variants.vcf
-│   └── SRR13957177.variants.tsv
-├── kraken2                          # kraken2 report of the organisms the reads may be from
+│   ├── SRR13957177.variants.tsv
+│   ├── SRR22452232.ivar_variants.vcf
+│   ├── SRR22452232.variants.tsv
+│   ├── SRR22452242.ivar_variants.vcf
+│   ├── SRR22452242.variants.tsv
+│   ├── SRR22452243.ivar_variants.vcf
+│   ├── SRR22452243.variants.tsv
+│   ├── SRR22452255.ivar_variants.vcf
+│   └── SRR22452255.variants.tsv
+├── kraken2
+│   ├── SRR13957125.cseqs_1.fastq.gz
+│   ├── SRR13957125.cseqs_2.fastq.gz
 │   ├── SRR13957125_kraken2_report.txt
+│   ├── SRR13957125_NTC.cseqs_1.fastq.gz
+│   ├── SRR13957125_NTC.cseqs_2.fastq.gz
+│   ├── SRR13957125_NTC_kraken2_report.txt
+│   ├── SRR13957125_NTC.useqs_1.fastq.gz
+│   ├── SRR13957125_NTC.useqs_2.fastq.gz
+│   ├── SRR13957125.useqs_1.fastq.gz
+│   ├── SRR13957125.useqs_2.fastq.gz
+│   ├── SRR13957170.cseqs_1.fastq.gz
+│   ├── SRR13957170.cseqs_2.fastq.gz
 │   ├── SRR13957170_kraken2_report.txt
-│   └── SRR13957177_kraken2_report.txt
-├── logs                             # divided log and err files for QC and troubleshooting pleasures
-│   └── processes*
-│       ├── sample.run_id.err
-│       └── sample.run_id.log
-├── mafft                            # multiple sequence alignment created when 'params.relatedness = true'
-│   └── mafft_aligned.fasta
-├── markdup
-│   ├── SRR13957125.markdup.sorted.bam
-│   ├── SRR13957125.markdup.sorted.bam.bai
-│   ├── SRR13957125_markdupstats.txt
-│   ├── SRR13957170.markdup.sorted.bam
-│   ├── SRR13957170.markdup.sorted.bam.bai
-│   ├── SRR13957170_markdupstats.txt
-│   ├── SRR13957177.markdup.sorted.bam
-│   ├── SRR13957177.markdup.sorted.bam.bai
-│   └── SRR13957177_markdupstats.txt
-├── multiqc                          # aggregates data into single report
+│   ├── SRR13957170.useqs_1.fastq.gz
+│   ├── SRR13957170.useqs_2.fastq.gz
+│   ├── SRR13957177.cseqs_1.fastq.gz
+│   ├── SRR13957177.cseqs_2.fastq.gz
+│   ├── SRR13957177_kraken2_report.txt
+│   ├── SRR13957177.useqs_1.fastq.gz
+│   └── SRR13957177.useqs_2.fastq.gz
+├── mafft
+│   ├── mafft_aligned.fasta
+│   └── ultimate.fasta
+├── multiqc
 │   ├── multiqc_data
+│   │   ├── multiqc_bracken.txt
 │   │   ├── multiqc_citations.txt
 │   │   ├── multiqc_data.json
 │   │   ├── multiqc_fastqc.txt
 │   │   ├── multiqc_general_stats.txt
-│   │   ├── multiqc_ivar_primers.txt
-│   │   ├── multiqc_ivar_summary.txt
+│   │   ├── multiqc_kraken.txt
 │   │   ├── multiqc.log
+│   │   ├── multiqc_nextclade.txt
+│   │   ├── multiqc_pangolin.txt
 │   │   ├── multiqc_samtools_flagstat.txt
 │   │   ├── multiqc_samtools_stats.txt
 │   │   ├── multiqc_seqyclean.txt
+│   │   ├── multiqc_software_versions.txt
 │   │   └── multiqc_sources.txt
 │   └── multiqc_report.html
-├── nextclade                        # nextclade reports
+├── nextclade
 │   ├── combined.fasta
 │   ├── nextclade.aligned.fasta
 │   ├── nextclade.auspice.json
+│   ├── nextclade.cds_translation.E.fasta
+│   ├── nextclade.cds_translation.M.fasta
+│   ├── nextclade.cds_translation.N.fasta
+│   ├── nextclade.cds_translation.ORF1a.fasta
+│   ├── nextclade.cds_translation.ORF1b.fasta
+│   ├── nextclade.cds_translation.ORF3a.fasta
+│   ├── nextclade.cds_translation.ORF6.fasta
+│   ├── nextclade.cds_translation.ORF7a.fasta
+│   ├── nextclade.cds_translation.ORF7b.fasta
+│   ├── nextclade.cds_translation.ORF8.fasta
+│   ├── nextclade.cds_translation.ORF9b.fasta
+│   ├── nextclade.cds_translation.S.fasta
 │   ├── nextclade.csv
-│   ├── nextclade.errors.csv
-│   ├── nextclade.gene.E.fasta
-│   ├── nextclade.gene.M.fasta
-│   ├── nextclade.gene.N.fasta
-│   ├── nextclade.gene.ORF1a.fasta
-│   ├── nextclade.gene.ORF1b.fasta
-│   ├── nextclade.gene.ORF3a.fasta
-│   ├── nextclade.gene.ORF6.fasta
-│   ├── nextclade.gene.ORF7a.fasta
-│   ├── nextclade.gene.ORF7b.fasta
-│   ├── nextclade.gene.ORF8.fasta
-│   ├── nextclade.gene.ORF9b.fasta
-│   ├── nextclade.gene.S.fasta
-│   ├── nextclade.insertions.csv
 │   ├── nextclade.json
+│   ├── nextclade.ndjson
+│   ├── nextclade.nwk
 │   └── nextclade.tsv
-├── pango_collapse
-│   └── pango_collapse.csv
-├── pangolin                         # pangolin results
+├── pango_aliasor
+│   └── pango_aliasor.csv
+├── pangolin
 │   ├── combined.fasta
 │   └── lineage_report.csv
-├── samtools_ampliconstats           # amplicon statistics and metrics as determined by samtools
+├── phytreeviz
+│   └── tree.png
+├── pipeline_info
+│   ├── execution_report_2024-12-06_14-45-24.html
+│   ├── execution_timeline_2024-12-06_14-45-24.html
+│   ├── execution_trace_2024-12-06_14-45-24.txt
+│   └── pipeline_dag_2024-12-06_14-45-24.html
+├── samtools
+│   ├── final_samtools_coverage_summary.tsv
 │   ├── SRR13957125_ampliconstats.txt
+│   ├── SRR13957125.final.cov.hist
+│   ├── SRR13957125.final.cov.txt
+│   ├── SRR13957125.final.depth.txt
+│   ├── SRR13957125.final.flagstat.txt
+│   ├── SRR13957125.final.stats.txt
+│   ├── SRR13957125.initial.cov.hist
+│   ├── SRR13957125.initial.cov.txt
+│   ├── SRR13957125.initial.depth.txt
+│   ├── SRR13957125.initial.flagstat.txt
+│   ├── SRR13957125.initial.stats.txt
+│   ├── SRR13957125_NTC_ampliconstats.txt
+│   ├── SRR13957125_NTC.final.cov.hist
+│   ├── SRR13957125_NTC.final.cov.txt
+│   ├── SRR13957125_NTC.final.depth.txt
+│   ├── SRR13957125_NTC.final.flagstat.txt
+│   ├── SRR13957125_NTC.final.stats.txt
+│   ├── SRR13957125_NTC.initial.cov.hist
+│   ├── SRR13957125_NTC.initial.cov.txt
+│   ├── SRR13957125_NTC.initial.depth.txt
+│   ├── SRR13957125_NTC.initial.flagstat.txt
+│   ├── SRR13957125_NTC.initial.stats.txt
 │   ├── SRR13957170_ampliconstats.txt
-│   └── SRR13957177_ampliconstats.txt
-├── samtools_coverage                # coverage and metrics as determined by samtools
-│   ├── SRR13957125.cov.aligned.hist
-│   ├── SRR13957125.cov.aligned.txt
-│   ├── SRR13957125.cov.trimmed.hist
-│   ├── SRR13957125.cov.trimmed.txt
-│   ├── SRR13957170.cov.aligned.hist
-│   ├── SRR13957170.cov.aligned.txt
-│   ├── SRR13957170.cov.trimmed.hist
-│   ├── SRR13957170.cov.trimmed.txt
-│   ├── SRR13957177.cov.aligned.hist
-│   ├── SRR13957177.cov.aligned.txt
-│   ├── SRR13957177.cov.trimmed.hist
-│   └── SRR13957177.cov.trimmed.txt
-├── samtools_depth                   # the number of reads
-│   ├── SRR13957125.depth.aligned.txt
-│   ├── SRR13957125.depth.trimmed.txt
-│   ├── SRR13957170.depth.aligned.txt
-│   ├── SRR13957170.depth.trimmed.txt
-│   ├── SRR13957177.depth.aligned.txt
-│   └── SRR13957177.depth.trimmed.txt
-├── samtools_flagstat                # flag information
-│   ├── SRR13957125.flagstat.aligned.txt
-│   ├── SRR13957125.flagstat.trimmed.txt
-│   ├── SRR13957125.flagstat.txt
-│   ├── SRR13957170.flagstat.aligned.txt
-│   ├── SRR13957170.flagstat.trimmed.txt
-│   ├── SRR13957170.flagstat.txt
-│   ├── SRR13957177.flagstat.aligned.txt
-│   ├── SRR13957177.flagstat.trimmed.txt
-│   └── SRR13957177.flagstat.txt
-├── samtools_plot_ampliconstats      # plots of the ampliconstats for troubleshooting purposes
+│   ├── SRR13957170.final.cov.hist
+│   ├── SRR13957170.final.cov.txt
+│   ├── SRR13957170.final.depth.txt
+│   ├── SRR13957170.final.flagstat.txt
+│   ├── SRR13957170.final.stats.txt
+│   ├── SRR13957170.initial.cov.hist
+│   ├── SRR13957170.initial.cov.txt
+│   ├── SRR13957170.initial.depth.txt
+│   ├── SRR13957170.initial.flagstat.txt
+│   ├── SRR13957170.initial.stats.txt
+│   ├── SRR13957177_ampliconstats.txt
+│   ├── SRR13957177.final.cov.hist
+│   ├── SRR13957177.final.cov.txt
+│   ├── SRR13957177.final.depth.txt
+│   ├── SRR13957177.final.flagstat.txt
+│   ├── SRR13957177.final.stats.txt
+│   ├── SRR13957177.initial.cov.hist
+│   ├── SRR13957177.initial.cov.txt
+│   ├── SRR13957177.initial.depth.txt
+│   ├── SRR13957177.initial.flagstat.txt
+│   ├── SRR13957177.initial.stats.txt
+│   ├── SRR22452232_ampliconstats.txt
+│   ├── SRR22452232.final.cov.hist
+│   ├── SRR22452232.final.cov.txt
+│   ├── SRR22452232.final.depth.txt
+│   ├── SRR22452232.final.flagstat.txt
+│   ├── SRR22452232.final.stats.txt
+│   ├── SRR22452242_ampliconstats.txt
+│   ├── SRR22452242.final.cov.hist
+│   ├── SRR22452242.final.cov.txt
+│   ├── SRR22452242.final.depth.txt
+│   ├── SRR22452242.final.flagstat.txt
+│   ├── SRR22452242.final.stats.txt
+│   ├── SRR22452243_ampliconstats.txt
+│   ├── SRR22452243.final.cov.hist
+│   ├── SRR22452243.final.cov.txt
+│   ├── SRR22452243.final.depth.txt
+│   ├── SRR22452243.final.flagstat.txt
+│   ├── SRR22452243.final.stats.txt
+│   ├── SRR22452255_ampliconstats.txt
+│   ├── SRR22452255.final.cov.hist
+│   ├── SRR22452255.final.cov.txt
+│   ├── SRR22452255.final.depth.txt
+│   ├── SRR22452255.final.flagstat.txt
+│   └── SRR22452255.final.stats.txt
+├── samtools_plot_ampliconstats
+│   ├── index.html
 │   ├── SRR13957125
 │   ├── SRR13957125-combined-amp.gp
 │   ├── SRR13957125-combined-amp.png
@@ -644,6 +969,37 @@ cecret                                # results from this workflow
 │   ├── SRR13957125-heat-read-perc-log-1.png
 │   ├── SRR13957125-heat-reads-1.gp
 │   ├── SRR13957125-heat-reads-1.png
+│   ├── SRR13957125_NTC
+│   ├── SRR13957125_NTC-combined-amp.gp
+│   ├── SRR13957125_NTC-combined-amp.png
+│   ├── SRR13957125_NTC-combined-coverage-1.gp
+│   ├── SRR13957125_NTC-combined-coverage-1.png
+│   ├── SRR13957125_NTC-combined-depth.gp
+│   ├── SRR13957125_NTC-combined-depth.png
+│   ├── SRR13957125_NTC-combined-read-perc.gp
+│   ├── SRR13957125_NTC-combined-read-perc.png
+│   ├── SRR13957125_NTC-combined-reads.gp
+│   ├── SRR13957125_NTC-combined-reads.png
+│   ├── SRR13957125_NTC-combined-tdepth.gp
+│   ├── SRR13957125_NTC-combined-tdepth.png
+│   ├── SRR13957125_NTC-heat-amp-1.gp
+│   ├── SRR13957125_NTC-heat-amp-1.png
+│   ├── SRR13957125_NTC-heat-coverage-1-1.gp
+│   ├── SRR13957125_NTC-heat-coverage-1-1.png
+│   ├── SRR13957125_NTC-heat-read-perc-1.gp
+│   ├── SRR13957125_NTC-heat-read-perc-1.png
+│   ├── SRR13957125_NTC-heat-read-perc-log-1.gp
+│   ├── SRR13957125_NTC-heat-read-perc-log-1.png
+│   ├── SRR13957125_NTC-heat-reads-1.gp
+│   ├── SRR13957125_NTC-heat-reads-1.png
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-amp.gp
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-amp.png
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-cov.gp
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-cov.png
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-reads.gp
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-reads.png
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-tdepth.gp
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-tdepth.png
 │   ├── SRR13957125-SRR13957125.primertrim.sorted-amp.gp
 │   ├── SRR13957125-SRR13957125.primertrim.sorted-amp.png
 │   ├── SRR13957125-SRR13957125.primertrim.sorted-cov.gp
@@ -723,34 +1079,173 @@ cecret                                # results from this workflow
 │   ├── SRR13957177-SRR13957177.primertrim.sorted-tdepth.gp
 │   ├── SRR13957177-SRR13957177.primertrim.sorted-tdepth.png
 │   ├── SRR13957177-SRR13957177.primertrim.sorted-tsize.gp
-│   └── SRR13957177-SRR13957177.primertrim.sorted-tsize.png
-├── samtools_stats                   # stats as determined by samtools
-│   ├── SRR13957125.stats.aligned.txt
-│   ├── SRR13957125.stats.trimmed.txt
-│   ├── SRR13957125.stats.txt
-│   ├── SRR13957170.stats.aligned.txt
-│   ├── SRR13957170.stats.trimmed.txt
-│   ├── SRR13957170.stats.txt
-│   ├── SRR13957177.stats.aligned.txt
-│   ├── SRR13957177.stats.trimmed.txt
-│   └── SRR13957177.stats.txt
-├── seqyclean                        # reads that have had PhiX and adapters removed
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-tsize.png
+│   ├── SRR22452232
+│   ├── SRR22452232-combined-amp.gp
+│   ├── SRR22452232-combined-amp.png
+│   ├── SRR22452232-combined-coverage-1.gp
+│   ├── SRR22452232-combined-coverage-1.png
+│   ├── SRR22452232-combined-depth.gp
+│   ├── SRR22452232-combined-depth.png
+│   ├── SRR22452232-combined-read-perc.gp
+│   ├── SRR22452232-combined-read-perc.png
+│   ├── SRR22452232-combined-reads.gp
+│   ├── SRR22452232-combined-reads.png
+│   ├── SRR22452232-combined-tcoord.gp
+│   ├── SRR22452232-combined-tcoord.png
+│   ├── SRR22452232-combined-tdepth.gp
+│   ├── SRR22452232-combined-tdepth.png
+│   ├── SRR22452232-heat-amp-1.gp
+│   ├── SRR22452232-heat-amp-1.png
+│   ├── SRR22452232-heat-coverage-1-1.gp
+│   ├── SRR22452232-heat-coverage-1-1.png
+│   ├── SRR22452232-heat-read-perc-1.gp
+│   ├── SRR22452232-heat-read-perc-1.png
+│   ├── SRR22452232-heat-read-perc-log-1.gp
+│   ├── SRR22452232-heat-read-perc-log-1.png
+│   ├── SRR22452232-heat-reads-1.gp
+│   ├── SRR22452232-heat-reads-1.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-amp.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-amp.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-cov.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-cov.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-reads.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-reads.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tcoord.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tcoord.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tdepth.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tdepth.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tsize.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tsize.png
+│   ├── SRR22452242
+│   ├── SRR22452242-combined-amp.gp
+│   ├── SRR22452242-combined-amp.png
+│   ├── SRR22452242-combined-coverage-1.gp
+│   ├── SRR22452242-combined-coverage-1.png
+│   ├── SRR22452242-combined-depth.gp
+│   ├── SRR22452242-combined-depth.png
+│   ├── SRR22452242-combined-read-perc.gp
+│   ├── SRR22452242-combined-read-perc.png
+│   ├── SRR22452242-combined-reads.gp
+│   ├── SRR22452242-combined-reads.png
+│   ├── SRR22452242-combined-tcoord.gp
+│   ├── SRR22452242-combined-tcoord.png
+│   ├── SRR22452242-combined-tdepth.gp
+│   ├── SRR22452242-combined-tdepth.png
+│   ├── SRR22452242-heat-amp-1.gp
+│   ├── SRR22452242-heat-amp-1.png
+│   ├── SRR22452242-heat-coverage-1-1.gp
+│   ├── SRR22452242-heat-coverage-1-1.png
+│   ├── SRR22452242-heat-read-perc-1.gp
+│   ├── SRR22452242-heat-read-perc-1.png
+│   ├── SRR22452242-heat-read-perc-log-1.gp
+│   ├── SRR22452242-heat-read-perc-log-1.png
+│   ├── SRR22452242-heat-reads-1.gp
+│   ├── SRR22452242-heat-reads-1.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-amp.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-amp.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-cov.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-cov.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-reads.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-reads.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tcoord.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tcoord.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tdepth.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tdepth.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tsize.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tsize.png
+│   ├── SRR22452243
+│   ├── SRR22452243-combined-amp.gp
+│   ├── SRR22452243-combined-amp.png
+│   ├── SRR22452243-combined-coverage-1.gp
+│   ├── SRR22452243-combined-coverage-1.png
+│   ├── SRR22452243-combined-depth.gp
+│   ├── SRR22452243-combined-depth.png
+│   ├── SRR22452243-combined-read-perc.gp
+│   ├── SRR22452243-combined-read-perc.png
+│   ├── SRR22452243-combined-reads.gp
+│   ├── SRR22452243-combined-reads.png
+│   ├── SRR22452243-combined-tcoord.gp
+│   ├── SRR22452243-combined-tcoord.png
+│   ├── SRR22452243-combined-tdepth.gp
+│   ├── SRR22452243-combined-tdepth.png
+│   ├── SRR22452243-heat-amp-1.gp
+│   ├── SRR22452243-heat-amp-1.png
+│   ├── SRR22452243-heat-coverage-1-1.gp
+│   ├── SRR22452243-heat-coverage-1-1.png
+│   ├── SRR22452243-heat-read-perc-1.gp
+│   ├── SRR22452243-heat-read-perc-1.png
+│   ├── SRR22452243-heat-read-perc-log-1.gp
+│   ├── SRR22452243-heat-read-perc-log-1.png
+│   ├── SRR22452243-heat-reads-1.gp
+│   ├── SRR22452243-heat-reads-1.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-amp.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-amp.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-cov.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-cov.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-reads.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-reads.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tcoord.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tcoord.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tdepth.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tdepth.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tsize.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tsize.png
+│   ├── SRR22452255
+│   ├── SRR22452255-combined-amp.gp
+│   ├── SRR22452255-combined-amp.png
+│   ├── SRR22452255-combined-coverage-1.gp
+│   ├── SRR22452255-combined-coverage-1.png
+│   ├── SRR22452255-combined-depth.gp
+│   ├── SRR22452255-combined-depth.png
+│   ├── SRR22452255-combined-read-perc.gp
+│   ├── SRR22452255-combined-read-perc.png
+│   ├── SRR22452255-combined-reads.gp
+│   ├── SRR22452255-combined-reads.png
+│   ├── SRR22452255-combined-tcoord.gp
+│   ├── SRR22452255-combined-tcoord.png
+│   ├── SRR22452255-combined-tdepth.gp
+│   ├── SRR22452255-combined-tdepth.png
+│   ├── SRR22452255-heat-amp-1.gp
+│   ├── SRR22452255-heat-amp-1.png
+│   ├── SRR22452255-heat-coverage-1-1.gp
+│   ├── SRR22452255-heat-coverage-1-1.png
+│   ├── SRR22452255-heat-read-perc-1.gp
+│   ├── SRR22452255-heat-read-perc-1.png
+│   ├── SRR22452255-heat-read-perc-log-1.gp
+│   ├── SRR22452255-heat-read-perc-log-1.png
+│   ├── SRR22452255-heat-reads-1.gp
+│   ├── SRR22452255-heat-reads-1.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-amp.gp
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-amp.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-cov.gp
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-cov.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-reads.gp
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-reads.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-tcoord.gp
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-tcoord.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-tdepth.gp
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-tdepth.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-tsize.gp
+│   └── SRR22452255-SRR22452255.primertrim.sorted-tsize.png
+├── seqyclean
 │   ├── Combined_SummaryStatistics.tsv
 │   ├── SRR13957125_clean_PE1.fastq.gz
 │   ├── SRR13957125_clean_PE2.fastq.gz
 │   ├── SRR13957125_clean_SummaryStatistics.tsv
-│   ├── SRR13957125_clean_SummaryStatistics.txt
+│   ├── SRR13957125_NTC_clean_PE1.fastq.gz
+│   ├── SRR13957125_NTC_clean_PE2.fastq.gz
+│   ├── SRR13957125_NTC_clean_SummaryStatistics.tsv
 │   ├── SRR13957170_clean_PE1.fastq.gz
 │   ├── SRR13957170_clean_PE2.fastq.gz
 │   ├── SRR13957170_clean_SummaryStatistics.tsv
-│   ├── SRR13957170_clean_SummaryStatistics.txt
 │   ├── SRR13957177_clean_PE1.fastq.gz
 │   ├── SRR13957177_clean_PE2.fastq.gz
-│   ├── SRR13957177_clean_SummaryStatistics.tsv
-│   └── SRR13957177_clean_SummaryStatistics.txt
-├── snp-dists                        # SNP matrix created with 'params.relatedness = true'
+│   └── SRR13957177_clean_SummaryStatistics.tsv
+├── snp-dists
 │   └── snp-dists.txt
-└── vadr                            # consensus file QC
+├── software_versions.yml
+└── vadr
     ├── combined.fasta
     ├── trimmed.fasta
     ├── vadr.vadr.alc
@@ -788,21 +1283,25 @@ work                                 # nextflow's working directories
 **A FILE THAT THE END USER CAN COPY AND EDIT IS FOUND AT [configs/cecret_config_template.config](configs/cecret_config_template.config)**
 
 To get a copy of the config file, the **End User** can use the following command. This creates an `edit_me.config` file in the current directory.
+
 ```
 nextflow run UPHL-BioNGS/Cecret --config_file true
 ```
 
-This file contains all of the configurable parameters with their default values. Use `'-c'` to specify the edited config file. 
+This file contains all of the configurable parameters with their default values. Use `'-c'` to specify the edited config file.
 
 ### Using config files
+
 The **End User** should not have to change the files in the Cecret repository in order to get the analyses that they need. Nextflow has a wonderful system of config files, which are recommended. Please read nextflow's documentation about config files at [https://www.nextflow.io/docs/latest/config.html](https://www.nextflow.io/docs/latest/config.html?highlight=profile#configuration-file)
 
 The general format of a config file is
+
 ```
 param.<parameter that needs adjusting> = <what it needs to be adjusted to>
 ```
 
 Then this config file is used with the workflow via the following
+
 ```
 nextflow run UPHL-BioNGS/Cecret -c <path to custom config file>
 ```
@@ -812,39 +1311,48 @@ In theory, the values specified in this config file will be used over the defaul
 If the **End User** is using some sort of cloud or HPC setup, it is highly recommended that this file is copied and edited appropriately. A limited list of parameters is listed below:
 
 ### Input and output directories
-* params.reads = workflow.launchDir + '/reads'
-* params.single_reads = workflow.launchDir + '/single_reads'
-* params.fastas = workflow.launchDir + '/fastas'
-* params.multifastas = workflow.launchDir + '/multifastas'
-* params.outdir = workflow.launchDir + '/cecret'
+
+- params.reads = workflow.launchDir + '/reads'
+- params.single_reads = workflow.launchDir + '/single_reads'
+- params.fastas = workflow.launchDir + '/fastas'
+- params.multifastas = workflow.launchDir + '/multifastas'
+- params.outdir = workflow.launchDir + '/cecret'
 
 ## Other useful nextflow options
-* To "resume" a workflow, use `-resume` with the nextflow command
-* To create a report, use `-with-report` with the nextflow command
-* To use nextflow tower, use `-with-tower` with the nextflow command (reports will not be available for download from nextflow tower using this method)
+
+- To "resume" a workflow, use `-resume` with the nextflow command
+- To create a report, use `-with-report` with the nextflow command
+- To use nextflow tower, use `-with-tower` with the nextflow command (reports will not be available for download from nextflow tower using this method)
 
 ## Frequently Asked Questions (aka FAQ)
+
 ### What do I do if I encounter an error?
 
 **TELL US ABOUT IT!!!**
-* [Github issue](https://github.com/UPHL-BioNGS/Cecret/issues)
-* Send someone from UPHL on slack
+
+- [Github issue](https://github.com/UPHL-BioNGS/Cecret/issues)
+- Send someone from UPHL on slack
 
 Be sure to include the command that was used, what config file was used, and what the **nextflow** error was.
 
 ### What is the MultiQC report?
+
 The multiqc report aggregates data across your samples into one file. Open the 'cecret/multiqc/multiqc_report.html' file with your favored browser. There tables and graphs are generated for 'General Statistics', 'Samtools stats', 'Samtools flagstats', 'FastQC', 'iVar', 'SeqyClean', 'Fastp', 'Pangolin', and 'Kraken2'.
 
 #### Example fastqc graph
+
 ![alt text](images/multiqc_fastqc.png)
 
 #### Example kraken2 graph
+
 ![alt text](images/multiqc_kraken2.png)
 
 #### Example iVar graph
+
 ![alt text](images/multiqc_ivar.png)
 
 #### Example pangolin graph
+
 ![alt text](images/multiqc_pangolin.png)
 
 ### What if I want to test the workflow?
@@ -852,6 +1360,7 @@ The multiqc report aggregates data across your samples into one file. Open the '
 In the history of this repository, there actually was an attempt to store fastq files here that the **End User** could use to test out this workflow. This made the repository very large and difficult to download.
 
 There are several test profiles. These download fastq files from the ENA to use in the workflow. This does not always work due to local internet connectivity issues, but may work fine for everyone else.
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile {docker or singularity},test
 ```
@@ -861,6 +1370,7 @@ Another great resources is [SARS-CoV-2 datasets](https://github.com/CDCgov/datas
 The expected amount of time to run this workflow with 250 G RAM and 48 CPUs, 'params.maxcpus = 8', and 'params.medcpus = 4' is ~42 minutes. This corresponded with 25.8 CPU hours.
 
 ### What if I just want to annotate some SARS-CoV-2 fastas with pangolin, freyja, nextclade and vadr?
+
 ```
 # for a collection of fastas
 nextflow run UPHL-BioNGS/Cecret -profile singularity --fastas <directory with fastas>
@@ -872,19 +1382,23 @@ nextflow run UPHL-BioNGS/Cecret -profile singularity --fastas <directory with fa
 ### How do I compare a bunch of sequences? How do I create a phylogenetic tree?
 
 The **End User** can run mafft, snpdists, and iqtree on a collection of fastas as well with
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas> --multifastas <directory with multifastas>
 ```
 
 The **End User** can have paired-end, singled-end, and fastas that can all be put together into one analysis.
+
 ```
 nextflow run UPHL-BioNGS/Cecret -profile singularity --relatedness true --fastas <directory with fastas> --multifastas <directory with multifastas> --reads <directory with paire-end reads> --single_reads <directory with single-end reads>
 ```
 
 ### Where is an example config file?
+
 The **End User** is more than welcome to look at an example [here](./configs/cecret_config_template.config). Just remove the comments for the parameters that need to be adjusted and specify with `-c`.
 
 To get a copy of the config file, the **End User** can use the following command. This created edit_me.config in the current directory.
+
 ```
 nextflow run UPHL-BioNGS/Cecret --config_file true
 ```
@@ -903,6 +1417,7 @@ params {
 ```
 
 And then run with
+
 ```
 nextflow run UPHL-BioNGS/Cecret -c <path to custom config file>
 ```
@@ -912,11 +1427,13 @@ nextflow run UPHL-BioNGS/Cecret -c <path to custom config file>
 There are two ways to do this.
 
 #### With ACI :
+
 `cecret/aci` has two files : amplicon_depth.csv and amplicon_depth.png. There is a row for each sample in 'amplicon_depth.csv', and a column for each primer in the amplicon bedfile. The values contained within are reads that only map to the region specified in the amplicon bedfile and excludes reads that do not. A boxplot of these values is visualized in amplicon_depth.png.
 
 ![alt text](images/amplicon_depth.png)
 
 #### With samtools ampliconstats :
+
 `cecret/samtools_ampliconstats` has a file for each sample.
 
 Row number 126 (FDEPTH) has a column for each amplicon (also without a header). To get this row for all of the samples, `grep` the keyword "FDEPTH" from each sample.
@@ -928,6 +1445,7 @@ grep "^FDEPTH" cecret/samtools_ampliconstats/* > samtools_ampliconstats_all.tsv
 There are corresponding images in `cecret/samtools_plot_ampliconstats` for each sample.
 
 #### Sample samtools plot ampliconstats depth graph
+
 ![alt text](images/example-combined-depth.png)
 
 ### What is the difference between `params.amplicon_bed` and `params.primer_bed`?
@@ -947,7 +1465,9 @@ MN908947.3	1312	1337	nCoV-2019_4_RIGHT	nCoV-2019_2	-
 MN908947.3	1242	1264	nCoV-2019_5_LEFT	nCoV-2019_1	+
 MN908947.3	1623	1651	nCoV-2019_5_RIGHT	nCoV-2019_1	-
 ```
+
 The amplicon bedfile is the file with the start and stop of each intended **amplicon**.
+
 ```
 $ head configs/artic_V3_nCoV-2019.insert.bed <==
 MN908947.3	54	385	1	1	+
@@ -961,6 +1481,7 @@ MN908947.3	2205	2568	8	2	+
 MN908947.3	2529	2880	9	1	+
 MN908947.3	2850	3183	10	2	+
 ```
+
 Due to the many varieties of primer bedfiles, it is best if the **End User** supplied this file for custom primer sequences.
 
 ### What if I am using an amplicon-based library that is not SARS-CoV-2?
@@ -968,13 +1489,16 @@ Due to the many varieties of primer bedfiles, it is best if the **End User** sup
 First of all, this is a great thing! [Let us know](https://github.com/UPHL-BioNGS/Cecret/issues) if tools specific for your organism should be added to this workflow. There are already options for 'mpx' and 'other' species.
 
 In a config file, change the following relevant parameters:
+
 ```
 params.reference_genome
 params.primer_bed
 params.amplicon_bed #or set params.aci = false
 params.gff_file #or set params.ivar_variants = false
 ```
+
 And set
+
 ```
 params.species = 'other'
 params.pangolin = false
@@ -982,6 +1506,7 @@ params.freyja = false
 params.nextclade = false #or adjust nexclade_prep_options from '--name sars-cov-2' to the name of the relevent dataset
 params.vadr = false #or configure the vadr container appropriately and params.vadr_reference
 ```
+
 ### What if I need to filter out human reads or I only want reads that map to my reference?
 
 Although not perfect, if `'params.filter = true'`, then only the reads that were mapped to the reference are returned. This _should_ eliminate all human contamination (as long as human is not part of the supplied reference) and all "problematic" incidental findings.
@@ -1002,12 +1527,13 @@ params.samtools_ampliconstats = false
 params.samtools_plot_ampliconstats = false
 params.aci = false
 params.pangolin = false
-params.pango_collapse = false
+params.pango_aliasor = false
 params.freyja = false
 params.nextclade = false
 params.vadr = false
 params.multiqc = false
 ```
+
 And, yes, this means I added some bells and whistles so the **End User** could turn off the bells and whistles. /irony
 
 ### Can I get images of my SNPs and indels?
@@ -1018,7 +1544,7 @@ No. Prior versions supported a tool called bamsnap, which had the potential to b
 
 Never fear, they are still in nextflow's work directory if the **End User** really needs them. They are no longer included in `publishDir` because of size issues. The BAM files are still included in `publishDir`, and most analyses for SAM files can be done with BAM files.
 
-### Where did the *err files go?
+### Where did the \*err files go?
 
 Personally, we liked having `stderr` saved to a file because some of the tools using in this workflow print to `stderr` instead of `stdout`. We have found, however, that this puts all the error text into a file, which a lot of new-to-nextflow users had a hard time finding. It was easier to assist and troubleshoot with **End Users** when `stderr` was printed normally.
 
@@ -1034,5 +1560,6 @@ Personally, we liked having `stderr` saved to a file because some of the tools u
 Bedtools multicov was replaced by ACI due to processing times, but there are other processes that take longer.
 
 Right now, the processes that take the most time are
+
 - ivar trim
 - freyja

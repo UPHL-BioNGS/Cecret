@@ -5,7 +5,6 @@ on: [pull_request, workflow_dispatch]
 run-name: Test MSA
 
 jobs:
-
   msa:
     runs-on: ubuntu-20.04
     steps:
@@ -16,12 +15,12 @@ jobs:
 
       - name: Checkout LFS objects
         run: git lfs checkout
-          
+
       - name: Install Nextflow
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
-      
+
       - name: Install Datasets
         run: |
           wget https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/LATEST/linux-amd64/datasets
@@ -48,15 +47,13 @@ jobs:
 
       - name: Run Cecret
         run: |
-          nextflow run . -profile docker -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --relatedness true --outdir cecret1
-
-          nextflow run . -profile docker -resume -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --relatedness true --outdir cecret2 --msa nextclade
+          nextflow run . -profile docker -c .github/workflows/github_actions.config --relatedness true --fastas fastas
 
           ls cecret*
             
-          head cecret*/cecret_results.txt
+          head cecret/cecret_results.txt
 
-          head cecret*/iqtree2/iqtree2.treefile
+          head cecret/iqtree2/iqtree2.treefile
 
       - name: Clean
         run: rm -rf work .nextflow*
