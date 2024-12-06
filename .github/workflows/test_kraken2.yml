@@ -33,7 +33,7 @@ jobs:
         run: |
           nextflow run . -profile docker,test \
             -c .github/workflows/github_actions.config \
-            --maxcpus 2 --medcpus 2 --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200 --vadr false \
+            --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200 --vadr false \
             --kraken2_db kraken2_db --kraken2
 
           ls cecret*

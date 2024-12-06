@@ -26,7 +26,7 @@ jobs:
 
       - name: Run Cecret
         run: |
-          nextflow run . -profile docker -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --freyja false
+          nextflow run . -profile docker -c .github/workflows/github_actions.config --freyja false --nanopore nanopore
 
           ls cecret*
             

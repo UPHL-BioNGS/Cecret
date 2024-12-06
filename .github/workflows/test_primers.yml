@@ -42,8 +42,6 @@ jobs:
       - name: Run Cecret
         run: |
           nextflow run . -profile docker -c .github/workflows/github_actions.config \
-              --maxcpus 2 \
-              --medcpus 2 \
               --primer_set ${{ matrix.primer }} \
               --bcftools_variants false \
               --fastqc false \
@@ -63,7 +61,8 @@ jobs:
               --bamsnap false \
               --rename false \
               --filter false \
-              --multiqc false
+              --multiqc false \
+              --nanopore nanopore
 
           ls cecret*
 
