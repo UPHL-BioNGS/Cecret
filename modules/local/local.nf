@@ -62,7 +62,7 @@ process PREP {
 
 process SUMMARY {
   tag        "Creating summary files"
-  label      "process_single"
+  label      "process_low"
   container  'quay.io/biocontainers/pandas:1.5.2'
 
   input:
