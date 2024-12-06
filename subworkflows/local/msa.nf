@@ -34,7 +34,7 @@ workflow MSA {
 
     if (params.phytreeviz) {
       // run phytreeviz for a basic visualization
-      PHYTREEVIZ(IQTREE2.out.newick)
+      PHYTREEVIZ(ch_nwk)
       ch_versions = ch_versions.mix(PHYTREEVIZ.out.versions)
     }
 
@@ -44,7 +44,7 @@ workflow MSA {
       ch_versions = ch_versions.mix(SNPDISTS.out.versions)
     }
 
-    if (params.heatcluster) {
+    if (params.heatcluster && params.snpdists ) {
       // run heatcluster for a basic visualization
       HEATCLUSTER(SNPDISTS.out.matrix)
       ch_versions = ch_versions.mix(HEATCLUSTER.out.versions)
