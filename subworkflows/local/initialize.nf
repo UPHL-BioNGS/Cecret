@@ -480,9 +480,9 @@ workflow INITIALIZE {
         .unique()
         .set { ch_reads }
 
-    if (params.sample_sheet || params.fastas || params.multifastas) {
+    if (params.sample_sheet || params.fastas ) {
         PREP(ch_fastas)
-        ch_prepped_fastas = FASTA_PREP.out.fastas
+        ch_prepped_fastas = PREP.out.fastas
     } else {
         ch_prepped_fastas = Channel.empty()
     }
