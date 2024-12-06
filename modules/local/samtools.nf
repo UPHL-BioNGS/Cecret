@@ -3,8 +3,6 @@ process SAMTOOLS_QC {
   label      "process_single"
   container  'staphb/samtools:1.21'
 
-  
-
   input:
   tuple val(meta), file(bam)
 
@@ -27,9 +25,10 @@ process SAMTOOLS_QC {
   def flagstat_args = task.ext.flagstat_args  ?: "${params.samtools_flagstat_options}"
   def depth_args    = task.ext.depth_args     ?: "${params.samtools_depth_options}"
   def prefix        = task.ext.prefix         ?: "${meta.id}"
+  def which_stage   = bam.baseName.contains('primertrim') ? 'final' : 'initial'
   """
     mkdir -p samtools logs/${task.process}
-    log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
+    log=logs/${task.process}/${prefix}.${which_stage}.${workflow.sessionId}.log
 
     date > \$log
     samtools --version >> \$log
@@ -37,14 +36,14 @@ process SAMTOOLS_QC {
     samtools stats \
       ${stats_args} \
       ${bam} \
-      > samtools/${prefix}.stats.txt
+      > samtools/${prefix}.${which_stage}.stats.txt
 
     samtools coverage \
       ${coverage_args} \
       ${bam} \
       -m \
       -o \
-      samtools/${prefix}.cov.hist \
+      samtools/${prefix}.${which_stage}.cov.hist \
       | tee -a \$log
     
     samtools coverage \
@@ -52,18 +51,18 @@ process SAMTOOLS_QC {
       ${bam} \
       | awk -v sample=${prefix} '{print sample "\\t" \$0 }' \
       | sed '0,/${prefix}/s//sample/' \
-      > samtools/${prefix}.cov.txt \
+      > samtools/${prefix}.${which_stage}.cov.txt \
       | tee -a \$log
 
     samtools flagstat \
       ${flagstat_args} \
       ${bam} \
-      | tee samtools/${prefix}.flagstat.txt
+      | tee samtools/${prefix}.${which_stage}.flagstat.txt
 
     samtools depth \
       ${depth_args} \
       ${bam} \
-      > samtools/${prefix}.depth.txt
+      > samtools/${prefix}.${which_stage}.depth.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
