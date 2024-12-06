@@ -29,28 +29,28 @@ workflow QC {
     
     if (params.fastqc ) {
       FASTQC(ch_raw_reads)
-      ch_summary  = ch_summary.mix(FASTQC.out.fastq_name.collectFile(name: "fastq_names.csv", keepHeader: true ))
-      ch_versions = ch_versions.mix(FASTQC.out.versions.first())
-      for_multiqc = ch_for_multiqc.mix(FASTQC.out.fastqc_files)
+      ch_summary     = ch_summary.mix(FASTQC.out.fastq_name.collectFile(name: "fastq_names.csv", keepHeader: true ))
+      ch_versions    = ch_versions.mix(FASTQC.out.versions.first())
+      ch_for_multiqc = ch_for_multiqc.mix(FASTQC.out.fastqc_files)
     }
 
     if ( params.kraken2_db ) {
       KRAKEN2(ch_clean_reads.combine(ch_kraken2_db))
       ch_for_multiqc = ch_for_multiqc.mix(KRAKEN2.out.kraken2_files)
-      ch_summary = ch_summary.mix(KRAKEN2.out.kraken2_files)
+      ch_summary     = ch_summary.mix(KRAKEN2.out.kraken2_files)
       ch_versions    = ch_versions.mix(KRAKEN2.out.versions.first())
     }
 
-    // TODO: Something cleverl with inital vs final qc
+    // TODO: Something clever with inital vs final qc
 
     INITIAL_QC(ch_initial_bam.map{ it -> tuple(it[0], it[1])})
-    ch_versions = ch_versions.mix(INITIAL_QC.out.versions.first())
-    //ch_summary = ch_summary.
-    for_multiqc = ch_for_multiqc.mix(INITIAL_QC.out.stats)
+    ch_versions    = ch_versions.mix(INITIAL_QC.out.versions.first())
+    //ch_summary   = ch_summary.
+    ch_for_multiqc = ch_for_multiqc.mix(INITIAL_QC.out.stats)
 
     FINAL_QC(ch_trim_bam.map{ it -> tuple(it[0], it[1])})
-    ch_versions = ch_versions.mix(FINAL_QC.out.versions.first())
-    for_multiqc = ch_for_multiqc.mix(FINAL_QC.out.flagstat)
+    ch_versions    = ch_versions.mix(FINAL_QC.out.versions.first())
+    ch_for_multiqc = ch_for_multiqc.mix(FINAL_QC.out.flagstat)
 
     FINAL_QC.out.coverage
       .collectFile(name: "final_samtools_coverage_summary.tsv",
@@ -58,12 +58,15 @@ workflow QC {
         storeDir: "${params.outdir}/samtools")
       .set { samtools_coverage_file }
 
-    ch_summary = ch_summary.mix(FINAL_QC.out.stats).mix(FINAL_QC.out.flagstat).mix(samtools_coverage_file)
+    ch_summary = ch_summary.mix(FINAL_QC.out.stats)
+    ch_summary = ch_summary.mix(FINAL_QC.out.flagstat)
+    ch_summary = ch_summary.mix(samtools_coverage_file)
+    ch_summary = ch_summary.mix(FINAL_QC.out.depth)
 
     if (params.aci) {
       ACI(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_amplicon_bed))
-      ch_versions = ch_versions.mix(ACI.out.versions.first())
-      for_multiqc = ch_for_multiqc.mix(ACI.out.for_multiqc)
+      ch_versions    = ch_versions.mix(ACI.out.versions.first())
+      ch_for_multiqc = ch_for_multiqc.mix(ACI.out.for_multiqc)
       
       ACI.out.cov
         .collectFile(name: "aci_coverage_summary.csv",
@@ -92,7 +95,7 @@ workflow QC {
 
       IVAR_VARIANTS(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_reference_genome).combine(ch_gff_file))
       ch_versions = ch_versions.mix(IVAR_VARIANTS.out.versions.first())
-      ch_summary = ch_summary.mix(IVAR_VARIANTS.out.variant_tsv)
+      ch_summary  = ch_summary.mix(IVAR_VARIANTS.out.variant_tsv)
     }
 
     if (params.samtools_ampliconstats) {
