@@ -44,7 +44,7 @@ workflow CECRET {
     ch_consensus   = ch_fastas.mix(ch_multifasta)
     ch_wo_mltifna  = ch_fastas
 
-    if (params.reads || params.single_reads || params.sample_sheet || params.nanopore ) {
+    if (params.reads || params.single_reads || params.sample_sheet || params.nanopore || ! params.sra_accessions.isEmpty()) {
       CONSENSUS(
           ch_reads,
           ch_nanopore,
