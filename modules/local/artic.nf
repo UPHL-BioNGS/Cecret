@@ -29,12 +29,6 @@ process ARTIC {
     artic --version >> \$log
     artic_version=\$(artic --version | awk '{print \$NF}')
 
-        artic guppyplex ${args} \
-            --directory . \
-            --prefix ${fastq} \
-            --output artic/${prefix}_filtered.fastq.gz \
-            | tee -a \$log
-
     cp ${reference} schema/cecret/V1/cecret.reference.fasta
     cp ${bed}       schema/cecret/V1/cecret.scheme.bed
     samtools faidx  schema/cecret/V1/cecret.reference.fasta
@@ -96,7 +90,11 @@ process ARTIC_FILTER {
         date > \$log
         artic --version >> \$log
 
-
+        artic guppyplex ${args} \
+            --directory . \
+            --prefix ${fastq} \
+            --output artic/${prefix}_filtered.fastq.gz \
+            | tee -a \$log
 
         cat <<-END_VERSIONS > versions.yml
         "${task.process}":
