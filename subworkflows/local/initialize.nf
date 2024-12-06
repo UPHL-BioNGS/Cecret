@@ -126,21 +126,6 @@ workflow INITIALIZE {
     //
     // Create channels for input files
     //
-
-    //# Ensuring that reads and single_reads are not set to the same directory
-    if ( params.reads && params.reads == params.single_reads ) {
-        println('\'params.reads\' and \'params.single_reads\' cannot point to the same directory!')
-        println('\'params.reads\' is set to ' + params.reads)
-        println('\'params.single_reads\' is set to ' + params.single_reads)
-        exit 1
-    }
-
-    if ( params.fastas && params.fastas == params.multifastas ) {
-        println('\'params.fastas\' and \'params.multifastas\' cannot point to the same directory!')
-        println('\'params.fastas\' is set to ' + params.fastas)
-        println('\'params.multifastas\' is set to ' + params.multifastas)
-        exit 1
-    }
  
     //# getting input files
     if ( params.sample_sheet ) { 
@@ -167,6 +152,22 @@ workflow INITIALIZE {
         ch_multifastas  = inputs.multifasta.map{ it -> tuple(it[1][0])}
 
     } else {
+
+        //# Ensuring that reads and single_reads are not set to the same directory
+        if ( params.reads && params.reads == params.single_reads ) {
+            println('\'params.reads\' and \'params.single_reads\' cannot point to the same directory!')
+            println('\'params.reads\' is set to ' + params.reads)
+            println('\'params.single_reads\' is set to ' + params.single_reads)
+            exit 1
+        }
+
+        if ( params.fastas && params.fastas == params.multifastas ) {
+            println('\'params.fastas\' and \'params.multifastas\' cannot point to the same directory!')
+            println('\'params.fastas\' is set to ' + params.fastas)
+            println('\'params.multifastas\' is set to ' + params.multifastas)
+            exit 1
+        }
+
 
         // looking for paired-end fastq files
         if (params.reads) {
@@ -238,7 +239,7 @@ workflow INITIALIZE {
                 .fromPath("${params.fastas}/*{.fa,.fasta,.fna}", type:'file')
                 .map { it -> 
                     meta = [id:it.simpleName, single_end:null] 
-                    tuple( meta, file(it[1][0], checkIfExists: true))
+                    tuple( meta, file(it, checkIfExists: true))
                 }
                 .unique()
                 .ifEmpty{
@@ -413,14 +414,14 @@ workflow INITIALIZE {
     //# Getting the amplicon bedfile
     if ( params.aci ) {
         if (params.amplicon_bed) {
-        Channel
-            .fromPath(params.amplicon_bed, type:'file', checkIfExists: true)
-            .ifEmpty{
-                println("A bedfile for amplicons is required. Set with 'params.amplicon_bed'.")
-                println("Or set params.aci = false to skip this.")
-                exit 1
-            }
-            .set { ch_amplicon_bed } 
+            Channel
+                .fromPath(params.amplicon_bed, type:'file', checkIfExists: true)
+                .ifEmpty{
+                    println("A bedfile for amplicons is required. Set with 'params.amplicon_bed'.")
+                    println("Or set params.aci = false to skip this.")
+                    exit 1
+                }
+                .set { ch_amplicon_bed } 
         } else if ( params.primer_set in available_primer_sets ) {
             Channel
                 .fromPath( included_amplicons )
