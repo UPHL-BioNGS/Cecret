@@ -9,7 +9,7 @@ from os.path import exists
 # Entire sample set already in one file
 aci_file                = 'aci_coverage_summary.csv'
 ampliconstats_file      = 'ampliconstats.summary'
-samtools_coverage_file  = 'samtools_coverage_summary.tsv'
+samtools_coverage_file  = 'final_samtools_coverage_summary.tsv'
 pangolin_file           = 'lineage_report.csv'
 pango_aliasor_file      = 'pango_aliasor.csv'
 nextclade_file          = 'nextclade.csv'
@@ -159,7 +159,7 @@ for file in depth_files :
     if not ( os.stat(file).st_size==0 ) : 
         ind_depth_df        = pd.read_table(file, header=None)
         depth               = ind_depth_df[2][ind_depth_df[2] > min_depth].count()
-        sample              = str(file).replace('.depth.txt', '')
+        sample              = str(file).replace('.final.depth.txt', '')
         tmp_depth_df        = pd.DataFrame({'samtools_sample': [sample],  "num_pos_" + str(min_depth) + "X": [depth]})
         depth_df            = pd.concat([depth_df, tmp_depth_df], axis=0 )
 
@@ -209,7 +209,7 @@ for file in stats_files :
             if "insert size average" in line:
                 insert_size = line.split("\t")[2].strip()
                 break        
-        sample              = str(file).replace('.stats.txt', '')
+        sample              = str(file).replace('.final.stats.txt', '')
         tmp_stats_df        = pd.DataFrame({'samtools_sample': [sample], 'insert_size_after_trimming': [insert_size]})
         stats_df            = pd.concat([stats_df, tmp_stats_df], axis=0 )
 
