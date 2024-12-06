@@ -177,8 +177,9 @@ workflow INITIALIZE {
                 .map { it ->
                     meta = [id:it[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), single_end:false] 
                     tuple( meta, [
-                    file(it[1][0], checkIfExists: true), 
-                    file(it[1][1], checkIfExists: true)])
+                        file(it[1][0], checkIfExists: true), 
+                        file(it[1][1], checkIfExists: true)]
+                    )
                 }
                 .unique()
                 .ifEmpty{
@@ -198,7 +199,7 @@ workflow INITIALIZE {
                 .fromPath("${params.single_reads}/*.{fastq,fastq.gz,fq,fq.gz}")
                 .map { it -> 
                     meta = [id:it.simpleName, single_end:true] 
-                    tuple( meta, file(it[1][0], checkIfExists: true))
+                    tuple( meta, file(it, checkIfExists: true))
                 }
                 .unique()
                 .ifEmpty{
@@ -218,7 +219,7 @@ workflow INITIALIZE {
                 .fromPath("${params.nanopore}/*.{fastq,fastq.gz,fq,fq.gz}")
                 .map { it -> 
                     meta = [id:it.simpleName, single_end:true] 
-                    tuple( meta, file(it[1][0], checkIfExists: true))
+                    tuple( meta, file(it, checkIfExists: true))
                 }
                 .unique()
                 .ifEmpty{
