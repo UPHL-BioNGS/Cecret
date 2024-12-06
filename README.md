@@ -456,100 +456,309 @@ params.multiqc = true                     # aggregates data into single report
    <summary>Final File Tree after running cecret.nf</summary>
 
 ```
-cecret                                # results from this workflow
+cecret/
 ├── aci
-│   ├── amplicon_depth.csv
-│   ├── amplicon_depth_mqc.png
-│   └── amplicon_depth.png
-├── aligned                           # aligned (with aligner) but untrimmed bam files with indexes
+│   ├── aci_coverage_summary.csv
+│   ├── SRR13957125
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR13957125_amplicon_depth.csv
+│   │   └── SRR13957125_amplicon_depth.png
+│   ├── SRR13957125_NTC
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR13957125_NTC_amplicon_depth.csv
+│   │   └── SRR13957125_NTC_amplicon_depth.png
+│   ├── SRR13957170
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR13957170_amplicon_depth.csv
+│   │   └── SRR13957170_amplicon_depth.png
+│   ├── SRR13957177
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR13957177_amplicon_depth.csv
+│   │   └── SRR13957177_amplicon_depth.png
+│   ├── SRR22452232
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR22452232_amplicon_depth.csv
+│   │   └── SRR22452232_amplicon_depth.png
+│   ├── SRR22452242
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR22452242_amplicon_depth.csv
+│   │   └── SRR22452242_amplicon_depth.png
+│   ├── SRR22452243
+│   │   ├── amplicon_depth.csv
+│   │   ├── amplicon_depth.png
+│   │   ├── overall_depth.csv
+│   │   ├── overall_depth.png
+│   │   ├── SRR22452243_amplicon_depth.csv
+│   │   └── SRR22452243_amplicon_depth.png
+│   └── SRR22452255
+│       ├── amplicon_depth.csv
+│       ├── amplicon_depth.png
+│       ├── overall_depth.csv
+│       ├── overall_depth.png
+│       ├── SRR22452255_amplicon_depth.csv
+│       └── SRR22452255_amplicon_depth.png
+├── aligned
+│   ├── SRR13957125_NTC.sorted.bam
+│   ├── SRR13957125_NTC.sorted.bam.bai
 │   ├── SRR13957125.sorted.bam
 │   ├── SRR13957125.sorted.bam.bai
 │   ├── SRR13957170.sorted.bam
 │   ├── SRR13957170.sorted.bam.bai
 │   ├── SRR13957177.sorted.bam
 │   └── SRR13957177.sorted.bam.bai
-├── bcftools_variants                 # set to false by default; VCF files of variants identified
+├── artic
+│   ├── SRR22452232.1.hdf
+│   ├── SRR22452232.1.vcf
+│   ├── SRR22452232.2.hdf
+│   ├── SRR22452232.2.vcf
+│   ├── SRR22452232.alignreport.er
+│   ├── SRR22452232.alignreport.txt
+│   ├── SRR22452232.consensus.fasta
+│   ├── SRR22452232.coverage_mask.txt
+│   ├── SRR22452232.coverage_mask.txt.1.depths
+│   ├── SRR22452232.coverage_mask.txt.2.depths
+│   ├── SRR22452232.fail.vcf
+│   ├── SRR22452232_filtered.fastq.gz
+│   ├── SRR22452232.merged.vcf
+│   ├── SRR22452232.merged.vcf.gz
+│   ├── SRR22452232.merged.vcf.gz.tbi
+│   ├── SRR22452232.minion.log.txt
+│   ├── SRR22452232.muscle.in.fasta
+│   ├── SRR22452232.muscle.out.fasta
+│   ├── SRR22452232.pass.vcf.gz
+│   ├── SRR22452232.pass.vcf.gz.tbi
+│   ├── SRR22452232.preconsensus.fasta
+│   ├── SRR22452232.primersitereport.txt
+│   ├── SRR22452232.primers.vcf
+│   ├── SRR22452232.primertrimmed.rg.sorted.bam
+│   ├── SRR22452232.primertrimmed.rg.sorted.bam.bai
+│   ├── SRR22452232.primertrim.sorted.bam
+│   ├── SRR22452232.primertrim.sorted.bam.bai
+│   ├── SRR22452232.sorted.bam
+│   ├── SRR22452232.sorted.bam.bai
+│   ├── SRR22452232.trimmed.rg.sorted.bam
+│   ├── SRR22452232.trimmed.rg.sorted.bam.bai
+│   ├── SRR22452242.1.hdf
+│   ├── SRR22452242.1.vcf
+│   ├── SRR22452242.2.hdf
+│   ├── SRR22452242.2.vcf
+│   ├── SRR22452242.alignreport.er
+│   ├── SRR22452242.alignreport.txt
+│   ├── SRR22452242.consensus.fasta
+│   ├── SRR22452242.coverage_mask.txt
+│   ├── SRR22452242.coverage_mask.txt.1.depths
+│   ├── SRR22452242.coverage_mask.txt.2.depths
+│   ├── SRR22452242.fail.vcf
+│   ├── SRR22452242_filtered.fastq.gz
+│   ├── SRR22452242.merged.vcf
+│   ├── SRR22452242.merged.vcf.gz
+│   ├── SRR22452242.merged.vcf.gz.tbi
+│   ├── SRR22452242.minion.log.txt
+│   ├── SRR22452242.muscle.in.fasta
+│   ├── SRR22452242.muscle.out.fasta
+│   ├── SRR22452242.pass.vcf.gz
+│   ├── SRR22452242.pass.vcf.gz.tbi
+│   ├── SRR22452242.preconsensus.fasta
+│   ├── SRR22452242.primersitereport.txt
+│   ├── SRR22452242.primers.vcf
+│   ├── SRR22452242.primertrimmed.rg.sorted.bam
+│   ├── SRR22452242.primertrimmed.rg.sorted.bam.bai
+│   ├── SRR22452242.primertrim.sorted.bam
+│   ├── SRR22452242.primertrim.sorted.bam.bai
+│   ├── SRR22452242.sorted.bam
+│   ├── SRR22452242.sorted.bam.bai
+│   ├── SRR22452242.trimmed.rg.sorted.bam
+│   ├── SRR22452242.trimmed.rg.sorted.bam.bai
+│   ├── SRR22452243.1.hdf
+│   ├── SRR22452243.1.vcf
+│   ├── SRR22452243.2.hdf
+│   ├── SRR22452243.2.vcf
+│   ├── SRR22452243.alignreport.er
+│   ├── SRR22452243.alignreport.txt
+│   ├── SRR22452243.consensus.fasta
+│   ├── SRR22452243.coverage_mask.txt
+│   ├── SRR22452243.coverage_mask.txt.1.depths
+│   ├── SRR22452243.coverage_mask.txt.2.depths
+│   ├── SRR22452243.fail.vcf
+│   ├── SRR22452243_filtered.fastq.gz
+│   ├── SRR22452243.merged.vcf
+│   ├── SRR22452243.merged.vcf.gz
+│   ├── SRR22452243.merged.vcf.gz.tbi
+│   ├── SRR22452243.minion.log.txt
+│   ├── SRR22452243.muscle.in.fasta
+│   ├── SRR22452243.muscle.out.fasta
+│   ├── SRR22452243.pass.vcf.gz
+│   ├── SRR22452243.pass.vcf.gz.tbi
+│   ├── SRR22452243.preconsensus.fasta
+│   ├── SRR22452243.primersitereport.txt
+│   ├── SRR22452243.primers.vcf
+│   ├── SRR22452243.primertrimmed.rg.sorted.bam
+│   ├── SRR22452243.primertrimmed.rg.sorted.bam.bai
+│   ├── SRR22452243.primertrim.sorted.bam
+│   ├── SRR22452243.primertrim.sorted.bam.bai
+│   ├── SRR22452243.sorted.bam
+│   ├── SRR22452243.sorted.bam.bai
+│   ├── SRR22452243.trimmed.rg.sorted.bam
+│   ├── SRR22452243.trimmed.rg.sorted.bam.bai
+│   ├── SRR22452255.1.hdf
+│   ├── SRR22452255.1.vcf
+│   ├── SRR22452255.2.hdf
+│   ├── SRR22452255.2.vcf
+│   ├── SRR22452255.alignreport.er
+│   ├── SRR22452255.alignreport.txt
+│   ├── SRR22452255.consensus.fasta
+│   ├── SRR22452255.coverage_mask.txt
+│   ├── SRR22452255.coverage_mask.txt.1.depths
+│   ├── SRR22452255.coverage_mask.txt.2.depths
+│   ├── SRR22452255.fail.vcf
+│   ├── SRR22452255_filtered.fastq.gz
+│   ├── SRR22452255.merged.vcf
+│   ├── SRR22452255.merged.vcf.gz
+│   ├── SRR22452255.merged.vcf.gz.tbi
+│   ├── SRR22452255.minion.log.txt
+│   ├── SRR22452255.muscle.in.fasta
+│   ├── SRR22452255.muscle.out.fasta
+│   ├── SRR22452255.pass.vcf.gz
+│   ├── SRR22452255.pass.vcf.gz.tbi
+│   ├── SRR22452255.preconsensus.fasta
+│   ├── SRR22452255.primersitereport.txt
+│   ├── SRR22452255.primers.vcf
+│   ├── SRR22452255.primertrimmed.rg.sorted.bam
+│   ├── SRR22452255.primertrimmed.rg.sorted.bam.bai
+│   ├── SRR22452255.primertrim.sorted.bam
+│   ├── SRR22452255.primertrim.sorted.bam.bai
+│   ├── SRR22452255.sorted.bam
+│   ├── SRR22452255.sorted.bam.bai
+│   ├── SRR22452255.trimmed.rg.sorted.bam
+│   └── SRR22452255.trimmed.rg.sorted.bam.bai
+├── bcftools_variants
+│   ├── SRR13957125_NTC.vcf
 │   ├── SRR13957125.vcf
 │   ├── SRR13957170.vcf
-│   └── SRR13957177.vcf
-├── cecret_results.csv                # comma-delimeted summary of results
-├── cecret_results.txt                # tab-delimited summary of results
-├── consensus                         # the likely reason you are running this workflow
+│   ├── SRR13957177.vcf
+│   ├── SRR22452232.vcf
+│   ├── SRR22452242.vcf
+│   ├── SRR22452243.vcf
+│   └── SRR22452255.vcf
+├── cecret_results.csv
+├── cecret_results.txt
+├── consensus
 │   ├── SRR13957125.consensus.fa
+│   ├── SRR13957125_NTC.consensus.fa
 │   ├── SRR13957170.consensus.fa
-│   └── SRR13957177.consensus.fa
-├── dataset                           # generated by nextclade
-│   ├── genemap.gff
-│   ├── primers.csv
-│   ├── qc.json
+│   ├── SRR13957177.consensus.fa
+│   ├── SRR22452232.consensus.fa
+│   ├── SRR22452242.consensus.fa
+│   ├── SRR22452243.consensus.fa
+│   └── SRR22452255.consensus.fa
+├── dataset
+│   ├── CHANGELOG.md
+│   ├── genome_annotation.gff3
+│   ├── pathogen.json
+│   ├── README.md
 │   ├── reference.fasta
 │   ├── sequences.fasta
-│   ├── tag.json
-│   ├── tree.json
-│   └── virus_properties.json
-├── fasta_prep                        # optional for inputted fastas
-│   ├── SRR13957125.test.fa
-│   ├── SRR13957170.test.fa
-│   └── SRR13957177.test.fa
-├── fastp                             # optional tools for cleaning reads when 'params.cleaner = fastp'
-│   ├── SRR13957125_clean_PE1.fastq.gz
-│   ├── SRR13957125_clean_PE2.fastq.gz
-│   ├── SRR13957125_fastp.html
-│   ├── SRR13957125_fastp.json
-│   ├── SRR13957170_clean_PE1.fastq.gz
-│   ├── SRR13957170_clean_PE2.fastq.gz
-│   ├── SRR13957170_fastp.html
-│   ├── SRR13957170_fastp.json
-│   ├── SRR13957177_clean_PE1.fastq.gz
-│   ├── SRR13957177_clean_PE2.fastq.gz
-│   ├── SRR13957177_fastp.html
-│   └── SRR13957177_fastp.json
-├── fastqc                            # QC metrics for each fasta sequence
+│   └── tree.json
+├── fastqc
 │   ├── SRR13957125_1_fastqc.html
 │   ├── SRR13957125_1_fastqc.zip
 │   ├── SRR13957125_2_fastqc.html
 │   ├── SRR13957125_2_fastqc.zip
+│   ├── SRR13957125_fastq_name.csv
+│   ├── SRR13957125_NTC_1_fastqc.html
+│   ├── SRR13957125_NTC_1_fastqc.zip
+│   ├── SRR13957125_NTC_2_fastqc.html
+│   ├── SRR13957125_NTC_2_fastqc.zip
+│   ├── SRR13957125_NTC_fastq_name.csv
 │   ├── SRR13957170_1_fastqc.html
 │   ├── SRR13957170_1_fastqc.zip
 │   ├── SRR13957170_2_fastqc.html
 │   ├── SRR13957170_2_fastqc.zip
+│   ├── SRR13957170_fastq_name.csv
 │   ├── SRR13957177_1_fastqc.html
 │   ├── SRR13957177_1_fastqc.zip
 │   ├── SRR13957177_2_fastqc.html
-│   └── SRR13957177_2_fastqc.zip
-├── filter                           # fastq.gz files from reads that were aligned to the reference genome
-│   ├── SRR13957125_filtered_R1.fastq.gz
-│   ├── SRR13957125_filtered_R2.fastq.gz
-│   ├── SRR13957125_filtered_unpaired.fastq.gz
-│   ├── SRR13957170_filtered_R1.fastq.gz
-│   ├── SRR13957170_filtered_R2.fastq.gz
-│   ├── SRR13957170_filtered_unpaired.fastq.gz
-│   ├── SRR13957177_filtered_R1.fastq.gz
-│   ├── SRR13957177_filtered_R2.fastq.gz
-│   └── SRR13957177_filtered_unpaired.fastq.gz
-├── freyja                          # finding co-lineages
+│   ├── SRR13957177_2_fastqc.zip
+│   └── SRR13957177_fastq_name.csv
+├── freyja
 │   ├── aggregated-freyja.png
 │   ├── aggregated-freyja.tsv
-│   ├── SRR13957125_boot.tsv_lineages.csv
-│   ├── SRR13957125_boot.tsv_summarized.csv
 │   ├── SRR13957125_demix.tsv
 │   ├── SRR13957125_depths.tsv
+│   ├── SRR13957125_freyja_lineages_mqc.png
+│   ├── SRR13957125_freyja_lineages.png
+│   ├── SRR13957125_NTC_demix.tsv
+│   ├── SRR13957125_NTC_depths.tsv
+│   ├── SRR13957125_NTC_freyja_lineages_mqc.png
+│   ├── SRR13957125_NTC_freyja_lineages.png
+│   ├── SRR13957125_NTC_variants.tsv
 │   ├── SRR13957125_variants.tsv
-│   ├── SRR13957170_boot.tsv_lineages.csv
-│   ├── SRR13957170_boot.tsv_summarized.csv
 │   ├── SRR13957170_demix.tsv
 │   ├── SRR13957170_depths.tsv
+│   ├── SRR13957170_freyja_lineages_mqc.png
+│   ├── SRR13957170_freyja_lineages.png
 │   ├── SRR13957170_variants.tsv
-│   ├── SRR13957177_boot.tsv_lineages.csv
-│   ├── SRR13957177_boot.tsv_summarized.csv
 │   ├── SRR13957177_demix.tsv
 │   ├── SRR13957177_depths.tsv
-│   └── SRR13957177_variants.tsv
-├── iqtree2                          # phylogenetic tree that is generated with 'params.relatedness = true'
+│   ├── SRR13957177_freyja_lineages_mqc.png
+│   ├── SRR13957177_freyja_lineages.png
+│   ├── SRR13957177_variants.tsv
+│   ├── SRR22452232_demix.tsv
+│   ├── SRR22452232_depths.tsv
+│   ├── SRR22452232_freyja_lineages_mqc.png
+│   ├── SRR22452232_freyja_lineages.png
+│   ├── SRR22452232_variants.tsv
+│   ├── SRR22452242_demix.tsv
+│   ├── SRR22452242_depths.tsv
+│   ├── SRR22452242_freyja_lineages_mqc.png
+│   ├── SRR22452242_freyja_lineages.png
+│   ├── SRR22452242_variants.tsv
+│   ├── SRR22452243_demix.tsv
+│   ├── SRR22452243_depths.tsv
+│   ├── SRR22452243_freyja_lineages_mqc.png
+│   ├── SRR22452243_freyja_lineages.png
+│   ├── SRR22452243_variants.tsv
+│   ├── SRR22452255_demix.tsv
+│   ├── SRR22452255_depths.tsv
+│   ├── SRR22452255_freyja_lineages_mqc.png
+│   ├── SRR22452255_freyja_lineages.png
+│   └── SRR22452255_variants.tsv
+├── heatcluster
+│   ├── heatcluster.png
+│   └── sorted_matrix.csv
+├── igv_reports
+│   ├── SRR13957125_igvjs_viewer.html
+│   ├── SRR13957125_NTC_igvjs_viewer.html
+│   ├── SRR13957170_igvjs_viewer.html
+│   ├── SRR13957177_igvjs_viewer.html
+│   ├── SRR22452232_igvjs_viewer.html
+│   ├── SRR22452242_igvjs_viewer.html
+│   ├── SRR22452243_igvjs_viewer.html
+│   └── SRR22452255_igvjs_viewer.html
+├── iqtree2
 │   ├── iqtree2.iqtree
 │   ├── iqtree2.log
 │   ├── iqtree2.mldist
-│   └── iqtree2.treefile
+│   ├── iqtree2.treefile
+│   └── iqtree2.treefile.nwk
 ├── ivar_consensus
 │   ├── SRR13957125.consensus.fa
 │   ├── SRR13957125.consensus.qual.txt
@@ -559,8 +768,11 @@ cecret                                # results from this workflow
 │   ├── SRR13957170.consensus.qual.txt
 │   ├── SRR13957177.consensus.fa
 │   └── SRR13957177.consensus.qual.txt
-├── ivar_trim                        # bam files after primers have been trimmed off the reads with ivar
+├── ivar_trim
 │   ├── SRR13957125_ivar.log
+│   ├── SRR13957125_NTC_ivar.log
+│   ├── SRR13957125_NTC.primertrim.sorted.bam
+│   ├── SRR13957125_NTC.primertrim.sorted.bam.bai
 │   ├── SRR13957125.primertrim.sorted.bam
 │   ├── SRR13957125.primertrim.sorted.bam.bai
 │   ├── SRR13957170_ivar.log
@@ -569,108 +781,169 @@ cecret                                # results from this workflow
 │   ├── SRR13957177_ivar.log
 │   ├── SRR13957177.primertrim.sorted.bam
 │   └── SRR13957177.primertrim.sorted.bam.bai
-├── ivar_variants                    # tsv and vcf files of variants identified in sample
+├── ivar_variants
 │   ├── SRR13957125.ivar_variants.vcf
+│   ├── SRR13957125_NTC.ivar_variants.vcf
+│   ├── SRR13957125_NTC.variants.tsv
 │   ├── SRR13957125.variants.tsv
 │   ├── SRR13957170.ivar_variants.vcf
 │   ├── SRR13957170.variants.tsv
 │   ├── SRR13957177.ivar_variants.vcf
-│   └── SRR13957177.variants.tsv
-├── kraken2                          # kraken2 report of the organisms the reads may be from
+│   ├── SRR13957177.variants.tsv
+│   ├── SRR22452232.ivar_variants.vcf
+│   ├── SRR22452232.variants.tsv
+│   ├── SRR22452242.ivar_variants.vcf
+│   ├── SRR22452242.variants.tsv
+│   ├── SRR22452243.ivar_variants.vcf
+│   ├── SRR22452243.variants.tsv
+│   ├── SRR22452255.ivar_variants.vcf
+│   └── SRR22452255.variants.tsv
+├── kraken2
+│   ├── SRR13957125.cseqs_1.fastq.gz
+│   ├── SRR13957125.cseqs_2.fastq.gz
 │   ├── SRR13957125_kraken2_report.txt
+│   ├── SRR13957125_NTC.cseqs_1.fastq.gz
+│   ├── SRR13957125_NTC.cseqs_2.fastq.gz
+│   ├── SRR13957125_NTC_kraken2_report.txt
+│   ├── SRR13957125_NTC.useqs_1.fastq.gz
+│   ├── SRR13957125_NTC.useqs_2.fastq.gz
+│   ├── SRR13957125.useqs_1.fastq.gz
+│   ├── SRR13957125.useqs_2.fastq.gz
+│   ├── SRR13957170.cseqs_1.fastq.gz
+│   ├── SRR13957170.cseqs_2.fastq.gz
 │   ├── SRR13957170_kraken2_report.txt
-│   └── SRR13957177_kraken2_report.txt
-├── logs                             # divided log and err files for QC and troubleshooting pleasures
-│   └── processes*
-│       ├── sample.run_id.err
-│       └── sample.run_id.log
-├── mafft                            # multiple sequence alignment created when 'params.relatedness = true'
-│   └── mafft_aligned.fasta
-├── markdup
-│   ├── SRR13957125.markdup.sorted.bam
-│   ├── SRR13957125.markdup.sorted.bam.bai
-│   ├── SRR13957125_markdupstats.txt
-│   ├── SRR13957170.markdup.sorted.bam
-│   ├── SRR13957170.markdup.sorted.bam.bai
-│   ├── SRR13957170_markdupstats.txt
-│   ├── SRR13957177.markdup.sorted.bam
-│   ├── SRR13957177.markdup.sorted.bam.bai
-│   └── SRR13957177_markdupstats.txt
-├── multiqc                          # aggregates data into single report
+│   ├── SRR13957170.useqs_1.fastq.gz
+│   ├── SRR13957170.useqs_2.fastq.gz
+│   ├── SRR13957177.cseqs_1.fastq.gz
+│   ├── SRR13957177.cseqs_2.fastq.gz
+│   ├── SRR13957177_kraken2_report.txt
+│   ├── SRR13957177.useqs_1.fastq.gz
+│   └── SRR13957177.useqs_2.fastq.gz
+├── mafft
+│   ├── mafft_aligned.fasta
+│   └── ultimate.fasta
+├── multiqc
 │   ├── multiqc_data
+│   │   ├── multiqc_bracken.txt
 │   │   ├── multiqc_citations.txt
 │   │   ├── multiqc_data.json
 │   │   ├── multiqc_fastqc.txt
 │   │   ├── multiqc_general_stats.txt
-│   │   ├── multiqc_ivar_primers.txt
-│   │   ├── multiqc_ivar_summary.txt
+│   │   ├── multiqc_kraken.txt
 │   │   ├── multiqc.log
+│   │   ├── multiqc_nextclade.txt
+│   │   ├── multiqc_pangolin.txt
 │   │   ├── multiqc_samtools_flagstat.txt
 │   │   ├── multiqc_samtools_stats.txt
 │   │   ├── multiqc_seqyclean.txt
+│   │   ├── multiqc_software_versions.txt
 │   │   └── multiqc_sources.txt
 │   └── multiqc_report.html
-├── nextclade                        # nextclade reports
+├── nextclade
 │   ├── combined.fasta
 │   ├── nextclade.aligned.fasta
 │   ├── nextclade.auspice.json
+│   ├── nextclade.cds_translation.E.fasta
+│   ├── nextclade.cds_translation.M.fasta
+│   ├── nextclade.cds_translation.N.fasta
+│   ├── nextclade.cds_translation.ORF1a.fasta
+│   ├── nextclade.cds_translation.ORF1b.fasta
+│   ├── nextclade.cds_translation.ORF3a.fasta
+│   ├── nextclade.cds_translation.ORF6.fasta
+│   ├── nextclade.cds_translation.ORF7a.fasta
+│   ├── nextclade.cds_translation.ORF7b.fasta
+│   ├── nextclade.cds_translation.ORF8.fasta
+│   ├── nextclade.cds_translation.ORF9b.fasta
+│   ├── nextclade.cds_translation.S.fasta
 │   ├── nextclade.csv
-│   ├── nextclade.errors.csv
-│   ├── nextclade.gene.E.fasta
-│   ├── nextclade.gene.M.fasta
-│   ├── nextclade.gene.N.fasta
-│   ├── nextclade.gene.ORF1a.fasta
-│   ├── nextclade.gene.ORF1b.fasta
-│   ├── nextclade.gene.ORF3a.fasta
-│   ├── nextclade.gene.ORF6.fasta
-│   ├── nextclade.gene.ORF7a.fasta
-│   ├── nextclade.gene.ORF7b.fasta
-│   ├── nextclade.gene.ORF8.fasta
-│   ├── nextclade.gene.ORF9b.fasta
-│   ├── nextclade.gene.S.fasta
-│   ├── nextclade.insertions.csv
 │   ├── nextclade.json
+│   ├── nextclade.ndjson
+│   ├── nextclade.nwk
 │   └── nextclade.tsv
 ├── pango_aliasor
-│   └── pango_aliasor.tsv
-├── pangolin                         # pangolin results
+│   └── pango_aliasor.csv
+├── pangolin
 │   ├── combined.fasta
 │   └── lineage_report.csv
-├── samtools_ampliconstats           # amplicon statistics and metrics as determined by samtools
+├── phytreeviz
+│   └── tree.png
+├── pipeline_info
+│   ├── execution_report_2024-12-06_14-45-24.html
+│   ├── execution_timeline_2024-12-06_14-45-24.html
+│   ├── execution_trace_2024-12-06_14-45-24.txt
+│   └── pipeline_dag_2024-12-06_14-45-24.html
+├── samtools
+│   ├── final_samtools_coverage_summary.tsv
 │   ├── SRR13957125_ampliconstats.txt
+│   ├── SRR13957125.final.cov.hist
+│   ├── SRR13957125.final.cov.txt
+│   ├── SRR13957125.final.depth.txt
+│   ├── SRR13957125.final.flagstat.txt
+│   ├── SRR13957125.final.stats.txt
+│   ├── SRR13957125.initial.cov.hist
+│   ├── SRR13957125.initial.cov.txt
+│   ├── SRR13957125.initial.depth.txt
+│   ├── SRR13957125.initial.flagstat.txt
+│   ├── SRR13957125.initial.stats.txt
+│   ├── SRR13957125_NTC_ampliconstats.txt
+│   ├── SRR13957125_NTC.final.cov.hist
+│   ├── SRR13957125_NTC.final.cov.txt
+│   ├── SRR13957125_NTC.final.depth.txt
+│   ├── SRR13957125_NTC.final.flagstat.txt
+│   ├── SRR13957125_NTC.final.stats.txt
+│   ├── SRR13957125_NTC.initial.cov.hist
+│   ├── SRR13957125_NTC.initial.cov.txt
+│   ├── SRR13957125_NTC.initial.depth.txt
+│   ├── SRR13957125_NTC.initial.flagstat.txt
+│   ├── SRR13957125_NTC.initial.stats.txt
 │   ├── SRR13957170_ampliconstats.txt
-│   └── SRR13957177_ampliconstats.txt
-├── samtools_coverage                # coverage and metrics as determined by samtools
-│   ├── SRR13957125.cov.aligned.hist
-│   ├── SRR13957125.cov.aligned.txt
-│   ├── SRR13957125.cov.trimmed.hist
-│   ├── SRR13957125.cov.trimmed.txt
-│   ├── SRR13957170.cov.aligned.hist
-│   ├── SRR13957170.cov.aligned.txt
-│   ├── SRR13957170.cov.trimmed.hist
-│   ├── SRR13957170.cov.trimmed.txt
-│   ├── SRR13957177.cov.aligned.hist
-│   ├── SRR13957177.cov.aligned.txt
-│   ├── SRR13957177.cov.trimmed.hist
-│   └── SRR13957177.cov.trimmed.txt
-├── samtools_depth                   # the number of reads
-│   ├── SRR13957125.depth.aligned.txt
-│   ├── SRR13957125.depth.trimmed.txt
-│   ├── SRR13957170.depth.aligned.txt
-│   ├── SRR13957170.depth.trimmed.txt
-│   ├── SRR13957177.depth.aligned.txt
-│   └── SRR13957177.depth.trimmed.txt
-├── samtools_flagstat                # flag information
-│   ├── SRR13957125.flagstat.aligned.txt
-│   ├── SRR13957125.flagstat.trimmed.txt
-│   ├── SRR13957125.flagstat.txt
-│   ├── SRR13957170.flagstat.aligned.txt
-│   ├── SRR13957170.flagstat.trimmed.txt
-│   ├── SRR13957170.flagstat.txt
-│   ├── SRR13957177.flagstat.aligned.txt
-│   ├── SRR13957177.flagstat.trimmed.txt
-│   └── SRR13957177.flagstat.txt
-├── samtools_plot_ampliconstats      # plots of the ampliconstats for troubleshooting purposes
+│   ├── SRR13957170.final.cov.hist
+│   ├── SRR13957170.final.cov.txt
+│   ├── SRR13957170.final.depth.txt
+│   ├── SRR13957170.final.flagstat.txt
+│   ├── SRR13957170.final.stats.txt
+│   ├── SRR13957170.initial.cov.hist
+│   ├── SRR13957170.initial.cov.txt
+│   ├── SRR13957170.initial.depth.txt
+│   ├── SRR13957170.initial.flagstat.txt
+│   ├── SRR13957170.initial.stats.txt
+│   ├── SRR13957177_ampliconstats.txt
+│   ├── SRR13957177.final.cov.hist
+│   ├── SRR13957177.final.cov.txt
+│   ├── SRR13957177.final.depth.txt
+│   ├── SRR13957177.final.flagstat.txt
+│   ├── SRR13957177.final.stats.txt
+│   ├── SRR13957177.initial.cov.hist
+│   ├── SRR13957177.initial.cov.txt
+│   ├── SRR13957177.initial.depth.txt
+│   ├── SRR13957177.initial.flagstat.txt
+│   ├── SRR13957177.initial.stats.txt
+│   ├── SRR22452232_ampliconstats.txt
+│   ├── SRR22452232.final.cov.hist
+│   ├── SRR22452232.final.cov.txt
+│   ├── SRR22452232.final.depth.txt
+│   ├── SRR22452232.final.flagstat.txt
+│   ├── SRR22452232.final.stats.txt
+│   ├── SRR22452242_ampliconstats.txt
+│   ├── SRR22452242.final.cov.hist
+│   ├── SRR22452242.final.cov.txt
+│   ├── SRR22452242.final.depth.txt
+│   ├── SRR22452242.final.flagstat.txt
+│   ├── SRR22452242.final.stats.txt
+│   ├── SRR22452243_ampliconstats.txt
+│   ├── SRR22452243.final.cov.hist
+│   ├── SRR22452243.final.cov.txt
+│   ├── SRR22452243.final.depth.txt
+│   ├── SRR22452243.final.flagstat.txt
+│   ├── SRR22452243.final.stats.txt
+│   ├── SRR22452255_ampliconstats.txt
+│   ├── SRR22452255.final.cov.hist
+│   ├── SRR22452255.final.cov.txt
+│   ├── SRR22452255.final.depth.txt
+│   ├── SRR22452255.final.flagstat.txt
+│   └── SRR22452255.final.stats.txt
+├── samtools_plot_ampliconstats
+│   ├── index.html
 │   ├── SRR13957125
 │   ├── SRR13957125-combined-amp.gp
 │   ├── SRR13957125-combined-amp.png
@@ -696,6 +969,37 @@ cecret                                # results from this workflow
 │   ├── SRR13957125-heat-read-perc-log-1.png
 │   ├── SRR13957125-heat-reads-1.gp
 │   ├── SRR13957125-heat-reads-1.png
+│   ├── SRR13957125_NTC
+│   ├── SRR13957125_NTC-combined-amp.gp
+│   ├── SRR13957125_NTC-combined-amp.png
+│   ├── SRR13957125_NTC-combined-coverage-1.gp
+│   ├── SRR13957125_NTC-combined-coverage-1.png
+│   ├── SRR13957125_NTC-combined-depth.gp
+│   ├── SRR13957125_NTC-combined-depth.png
+│   ├── SRR13957125_NTC-combined-read-perc.gp
+│   ├── SRR13957125_NTC-combined-read-perc.png
+│   ├── SRR13957125_NTC-combined-reads.gp
+│   ├── SRR13957125_NTC-combined-reads.png
+│   ├── SRR13957125_NTC-combined-tdepth.gp
+│   ├── SRR13957125_NTC-combined-tdepth.png
+│   ├── SRR13957125_NTC-heat-amp-1.gp
+│   ├── SRR13957125_NTC-heat-amp-1.png
+│   ├── SRR13957125_NTC-heat-coverage-1-1.gp
+│   ├── SRR13957125_NTC-heat-coverage-1-1.png
+│   ├── SRR13957125_NTC-heat-read-perc-1.gp
+│   ├── SRR13957125_NTC-heat-read-perc-1.png
+│   ├── SRR13957125_NTC-heat-read-perc-log-1.gp
+│   ├── SRR13957125_NTC-heat-read-perc-log-1.png
+│   ├── SRR13957125_NTC-heat-reads-1.gp
+│   ├── SRR13957125_NTC-heat-reads-1.png
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-amp.gp
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-amp.png
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-cov.gp
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-cov.png
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-reads.gp
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-reads.png
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-tdepth.gp
+│   ├── SRR13957125_NTC-SRR13957125_NTC.primertrim.sorted-tdepth.png
 │   ├── SRR13957125-SRR13957125.primertrim.sorted-amp.gp
 │   ├── SRR13957125-SRR13957125.primertrim.sorted-amp.png
 │   ├── SRR13957125-SRR13957125.primertrim.sorted-cov.gp
@@ -775,34 +1079,173 @@ cecret                                # results from this workflow
 │   ├── SRR13957177-SRR13957177.primertrim.sorted-tdepth.gp
 │   ├── SRR13957177-SRR13957177.primertrim.sorted-tdepth.png
 │   ├── SRR13957177-SRR13957177.primertrim.sorted-tsize.gp
-│   └── SRR13957177-SRR13957177.primertrim.sorted-tsize.png
-├── samtools_stats                   # stats as determined by samtools
-│   ├── SRR13957125.stats.aligned.txt
-│   ├── SRR13957125.stats.trimmed.txt
-│   ├── SRR13957125.stats.txt
-│   ├── SRR13957170.stats.aligned.txt
-│   ├── SRR13957170.stats.trimmed.txt
-│   ├── SRR13957170.stats.txt
-│   ├── SRR13957177.stats.aligned.txt
-│   ├── SRR13957177.stats.trimmed.txt
-│   └── SRR13957177.stats.txt
-├── seqyclean                        # reads that have had PhiX and adapters removed
+│   ├── SRR13957177-SRR13957177.primertrim.sorted-tsize.png
+│   ├── SRR22452232
+│   ├── SRR22452232-combined-amp.gp
+│   ├── SRR22452232-combined-amp.png
+│   ├── SRR22452232-combined-coverage-1.gp
+│   ├── SRR22452232-combined-coverage-1.png
+│   ├── SRR22452232-combined-depth.gp
+│   ├── SRR22452232-combined-depth.png
+│   ├── SRR22452232-combined-read-perc.gp
+│   ├── SRR22452232-combined-read-perc.png
+│   ├── SRR22452232-combined-reads.gp
+│   ├── SRR22452232-combined-reads.png
+│   ├── SRR22452232-combined-tcoord.gp
+│   ├── SRR22452232-combined-tcoord.png
+│   ├── SRR22452232-combined-tdepth.gp
+│   ├── SRR22452232-combined-tdepth.png
+│   ├── SRR22452232-heat-amp-1.gp
+│   ├── SRR22452232-heat-amp-1.png
+│   ├── SRR22452232-heat-coverage-1-1.gp
+│   ├── SRR22452232-heat-coverage-1-1.png
+│   ├── SRR22452232-heat-read-perc-1.gp
+│   ├── SRR22452232-heat-read-perc-1.png
+│   ├── SRR22452232-heat-read-perc-log-1.gp
+│   ├── SRR22452232-heat-read-perc-log-1.png
+│   ├── SRR22452232-heat-reads-1.gp
+│   ├── SRR22452232-heat-reads-1.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-amp.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-amp.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-cov.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-cov.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-reads.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-reads.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tcoord.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tcoord.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tdepth.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tdepth.png
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tsize.gp
+│   ├── SRR22452232-SRR22452232.primertrim.sorted-tsize.png
+│   ├── SRR22452242
+│   ├── SRR22452242-combined-amp.gp
+│   ├── SRR22452242-combined-amp.png
+│   ├── SRR22452242-combined-coverage-1.gp
+│   ├── SRR22452242-combined-coverage-1.png
+│   ├── SRR22452242-combined-depth.gp
+│   ├── SRR22452242-combined-depth.png
+│   ├── SRR22452242-combined-read-perc.gp
+│   ├── SRR22452242-combined-read-perc.png
+│   ├── SRR22452242-combined-reads.gp
+│   ├── SRR22452242-combined-reads.png
+│   ├── SRR22452242-combined-tcoord.gp
+│   ├── SRR22452242-combined-tcoord.png
+│   ├── SRR22452242-combined-tdepth.gp
+│   ├── SRR22452242-combined-tdepth.png
+│   ├── SRR22452242-heat-amp-1.gp
+│   ├── SRR22452242-heat-amp-1.png
+│   ├── SRR22452242-heat-coverage-1-1.gp
+│   ├── SRR22452242-heat-coverage-1-1.png
+│   ├── SRR22452242-heat-read-perc-1.gp
+│   ├── SRR22452242-heat-read-perc-1.png
+│   ├── SRR22452242-heat-read-perc-log-1.gp
+│   ├── SRR22452242-heat-read-perc-log-1.png
+│   ├── SRR22452242-heat-reads-1.gp
+│   ├── SRR22452242-heat-reads-1.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-amp.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-amp.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-cov.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-cov.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-reads.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-reads.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tcoord.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tcoord.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tdepth.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tdepth.png
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tsize.gp
+│   ├── SRR22452242-SRR22452242.primertrim.sorted-tsize.png
+│   ├── SRR22452243
+│   ├── SRR22452243-combined-amp.gp
+│   ├── SRR22452243-combined-amp.png
+│   ├── SRR22452243-combined-coverage-1.gp
+│   ├── SRR22452243-combined-coverage-1.png
+│   ├── SRR22452243-combined-depth.gp
+│   ├── SRR22452243-combined-depth.png
+│   ├── SRR22452243-combined-read-perc.gp
+│   ├── SRR22452243-combined-read-perc.png
+│   ├── SRR22452243-combined-reads.gp
+│   ├── SRR22452243-combined-reads.png
+│   ├── SRR22452243-combined-tcoord.gp
+│   ├── SRR22452243-combined-tcoord.png
+│   ├── SRR22452243-combined-tdepth.gp
+│   ├── SRR22452243-combined-tdepth.png
+│   ├── SRR22452243-heat-amp-1.gp
+│   ├── SRR22452243-heat-amp-1.png
+│   ├── SRR22452243-heat-coverage-1-1.gp
+│   ├── SRR22452243-heat-coverage-1-1.png
+│   ├── SRR22452243-heat-read-perc-1.gp
+│   ├── SRR22452243-heat-read-perc-1.png
+│   ├── SRR22452243-heat-read-perc-log-1.gp
+│   ├── SRR22452243-heat-read-perc-log-1.png
+│   ├── SRR22452243-heat-reads-1.gp
+│   ├── SRR22452243-heat-reads-1.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-amp.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-amp.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-cov.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-cov.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-reads.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-reads.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tcoord.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tcoord.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tdepth.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tdepth.png
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tsize.gp
+│   ├── SRR22452243-SRR22452243.primertrim.sorted-tsize.png
+│   ├── SRR22452255
+│   ├── SRR22452255-combined-amp.gp
+│   ├── SRR22452255-combined-amp.png
+│   ├── SRR22452255-combined-coverage-1.gp
+│   ├── SRR22452255-combined-coverage-1.png
+│   ├── SRR22452255-combined-depth.gp
+│   ├── SRR22452255-combined-depth.png
+│   ├── SRR22452255-combined-read-perc.gp
+│   ├── SRR22452255-combined-read-perc.png
+│   ├── SRR22452255-combined-reads.gp
+│   ├── SRR22452255-combined-reads.png
+│   ├── SRR22452255-combined-tcoord.gp
+│   ├── SRR22452255-combined-tcoord.png
+│   ├── SRR22452255-combined-tdepth.gp
+│   ├── SRR22452255-combined-tdepth.png
+│   ├── SRR22452255-heat-amp-1.gp
+│   ├── SRR22452255-heat-amp-1.png
+│   ├── SRR22452255-heat-coverage-1-1.gp
+│   ├── SRR22452255-heat-coverage-1-1.png
+│   ├── SRR22452255-heat-read-perc-1.gp
+│   ├── SRR22452255-heat-read-perc-1.png
+│   ├── SRR22452255-heat-read-perc-log-1.gp
+│   ├── SRR22452255-heat-read-perc-log-1.png
+│   ├── SRR22452255-heat-reads-1.gp
+│   ├── SRR22452255-heat-reads-1.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-amp.gp
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-amp.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-cov.gp
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-cov.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-reads.gp
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-reads.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-tcoord.gp
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-tcoord.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-tdepth.gp
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-tdepth.png
+│   ├── SRR22452255-SRR22452255.primertrim.sorted-tsize.gp
+│   └── SRR22452255-SRR22452255.primertrim.sorted-tsize.png
+├── seqyclean
 │   ├── Combined_SummaryStatistics.tsv
 │   ├── SRR13957125_clean_PE1.fastq.gz
 │   ├── SRR13957125_clean_PE2.fastq.gz
 │   ├── SRR13957125_clean_SummaryStatistics.tsv
-│   ├── SRR13957125_clean_SummaryStatistics.txt
+│   ├── SRR13957125_NTC_clean_PE1.fastq.gz
+│   ├── SRR13957125_NTC_clean_PE2.fastq.gz
+│   ├── SRR13957125_NTC_clean_SummaryStatistics.tsv
 │   ├── SRR13957170_clean_PE1.fastq.gz
 │   ├── SRR13957170_clean_PE2.fastq.gz
 │   ├── SRR13957170_clean_SummaryStatistics.tsv
-│   ├── SRR13957170_clean_SummaryStatistics.txt
 │   ├── SRR13957177_clean_PE1.fastq.gz
 │   ├── SRR13957177_clean_PE2.fastq.gz
-│   ├── SRR13957177_clean_SummaryStatistics.tsv
-│   └── SRR13957177_clean_SummaryStatistics.txt
-├── snp-dists                        # SNP matrix created with 'params.relatedness = true'
+│   └── SRR13957177_clean_SummaryStatistics.tsv
+├── snp-dists
 │   └── snp-dists.txt
-└── vadr                            # consensus file QC
+├── software_versions.yml
+└── vadr
     ├── combined.fasta
     ├── trimmed.fasta
     ├── vadr.vadr.alc
