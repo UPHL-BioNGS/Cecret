@@ -5,7 +5,6 @@ on: [pull_request, workflow_dispatch]
 run-name: Test profile
 
 jobs:
-
   test:
     runs-on: ubuntu-20.04
     steps:
@@ -16,15 +15,15 @@ jobs:
 
       - name: Checkout LFS objects
         run: git lfs checkout
-          
+
       - name: Install Nextflow
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
-          
+
       - name: Run Cecret
         run: |
-          nextflow run . -profile docker,test -c .github/workflows/github_actions.config --maxcpus 2 --medcpus 2 --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200
+          nextflow run . -profile docker,test -c .github/workflows/github_actions.config --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200
 
           ls cecret*
             

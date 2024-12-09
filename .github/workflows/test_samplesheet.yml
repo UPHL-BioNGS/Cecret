@@ -1,0 +1,51 @@
+name: Test SARS-CoV-2 workflow
+
+on: [pull_request, workflow_dispatch]
+
+run-name: Download fastq and fasta and run
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          lfs: true
+
+      - name: Checkout LFS objects
+        run: git lfs checkout
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Run Cecret
+        run: |
+          docker --version
+
+          mkdir reads
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_1.fastq.gz
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_2.fastq.gz
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR250/069/SRR25097869/SRR25097869.fastq.gz
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR312/005/SRR31220305/SRR31220305_1.fastq.gz
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR312/005/SRR31220305/SRR31220305_2.fastq.gz
+          mv *fastq.gz reads/.
+
+          mkdir -p fastas
+          wget -q https://raw.githubusercontent.com/StaPH-B/docker-builds/master/tests/SARS-CoV-2/SRR13957123.consensus.fa
+          mv SRR13957123.consensus.fa fastas/SRR13957123DB.fa
+
+          mkdir nanopore
+          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR314/070/SRR31458670/SRR31458670_1.fastq.gz
+          mv SRR31458670_1.fastq.gz nanopore/SRR31458670_1.fastq.gz
+
+          nextflow run . -profile docker -c .github/workflows/github_actions.config --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200 --sample_sheet .github/workflows/sample_sheet.csv --vadr false
+
+          ls cecret*
+            
+          cat cecret*/cecret_results.txt
+
+      - name: Clean
+        run: rm -rf work .nextflow*

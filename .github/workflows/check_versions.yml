@@ -3,7 +3,7 @@ name: Check versions
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 4 * * TUE'
+    - cron: "30 4 * * TUE"
 
 jobs:
   check:
@@ -16,7 +16,7 @@ jobs:
 
       - name: Checkout LFS objects
         run: git lfs checkout
-        
+
       - name: versions
         run: |
           issue_text="Needing updates:  " 
@@ -54,7 +54,7 @@ jobs:
           echo $issue_text
           cat versions.txt
           echo 'ISSUE_TEXT='$issue_text >> $GITHUB_ENV
-          
+
       - name: Create Issue
         run: |
           gh issue create --title "Version check" --body "$ISSUE_TEXT" --repo $GITHUB_REPOSITORY

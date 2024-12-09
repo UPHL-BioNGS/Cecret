@@ -1,0 +1,29 @@
+bump_version: null
+lint:
+  actions_awsfulltest: False
+  files_exist: False
+  files_unchanged: False
+  multiqc_config: False
+  template_strings: False
+  version_consistencey: False
+  nextflow_config:
+    - manifest.name
+    - manifest.homePage
+    - validation.help.beforeText
+    - validation.help.afterText
+    - validation.summary.beforeText
+    - validation.summary.afterText
+nf_core_version: 3.0.2
+org_path: null
+repository_type: pipeline
+template:
+  author: Erin Young
+  description: reference-based consensus generation
+  force: true
+  is_nfcore: false
+  name: Cecret
+  org: UPHL-BioNGS/Cecret
+  outdir: .
+  skip_features: null
+  version: 1.0.0
+update: null
