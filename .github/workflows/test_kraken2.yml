@@ -42,7 +42,7 @@ jobs:
 
       - name: Kraken2 results
         run: |
-          wc -l cecret/kraken2/*_kraken2_report.txt
+          wc -l cecret*/kraken2/*_kraken2_report.txt
 
       - name: Clean
         run: rm -rf work .nextflow*
