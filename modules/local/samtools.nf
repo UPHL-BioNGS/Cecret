@@ -115,6 +115,8 @@ process SAMTOOLS_PLOT_AMPLICONSTATS {
   tag           "${meta.id}"
   label         "process_single"
   container     'staphb/samtools:1.21'
+  // fails for empty samples
+  errorStrategy 'ignore'
 
   input:
   tuple val(meta), file(ampliconstats)
