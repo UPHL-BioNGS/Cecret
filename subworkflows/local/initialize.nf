@@ -172,7 +172,8 @@ workflow INITIALIZE {
         // looking for paired-end fastq files
         if (params.reads) {
             Channel
-                .fromFilePairs(["${params.reads}/*{1,2}*.{fastq,fastq.gz,fq,fq.gz}"], size: 2 )
+                .fromFilePairs(["${params.reads}/*_R{1,2}*.{fastq,fastq.gz,fq,fq.gz}",
+                        "${params.reads}/*_{1,2}*.{fastq,fastq.gz,fq,fq.gz}"], size: 2 )
                 .unique()
                 .map { it ->
                     meta = [id:it[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), single_end:false] 
