@@ -56,8 +56,8 @@ workflow {
 */
 
 workflow.onComplete {
-  println("Pipeline completed at: $workflow.complete")
-  println("A summary of results can be found in a comma-delimited file: ${params.outdir}/cecret_results.csv")
-  println("A summary of results can be found in a tab-delimited file: ${params.outdir}/cecret_results.txt")
-  println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
+    println("Pipeline completed at: $workflow.complete")
+    println("A summary of results can be found in a comma-delimited file: ${params.outdir}/cecret_results.csv")
+    println("A summary of results can be found in a tab-delimited file: ${params.outdir}/cecret_results.txt")
+    println("Execution status: ${ workflow.success ? 'OK' : 'failed' }")
 }
