@@ -75,7 +75,7 @@ workflow CONSENSUS {
     ch_sum_ver  = ch_sum_ver.mix(BWA.out.aligner_version)
     ch_versions = ch_versions.mix(BWA.out.versions.first())
   
-  } else if ( params.aligner = 'minimap2' ) {
+  } else if ( params.aligner == 'minimap2' ) {
     // running minimap2
     MINIMAP2(ch_clean_reads.combine(ch_reference))
     
@@ -131,9 +131,11 @@ workflow CONSENSUS {
     ARTIC_FILTER(ch_nanopore)
     ch_versions = ch_versions.mix(ARTIC_FILTER.out.versions.first())
 
-    ARTIC(ARTIC_FILTER.out.fastq.combine(ch_reference).combine(ch_primer_bed))
-    ch_sum_ver  = ch_sum_ver.mix(ARTIC.out.artic_version)
-    ch_versions = ch_versions.mix(ARTIC.out.versions.first())
+    if (params.artic) {
+      ARTIC(ARTIC_FILTER.out.fastq.combine(ch_reference).combine(ch_primer_bed))
+      ch_sum_ver  = ch_sum_ver.mix(ARTIC.out.artic_version)
+      ch_versions = ch_versions.mix(ARTIC.out.versions.first())
+    }
   }
 
   // remove all non-target-organism reads
