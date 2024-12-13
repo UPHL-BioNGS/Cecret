@@ -126,7 +126,7 @@ workflow INITIALIZE {
     //
     // Create channels for input files
     //
- 
+
     //# getting input files
     if ( params.sample_sheet ) { 
         Channel
@@ -134,7 +134,7 @@ workflow INITIALIZE {
             .view { "Sample sheet found : ${it}" }
             .splitCsv( header: true, sep: ',' )
             .map { it -> 
-                meta = [id:it.sample, single_end:determine_type(it.fastq_2)]
+                def meta = [id:it.sample, single_end:determine_type(it.fastq_2)]
                 tuple( meta, [ file("${it.fastq_1}", checkIfExists: true), file("${it.fastq_2}") ]) }
             .branch {
                 single     : it[1] =~ /single/
@@ -175,7 +175,7 @@ workflow INITIALIZE {
                 .fromFilePairs(["${params.reads}/*{1,2}*.{fastq,fastq.gz,fq,fq.gz}"], size: 2 )
                 .unique()
                 .map { it ->
-                    meta = [id:it[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), single_end:false] 
+                    def meta = [id:it[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), single_end:false] 
                     tuple( meta, [
                         file(it[1][0], checkIfExists: true), 
                         file(it[1][1], checkIfExists: true)]
@@ -198,7 +198,7 @@ workflow INITIALIZE {
             Channel
                 .fromPath("${params.single_reads}/*.{fastq,fastq.gz,fq,fq.gz}")
                 .map { it -> 
-                    meta = [id:it.simpleName, single_end:true] 
+                    def meta = [id:it.simpleName, single_end:true] 
                     tuple( meta, file(it, checkIfExists: true))
                 }
                 .unique()
@@ -218,7 +218,7 @@ workflow INITIALIZE {
             Channel
                 .fromPath("${params.nanopore}/*.{fastq,fastq.gz,fq,fq.gz}")
                 .map { it -> 
-                    meta = [id:it.simpleName, single_end:true] 
+                    def meta = [id:it.simpleName, single_end:true] 
                     tuple( meta, file(it, checkIfExists: true))
                 }
                 .unique()
@@ -239,7 +239,7 @@ workflow INITIALIZE {
             Channel
                 .fromPath("${params.fastas}/*{.fa,.fasta,.fna}", type:'file')
                 .map { it -> 
-                    meta = [id:it.simpleName, single_end:null] 
+                    def meta = [id:it.simpleName, single_end:null] 
                     tuple( meta, file(it, checkIfExists: true))
                 }
                 .unique()
@@ -365,9 +365,6 @@ workflow INITIALIZE {
         workflow.projectDir + '/schema/mpx_primalseq_insert.bed'
     ]
 
-    ch_primers                = Channel.fromPath(included_primers,   type: 'file')
-    ch_amplicons              = Channel.fromPath(included_amplicons, type: 'file')
-
     available_primer_sets = [
         'midnight_idt_V1', 
         'midnight_ont_V1', 
@@ -389,13 +386,14 @@ workflow INITIALIZE {
             .fromPath(params.primer_bed, type:'file', checkIfExists: true)
             .ifEmpty{
                 println("A bedfile for primers is required. Set with 'params.primer_bed'.")
+                println("or use a provided primer set in ${available_primer_sets}")
                 exit 1
             }
             .set { ch_primer_bed }
         } else if ( params.primer_set in available_primer_sets && params.species == 'sarscov2' ) {
             Channel
                 .fromPath( included_primers )
-                .branch{ 
+                .branch {
                     match : it =~ /${params.primer_set}_*/
                 }
                 .first()
@@ -490,14 +488,14 @@ workflow INITIALIZE {
     }
 
     if ( ! params.sra_accessions.isEmpty() || ! params.genome_accessions.isEmpty() ) { 
-      TEST(
-        ch_sra_accessions,
-        ch_genome_accessions
+        TEST(
+            ch_sra_accessions,
+            ch_genome_accessions
         )
 
-      ch_reads = ch_reads.mix(TEST.out.reads)
-      ch_prepped_fastas = ch_prepped_fastas.mix(TEST.out.fastas)
-      ch_versions = ch_versions.mix(TEST.out.versions)
+        ch_reads = ch_reads.mix(TEST.out.reads)
+        ch_prepped_fastas = ch_prepped_fastas.mix(TEST.out.fastas)
+        ch_versions = ch_versions.mix(TEST.out.versions)
     }
 
     emit:
