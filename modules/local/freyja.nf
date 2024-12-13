@@ -8,7 +8,7 @@ process FREYJA {
 
   output:
   tuple val(meta), file("freyja/*_{depths,variants}.tsv"), optional: true, emit: variants
-  tuple val(meta), file("freyja/*_demix.tsv"), optional: true, emit: demix
+  path("freyja/*_demix.tsv"), optional: true, emit: demix
   path "freyja/*", optional: true, emit: files
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
