@@ -19,7 +19,7 @@ workflow TEST {
         DOWNLOAD_FASTQ.out.paired
             .mix(DOWNLOAD_FASTQ.out.single)
             .map { it ->
-                meta = [id:it[0], single_end:it[2]]
+                def meta = [id:it[0], single_end:it[2]]
                 tuple( meta, it[1]) }
             .set { ch_downloaded_reads }
 
