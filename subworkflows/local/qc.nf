@@ -43,25 +43,28 @@ workflow QC {
 
     // TODO: Something clever with inital vs final qc
 
-    INITIAL_QC(ch_initial_bam.map{ it -> tuple(it[0], it[1])})
-    ch_versions    = ch_versions.mix(INITIAL_QC.out.versions.first())
-    //ch_summary   = ch_summary.
-    ch_for_multiqc = ch_for_multiqc.mix(INITIAL_QC.out.stats)
+    if (params.samtools_qc) {
+      INITIAL_QC(ch_initial_bam.map{ it -> tuple(it[0], it[1])})
+      ch_versions    = ch_versions.mix(INITIAL_QC.out.versions.first())
+      //ch_summary   = ch_summary.
+      ch_for_multiqc = ch_for_multiqc.mix(INITIAL_QC.out.stats)
 
-    FINAL_QC(ch_trim_bam.map{ it -> tuple(it[0], it[1])})
-    ch_versions    = ch_versions.mix(FINAL_QC.out.versions.first())
-    ch_for_multiqc = ch_for_multiqc.mix(FINAL_QC.out.flagstat)
+      FINAL_QC(ch_trim_bam.map{ it -> tuple(it[0], it[1])})
+      ch_versions    = ch_versions.mix(FINAL_QC.out.versions.first())
+      ch_for_multiqc = ch_for_multiqc.mix(FINAL_QC.out.flagstat)
 
-    FINAL_QC.out.coverage
-      .collectFile(name: "final_samtools_coverage_summary.tsv",
-        keepHeader: true,
-        storeDir: "${params.outdir}/samtools")
-      .set { samtools_coverage_file }
+      FINAL_QC.out.coverage
+        .collectFile(name: "final_samtools_coverage_summary.tsv",
+          keepHeader: true,
+          storeDir: "${params.outdir}/samtools")
+        .set { samtools_coverage_file }
 
-    ch_summary = ch_summary.mix(FINAL_QC.out.stats)
-    ch_summary = ch_summary.mix(FINAL_QC.out.flagstat)
-    ch_summary = ch_summary.mix(samtools_coverage_file)
-    ch_summary = ch_summary.mix(FINAL_QC.out.depth)
+      ch_summary = ch_summary.mix(FINAL_QC.out.stats)
+      ch_summary = ch_summary.mix(FINAL_QC.out.flagstat)
+      ch_summary = ch_summary.mix(samtools_coverage_file)
+      ch_summary = ch_summary.mix(FINAL_QC.out.depth)
+
+    }
 
     if (params.aci) {
       ACI(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_amplicon_bed))
@@ -103,8 +106,10 @@ workflow QC {
       ch_versions = ch_versions.mix(AMPLICONSTATS.out.versions.first())
       ch_summary  = ch_summary.mix(AMPLICONSTATS.out.ampliconstats.map{it -> it[1]})
 
-      PLOT_AMPLICONSTATS(AMPLICONSTATS.out.ampliconstats)
-      ch_versions = ch_versions.mix(PLOT_AMPLICONSTATS.out.versions.first())
+      if (params.samtools_plot_ampliconstats) {
+        PLOT_AMPLICONSTATS(AMPLICONSTATS.out.ampliconstats)
+        ch_versions = ch_versions.mix(PLOT_AMPLICONSTATS.out.versions.first())
+      }
     }
 
 
