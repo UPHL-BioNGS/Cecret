@@ -131,17 +131,20 @@ workflow CECRET {
         name: "collated_versions.yml")
       .set { ch_collated_versions }
 
-    MULTIQC(
-        ch_for_multiqc.mix(ch_collated_versions).collect(), 
-        ch_scripts
-    )
-    ch_versions    = ch_versions.mix(MULTIQC.out.versions)
+    if (params.multiqc){
+      MULTIQC(
+          ch_for_multiqc.mix(ch_collated_versions).collect(), 
+          ch_scripts
+      )
+      ch_versions    = ch_versions.mix(MULTIQC.out.versions)
 
-    SUMMARY(
-      ch_for_summary.mix(ch_wo_mltifna).collect().map{it -> tuple([it])}
-        .combine(ch_scripts.map{it -> tuple([it])})
-        .combine(ch_for_version.collect().map{it -> tuple([it])})
-        .combine(MULTIQC.out.files.ifEmpty([]).map{it -> tuple([it])}))
+      SUMMARY(
+        ch_for_summary.mix(ch_wo_mltifna).collect().map{it -> tuple([it])}
+          .combine(ch_scripts.map{it -> tuple([it])})
+          .combine(ch_for_version.collect().map{it -> tuple([it])})
+          .combine(MULTIQC.out.files.ifEmpty([]).map{it -> tuple([it])})
+      )
+    }
 
   emit:
     bam       = ch_bam

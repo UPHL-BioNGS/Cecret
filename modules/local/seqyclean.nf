@@ -11,7 +11,7 @@ process SEQYCLEAN {
   path "seqyclean/*_clean_SummaryStatistics.tsv", optional: true, emit: seqyclean_files_collect_paired
   path "seqyclean/*_cln_SummaryStatistics.tsv", optional: true, emit: seqyclean_files_collect_single
   path "logs/${task.process}/*.log", emit: log
-  tuple val("${params.cleaner}"), env(cleaner_version), emit: cleaner_version
+  tuple val("${params.cleaner}"), env("cleaner_version"), emit: cleaner_version
   path "versions.yml", emit: versions
 
   when:

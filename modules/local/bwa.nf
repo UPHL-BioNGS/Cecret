@@ -8,7 +8,7 @@ process BWA {
 
   output:
   tuple val(meta), file("bwa/*.sam"), emit: sam
-  tuple val("${params.aligner}"), env(bwa_version), emit: aligner_version
+  tuple val("${params.aligner}"), env("bwa_version"), emit: aligner_version
   path "logs/${task.process}/*.log", emit: log
   path "versions.yml", emit: versions
 

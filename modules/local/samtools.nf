@@ -247,7 +247,7 @@ process SAMTOOLS_AMPLICONCLIP {
   output:
   tuple val(meta), file("ampliconclip/*.primertrim.sorted.bam"), file("ampliconclip/*.primertrim.sorted.bam.bai"), emit: bam_bai
   path "logs/${task.process}/*.log", emit: log                                                         
-  tuple val("samtools ampliconclip"), env(trimmer_version), emit: trimmer_version
+  tuple val("samtools ampliconclip"), env("trimmer_version"), emit: trimmer_version
   path "versions.yml", emit: versions
 
   when:

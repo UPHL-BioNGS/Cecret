@@ -11,7 +11,7 @@ process FASTP {
   path "fastp/*_fastp.html", emit: html
   tuple val(meta), file("fastp/*_fastp.json"), emit: fastp_files
   path "logs/${task.process}/*", emit: log
-  tuple val("${params.cleaner}"), env(cleaner_version), emit: cleaner_version
+  tuple val("${params.cleaner}"), env("cleaner_version"), emit: cleaner_version
   path "versions.yml", emit: versions
 
   when:
