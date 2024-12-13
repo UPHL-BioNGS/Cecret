@@ -12,7 +12,7 @@ process IVAR_CONSENSUS {
   path "ivar_consensus/*.consensus.qual.txt", emit: qual
   path "ivar_consensus/*", emit: everything
   path "logs/${task.process}/*.log", emit: log
-  tuple val("ivar consensus"), env(ivar_version), emit: ivar_version
+  tuple val("ivar consensus"), env("ivar_version"), emit: ivar_version
   path "versions.yml", emit: versions
 
   when:
@@ -119,7 +119,7 @@ process IVAR_TRIM {
   tuple val(meta), file("ivar_trim/*.primertrim.sorted.bam"), file("ivar_trim/*.primertrim.sorted.bam.bai"), emit: bam_bai
   path "logs/${task.process}/*.log", emit: log
   path "ivar_trim/*_ivar.log", emit: ivar_trim_files
-  tuple val("${params.trimmer}"), env(trimmer_version), emit: trimmer_version
+  tuple val("${params.trimmer}"), env("trimmer_version"), emit: trimmer_version
   path "versions.yml", emit: versions
 
   when:
