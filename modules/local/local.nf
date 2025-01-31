@@ -45,7 +45,7 @@ process PREP {
   tuple val(meta), file(fasta)
 
   output:
-  path "fasta_prep/${fasta}", optional: true, emit: fastas
+  path "fasta_prep/*", optional: true, emit: fastas
 
   when:
   task.ext.when == null || task.ext.when
@@ -55,8 +55,8 @@ process PREP {
   """
   mkdir -p fasta_prep
 
-  echo ">${prefix}" > fasta_prep/${fasta}
-  grep -v ">" ${fasta} | fold -w 75 >> fasta_prep/${fasta}
+  echo ">${prefix}" > fasta_prep/${prefix}.fasta
+  grep -v ">" ${fasta} | fold -w 75 >> fasta_prep/${prefix}.fasta
   """
 }
 
