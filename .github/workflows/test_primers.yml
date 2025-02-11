@@ -6,11 +6,11 @@ run-name: primers
 
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         primer:
-          [
+          [ 
             "midnight_idt_V1",
             "midnight_ont_V1",
             "midnight_ont_V2",
