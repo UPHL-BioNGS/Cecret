@@ -1,7 +1,7 @@
 process IVAR_CONSENSUS {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/ivar:1.4.3'
+  container     'staphb/ivar:1.4.4'
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
@@ -50,7 +50,7 @@ process IVAR_CONSENSUS {
 process IVAR_VARIANTS {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/ivar:1.4.3'
+  container     'staphb/ivar:1.4.4'
 
   input:
   tuple val(meta), file(bam), file(reference_genome), file(gff_file)
@@ -109,7 +109,7 @@ process IVAR_VARIANTS {
 process IVAR_TRIM {
   tag        "${meta.id}"
   label      "process_medium"
-  container  'staphb/ivar:1.4.3'
+  container  'staphb/ivar:1.4.4'
 
   input:
   tuple val(meta), file(bam), file(primer_bed)
