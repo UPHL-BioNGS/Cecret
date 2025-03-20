@@ -28,16 +28,14 @@ process ENA {
         ${SRR} \
         | tee -a \$log_file
 
-    if [ -f "${SRR}_2.fastq.gz" ]
+    if [ -f "${SRR}/${SRR}_2.fastq.gz" ]
     then
-        mv *.fastq.gz ena/paired/.
-    elif [ -f "${SRR}.fastq.gz" ]
+        mv ${SRR}/*.fastq.gz ena/paired/.
+    elif [ -f "${SRR}/${SRR}.fastq.gz" ]
     then
-        mv *.fastq.gz ena/single/.
+        mv ${SRR}/*.fastq.gz ena/single/.
     else
         echo "Could not download file for accession ${SRR}"
-        ls *
-        exit 1
     fi
 
     cat <<-END_VERSIONS > versions.yml
