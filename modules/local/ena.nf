@@ -1,4 +1,4 @@
-process ENA_DOWNLOAD {
+process ENA {
     tag           "${SRR}"
     label         "process_single"
     container     'staphb/enabrowsertools:1.7.1'
