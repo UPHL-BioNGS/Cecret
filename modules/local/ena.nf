@@ -7,8 +7,8 @@ process ENA {
     val(SRR)
 
     output:
-    tuple val(SRR), file("sra/paired/*fastq.gz"), val(false), optional: true, emit: paired
-    tuple val(SRR), file("sra/single/*fastq.gz"), val(true),  optional: true, emit: single
+    tuple val(SRR), file("ena/paired/*fastq.gz"), val(false), optional: true, emit: paired
+    tuple val(SRR), file("ena/single/*fastq.gz"), val(true),  optional: true, emit: single
     path "logs/*/*.log", emit: log
     path "versions.yml", emit: versions
 
@@ -19,7 +19,7 @@ process ENA {
     def args   = task.ext.args   ?: ''
     def prefix = task.ext.prefix ?: "${SRR}"
     """
-    mkdir -p reads/{paired,single} logs/${task.process}
+    mkdir -p ena/{paired,single} logs/${task.process}
     log_file=logs/${task.process}/${prefix}.${workflow.sessionId}.log
         
     enaDataGet \
@@ -30,12 +30,13 @@ process ENA {
 
     if [ -f "${SRR}_2.fastq.gz" ]
     then
-        mv *.fastq.gz sra/paired/.
+        mv *.fastq.gz ena/paired/.
     elif [ -f "${SRR}.fastq.gz" ]
     then
-        mv *.fastq.gz sra/single/.
+        mv *.fastq.gz ena/single/.
     else
-        echo "Could not download file for SRA accession ${sra}"
+        echo "Could not download file for accession ${SRR}"
+        ls *
         exit 1
     fi
 
