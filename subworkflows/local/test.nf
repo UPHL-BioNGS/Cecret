@@ -1,4 +1,4 @@
-include { DOWNLOAD_FASTQ              } from '../../modules/local/local'
+include { ENA                         } from '../../modules/local/ena'
 include { DATASETS as DOWNLOAD_GENOME } from '../../modules/local/datasets'
 
 workflow TEST {
@@ -14,16 +14,17 @@ workflow TEST {
     // downloads fastq files from the ENA
     // note: works with GA, but not locally
     if ( ! params.sra_accessions.isEmpty() ) {
-        DOWNLOAD_FASTQ(ch_sra_accessions)
+        ENA(ch_sra_accessions)
 
-        DOWNLOAD_FASTQ.out.paired
-            .mix(DOWNLOAD_FASTQ.out.single)
+        ENA.out.paired
+            .mix(ENA.out.single)
             .map { it ->
                 def meta = [id:it[0], single_end:it[2]]
                 tuple( meta, it[1]) }
             .set { ch_downloaded_reads }
 
         ch_reads = ch_reads.mix(ch_downloaded_reads)
+        ch_versions = ch_versions.mix(ENA.out.versions)
     }
 
     // downloads genomes with datasets

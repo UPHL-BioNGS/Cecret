@@ -1,7 +1,7 @@
 process MULTIQC {
   tag        "multiqc"
   label      "process_single"
-  container  'staphb/multiqc:1.26'
+  container  'staphb/multiqc:1.27.1'
 
   input:
   file(input)
