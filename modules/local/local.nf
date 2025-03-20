@@ -1,6 +1,6 @@
 process DOWNLOAD_FASTQ {
   tag        "${sra}"
-  container  'staphb/multiqc:1.19'
+  container  'staphb/multiqc:1.27.1'
   label      "process_single"
 
   input:
