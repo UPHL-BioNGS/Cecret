@@ -1,7 +1,7 @@
 process ARTIC {
     tag        "${meta.id}"
     label      "process_high"
-    container  'staphb/artic:1.2.4-1.12.0'
+    container  'staphb/artic:1.6.2'
 
     input:
     tuple val(meta), file(fastq), file(reference), file(bed)
@@ -29,16 +29,13 @@ process ARTIC {
     artic --version >> \$log
     artic_version=\$(artic --version | awk '{print \$NF}')
 
-    cp ${reference} schema/cecret/V1/cecret.reference.fasta
-    cp ${bed}       schema/cecret/V1/cecret.scheme.bed
-    samtools faidx  schema/cecret/V1/cecret.reference.fasta
+    samtools faidx  ${reference}
 
     artic minion ${args} \
         --threads ${task.cpus} \
+        --bed ${bed} \
+        --ref ${reference} \
         --read-file ${fastq} \
-        --scheme-directory schema \
-        --scheme-version 1 \
-        cecret \
         artic/${prefix} \
         | tee -a \$log
 
@@ -57,7 +54,7 @@ process ARTIC {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         artic: \$(artic --version | awk '{print \$NF}')
-        medaka: \$( medaka --version | awk '{print \$NF}')
+        clair3: \$(run_clair3.sh --version | awk '{print \$NF}')
         container: ${task.container}
     END_VERSIONS
     """
@@ -65,17 +62,17 @@ process ARTIC {
 
 process ARTIC_FILTER {
     tag        "${meta.id}"
-    container  'staphb/artic:1.2.4-1.12.0'
-    label      "process_single"
+    container  'staphb/artic:1.6.2'
+    label      "process_low"
 
     input:
     tuple val(meta), file(fastq)
 
     output:
-    tuple val(meta), file("artic/*_filtered.fastq.gz"), emit: fastq
+    tuple val(meta), file("artic/*_filtered.fastq"), emit: fastq
     path "logs/${task.process}/*.log", emit: log
     path "versions.yml", emit: versions
-  
+
     when:
     task.ext.when == null || task.ext.when
 
@@ -93,7 +90,7 @@ process ARTIC_FILTER {
         artic guppyplex ${args} \
             --directory . \
             --prefix ${fastq} \
-            --output artic/${prefix}_filtered.fastq.gz \
+            --output artic/${prefix}_filtered.fastq \
             | tee -a \$log
 
         cat <<-END_VERSIONS > versions.yml
