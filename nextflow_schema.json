@@ -363,7 +363,7 @@
             },
             "artic_options": {
             "type": "string",
-            "default": "--normalise 200 --skip-nanopolish --medaka --medaka-model r941_min_high_g360",
+            "default": "--normalise 200 --model ont --model-dir /opt/conda/envs/artic/bin/models/",
             "hidden": true,
             "description": "Options for process"
             },
