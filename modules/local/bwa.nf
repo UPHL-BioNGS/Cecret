@@ -1,7 +1,7 @@
 process BWA {
   tag         "${meta.id}"
   label       "process_high"
-  container   'staphb/bwa:0.7.18'
+  container   'staphb/bwa:0.7.19'
 
   input:
   tuple val(meta), file(reads), file(reference_genome)
