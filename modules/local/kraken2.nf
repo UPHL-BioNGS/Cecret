@@ -1,7 +1,7 @@
 process KRAKEN2 {
   tag        "${meta.id}"
   label      "process_high"
-  container  'staphb/kraken2:2.1.3'
+  container  'staphb/kraken2:2.1.5'
 
   input:
   tuple val(meta), file(clean), path(kraken2_db)
