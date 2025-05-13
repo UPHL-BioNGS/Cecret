@@ -51,7 +51,7 @@ process FREYJA {
 process FREYJA_AGGREGATE {
   tag        "Aggregating results from freyja"
   label      "process_single"
-  container  'staphb/freyja:1.5.3-05_05_2025-01-38-2025-05-05'
+  container  'staphb/freyja:1.5.3-05_12_2025-02-03-2025-05-12'
 
   input:
   file(demix)
