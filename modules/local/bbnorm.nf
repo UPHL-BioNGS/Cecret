@@ -1,7 +1,7 @@
 process BBNORM {
     tag           "${meta.id}"
     label         'process_medium'
-    container     'staphb/bbtools:39.23'
+    container     'staphb/bbtools:39.26'
 
     input:
     tuple val(meta), file(reads)
