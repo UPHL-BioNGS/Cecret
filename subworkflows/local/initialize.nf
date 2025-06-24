@@ -34,14 +34,13 @@ workflow INITIALIZE {
 
     //# For aesthetics - and, yes, we are aware that there are better ways to write 
     //# this than a bunch of 'println' statements
-    println('') 
     println('  ____ _____ ____ ____  _____ _____')
     println(' / ___| ____/ ___|  _ \\| ____|_   _|')
     println('| |   |  _|| |   | |_) |  _|   | |')
     println('| |___| |__| |___|  _ <| |___  | |')
     println(' \\____|_____\\____|_| \\_\\_____| |_|')
 
-    println('Version: ' + workflow.manifest.version)
+    println("Version: ${workflow.manifest.version}")
     println('')
     println('Currently using the Cecret workflow for use with corresponding reference genome.\n')
     println('Author: Erin Young')
@@ -50,33 +49,24 @@ workflow INITIALIZE {
 
     println('Cecret is named after a real lake!')
     println('Visit https://www.alltrails.com/trail/us/utah/cecret-lake-trail to learn more.')
-    println('Not everyone can visit in person, so here is some ASCII art of nucleotides in lake forming a consensus sequence.')
-    println('             _________ ______')
-    println('        _ /      G    A   T   \\_____')
-    println('   __/    C      C A    G      T  C \\')
-    println(' /    G     A   T   T  A   G  G    T  \\_')
-    println('| G       G  C   A            G   T     \\')  
-    println(' \\      A     C     G   A   T    A  G  T  \\__')
-    println('  \\_           C       G    ____ _____ __ C  \\________')
-    println('     \\__T______ ___________/                \\ C T G A G G T C G A T A') 
-    println('                                                    A T G A C GTAGATA')
+    println('Not everyone can visit in person, so here is some ASCII art of a mountain lake.')
     println('')
-
-
-    //
-    // Copy a config and params file for the end user
-    //
-
-    // //# copying the config template and ending the workflow
-    // // TODO : add params file to this
-    // params.config_file                          = false
-    // if (params.config_file) {
-    //     def src = new File("${workflow.projectDir}/configs/cecret_config_template.config")
-    //     def dst = new File("${workflow.launchDir}/edit_me.config")
-    //     dst << src.text
-    //     println('A config file can be found at ' + workflow.launchDir + '/edit_me.config')
-    //     exit 0
-    // }
+    println('')
+    println('             /\\')
+    println('            /  \\      /\\        /\\')
+    println('           /    \\    /  \\      /  \\  /\\')
+    println('          /      \\  /    \\    /    \\/  \\')
+    println('   /\\    /   /\\   \\/      \\  /      \\   \\')
+    println('  /  \\  /   /  \\           \\/        \\   \\')
+    println(' /    \\/   /    \\    ~~~~~~~~         \\   \\')
+    println('/         /      \\   ~~~~~~~~~~~      /\\   \\')
+    println('            ~~~~~~~~   ~~~~~~~~~~    /  \\   \\')
+    println('   ~~~~~~~~~~~~~~~~     ~~~~~~~~    /    \\   \\')
+    println('  ~~~~~~~~~~~~~~~~       ~~~~~~    /      \\   \\')
+    println('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+    println('    ~~~~~~~~      ~~~~~~~~~~~~     ~~~~~~~~~~')
+    println('     ~~~~~~~~~~~~   ~~~~~~~~~~ ~~~~~~~~  ~~~~')
+    println('')
 
     //
     // Warn about deprecated params
@@ -155,16 +145,16 @@ workflow INITIALIZE {
 
         //# Ensuring that reads and single_reads are not set to the same directory
         if ( params.reads && params.reads == params.single_reads ) {
-            println('\'params.reads\' and \'params.single_reads\' cannot point to the same directory!')
-            println('\'params.reads\' is set to ' + params.reads)
-            println('\'params.single_reads\' is set to ' + params.single_reads)
+            println("'params.reads' and 'params.single_reads' cannot point to the same directory!")
+            println("'params.reads' is set to ${params.reads}")
+            println("'params.single_reads' is set to ${params.single_reads}")
             exit 1
         }
 
         if ( params.fastas && params.fastas == params.multifastas ) {
-            println('\'params.fastas\' and \'params.multifastas\' cannot point to the same directory!')
-            println('\'params.fastas\' is set to ' + params.fastas)
-            println('\'params.multifastas\' is set to ' + params.multifastas)
+            println("'params.fastas' and 'params.multifastas' cannot point to the same directory!")
+            println("'params.fastas' is set to ${params.fastas}")
+            println("'params.multifastas' is set to ${params.multifastas}")
             exit 1
         }
 
@@ -289,11 +279,11 @@ workflow INITIALIZE {
             .set { ch_reference }
     } else {
         if ( params.species == 'sarscov2' ) {
-            ch_reference = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.fasta', type: 'file')
+            ch_reference = Channel.fromPath("${workflow.projectDir}/genomes/MN908947.3.fasta", type: 'file')
         } else if ( params.species == 'mpx' && params.primer_set == 'mpx_yale') {
-            ch_reference = Channel.fromPath(workflow.projectDir + '/genomes/MT903345.1.fasta', type: 'file')
+            ch_reference = Channel.fromPath("${workflow.projectDir}/genomes/MT903345.1.fasta", type: 'file')
         } else if ( params.species == 'mpx') {
-            ch_reference = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.fasta', type: 'file')
+            ch_reference = Channel.fromPath("${workflow.projectDir}/genomes/NC_063383.1.fasta", type: 'file')
         } else {
             println("WARN: No reference genome was selected. Set with 'params.reference_genome'")
             println("Or set species to one with an included genome ('sarscov2' or 'mpx')")
@@ -315,13 +305,13 @@ workflow INITIALIZE {
 
         } else {
             if ( params.species == 'sarscov2' ) {
-                ch_gff = Channel.fromPath(workflow.projectDir + '/genomes/MN908947.3.gff', type: 'file')
+                ch_gff = Channel.fromPath("${workflow.projectDir}/genomes/MN908947.3.gff", type: 'file')
 
             } else if ( params.species == 'mpx' && params.primer_set == 'mpx_yale') {
-                ch_gff = Channel.fromPath(workflow.projectDir + '/genomes/MT903345.1.gff', type: 'file')
+                ch_gff = Channel.fromPath("${workflow.projectDir}/genomes/MT903345.1.gff", type: 'file')
 
             } else if ( params.species == 'mpx') {
-                ch_gff = Channel.fromPath(workflow.projectDir + '/genomes/NC_063383.1.gff3', type: 'file')
+                ch_gff = Channel.fromPath("${workflow.projectDir}/genomes/NC_063383.1.gff3", type: 'file')
 
             } else {
                 println("No gff file was selected. Set with 'params.gff'")
@@ -340,30 +330,30 @@ workflow INITIALIZE {
     
     //# channels of included files (no * for cloud support)
     included_primers     = [
-        workflow.projectDir + '/schema/midnight_idt_V1_SARS-CoV-2.primer.bed',
-        workflow.projectDir + '/schema/midnight_ont_V1_SARS-CoV-2.primer.bed',
-        workflow.projectDir + '/schema/midnight_ont_V2_SARS-CoV-2.primer.bed',
-        workflow.projectDir + '/schema/midnight_ont_V3_SARS-CoV-2.primer.bed',
-        workflow.projectDir + '/schema/ncov_V3_nCoV-2019.primer.bed',
-        workflow.projectDir + '/schema/ncov_V4_SARS-CoV-2.primer.bed',
-        workflow.projectDir + '/schema/ncov_V4.1_SARS-CoV-2.primer.bed',
-        workflow.projectDir + '/schema/ncov_V5.3.2_SARS-CoV-2.primer.bed',
-        workflow.projectDir + '/schema/mpx_idt_primer.bed',
-        workflow.projectDir + '/schema/mpx_yale_primer.bed',
-        workflow.projectDir + '/schema/mpx_primalseq_primer.bed'
+        "${workflow.projectDir}/schema/midnight_idt_V1_SARS-CoV-2.primer.bed",
+        "${workflow.projectDir}/schema/midnight_ont_V1_SARS-CoV-2.primer.bed",
+        "${workflow.projectDir}/schema/midnight_ont_V2_SARS-CoV-2.primer.bed",
+        "${workflow.projectDir}/schema/midnight_ont_V3_SARS-CoV-2.primer.bed",
+        "${workflow.projectDir}/schema/ncov_V3_nCoV-2019.primer.bed",
+        "${workflow.projectDir}/schema/ncov_V4_SARS-CoV-2.primer.bed",
+        "${workflow.projectDir}/schema/ncov_V4.1_SARS-CoV-2.primer.bed",
+        "${workflow.projectDir}/schema/ncov_V5.3.2_SARS-CoV-2.primer.bed",
+        "${workflow.projectDir}/schema/mpx_idt_primer.bed",
+        "${workflow.projectDir}/schema/mpx_yale_primer.bed",
+        "${workflow.projectDir}/schema/mpx_primalseq_primer.bed"
     ]
     included_amplicons = [
-        workflow.projectDir + '/schema/midnight_idt_V1_SARS-CoV-2.insert.bed',
-        workflow.projectDir + '/schema/midnight_ont_V1_SARS-CoV-2.insert.bed',
-        workflow.projectDir + '/schema/midnight_ont_V2_SARS-CoV-2.insert.bed',
-        workflow.projectDir + '/schema/midnight_ont_V3_SARS-CoV-2.insert.bed',
-        workflow.projectDir + '/schema/ncov_V3_nCoV-2019.insert.bed',
-        workflow.projectDir + '/schema/ncov_V4_SARS-CoV-2.insert.bed',
-        workflow.projectDir + '/schema/ncov_V4.1_SARS-CoV-2.insert.bed',
-        workflow.projectDir + '/schema/ncov_V5.3.2_SARS-CoV-2.insert.bed',
-        workflow.projectDir + '/schema/mpx_idt_insert.bed',
-        workflow.projectDir + '/schema/mpx_yale_insert.bed',
-        workflow.projectDir + '/schema/mpx_primalseq_insert.bed'
+        "${workflow.projectDir}/schema/midnight_idt_V1_SARS-CoV-2.insert.bed",
+        "${workflow.projectDir}/schema/midnight_ont_V1_SARS-CoV-2.insert.bed",
+        "${workflow.projectDir}/schema/midnight_ont_V2_SARS-CoV-2.insert.bed",
+        "${workflow.projectDir}/schema/midnight_ont_V3_SARS-CoV-2.insert.bed",
+        "${workflow.projectDir}/schema/ncov_V3_nCoV-2019.insert.bed",
+        "${workflow.projectDir}/schema/ncov_V4_SARS-CoV-2.insert.bed",
+        "${workflow.projectDir}/schema/ncov_V4.1_SARS-CoV-2.insert.bed",
+        "${workflow.projectDir}/schema/ncov_V5.3.2_SARS-CoV-2.insert.bed",
+        "${workflow.projectDir}/schema/mpx_idt_insert.bed",
+        "${workflow.projectDir}/schema/mpx_yale_insert.bed",
+        "${workflow.projectDir}/schema/mpx_primalseq_insert.bed"
     ]
 
     available_primer_sets = [
