@@ -1,13 +1,13 @@
-include { ACI                                               } from '../../modules/local/aci'  
-include { BCFTOOLS                                          } from '../../modules/local/bcftools'
-include { IGV_REPORTS                                       } from '../../modules/local/igvreports' 
-include { IVAR_VARIANTS                                     } from '../../modules/local/ivar'    
-include { FASTQC                                            } from '../../modules/local/fastqc' 
-include { KRAKEN2                                           } from '../../modules/local/kraken2' 
-include { SAMTOOLS_QC as INITIAL_QC                         } from '../../modules/local/samtools'  
-include { SAMTOOLS_QC as FINAL_QC                           } from '../../modules/local/samtools'   
-include { SAMTOOLS_AMPLICONSTATS as AMPLICONSTATS           } from '../../modules/local/samtools'
-include { SAMTOOLS_PLOT_AMPLICONSTATS as PLOT_AMPLICONSTATS } from '../../modules/local/samtools' 
+include { ACI                                               } from '../../../modules/local/aci'  
+include { BCFTOOLS                                          } from '../../../modules/local/bcftools'
+include { IGV_REPORTS                                       } from '../../../modules/local/igvreports' 
+include { IVAR_VARIANTS                                     } from '../../../modules/local/ivar'    
+include { FASTQC                                            } from '../../../modules/local/fastqc' 
+include { KRAKEN2                                           } from '../../../modules/local/kraken2' 
+include { SAMTOOLS_QC as INITIAL_QC                         } from '../../../modules/local/samtools'  
+include { SAMTOOLS_QC as FINAL_QC                           } from '../../../modules/local/samtools'   
+include { SAMTOOLS_AMPLICONSTATS as AMPLICONSTATS           } from '../../../modules/local/samtools'
+include { SAMTOOLS_PLOT_AMPLICONSTATS as PLOT_AMPLICONSTATS } from '../../../modules/local/samtools' 
 
 
 workflow QC {

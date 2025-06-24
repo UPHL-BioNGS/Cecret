@@ -1,11 +1,11 @@
-include { FREYJA                        } from '../../modules/local/freyja'  
-include { FREYJA_AGGREGATE as AGGREGATE } from '../../modules/local/freyja'  
-include { PANGOLIN                      } from '../../modules/local/pangolin'  
-include { PANGO_ALIASOR                 } from '../../modules/local/pango_aliasor' 
-include { NEXTCLADE                     } from '../../modules/local/nextclade' 
-include { NEXTCLADE_DATASET as DATASET  } from '../../modules/local/nextclade' 
-include { UNZIP                         } from '../../modules/local/local' 
-include { VADR                          } from '../../modules/local/vadr'
+include { FREYJA                        } from '../../../modules/local/freyja'  
+include { FREYJA_AGGREGATE as AGGREGATE } from '../../../modules/local/freyja'  
+include { PANGOLIN                      } from '../../../modules/local/pangolin'  
+include { PANGO_ALIASOR                 } from '../../../modules/local/pango_aliasor' 
+include { NEXTCLADE                     } from '../../../modules/local/nextclade' 
+include { NEXTCLADE_DATASET as DATASET  } from '../../../modules/local/nextclade' 
+include { UNZIP                         } from '../../../modules/local/local' 
+include { VADR                          } from '../../../modules/local/vadr'
 
 workflow SARSCOV2 {
     take:

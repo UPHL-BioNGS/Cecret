@@ -8,8 +8,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { PREP } from '../../modules/local/local'
-include { TEST } from '../../subworkflows/local/test'
+include { PREP } from '../../../modules/local/local'
+include { TEST } from '../../../subworkflows/local/test'
 
 
 def determine_type(it) {

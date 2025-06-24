@@ -1,7 +1,7 @@
 include { ARTIC                                 } from '../../../modules/local/artic'
 include { ARTIC_FILTER                          } from '../../../modules/local/artic'
 include { BBNORM                                } from '../../../modules/local/bbnorm'
-include { BWA                                   } from '../../../modules/local/bwa'
+include { BWA                                   } from '../../../modules/local/bwa/'
 include { FASTP                                 } from '../../../modules/local/fastp'
 include { IVAR_TRIM                             } from '../../../modules/local/ivar'
 include { IVAR_CONSENSUS as IVAR                } from '../../../modules/local/ivar'

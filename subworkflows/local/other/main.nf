@@ -1,6 +1,6 @@
-include { NEXTCLADE }                    from '../../modules/local/nextclade'
-include { NEXTCLADE_DATASET as DATASET } from '../../modules/local/nextclade'
-include { VADR }                         from '../../modules/local/vadr'
+include { NEXTCLADE }                    from '../../../modules/local/nextclade'
+include { NEXTCLADE_DATASET as DATASET } from '../../../modules/local/nextclade'
+include { VADR }                         from '../../../modules/local/vadr'
 
 workflow OTHER {
   take:

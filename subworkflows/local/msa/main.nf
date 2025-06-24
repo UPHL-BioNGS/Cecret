@@ -1,8 +1,8 @@
-include { MAFFT }       from '../../modules/local/mafft'
-include { HEATCLUSTER } from '../../modules/local/heatcluster'
-include { IQTREE2 }     from '../../modules/local/iqtree2' 
-include { PHYTREEVIZ }  from '../../modules/local/phytreeviz'
-include { SNPDISTS }    from '../../modules/local/snp-dists'
+include { MAFFT }       from '../../../modules/local/mafft'
+include { HEATCLUSTER } from '../../../modules/local/heatcluster'
+include { IQTREE2 }     from '../../../modules/local/iqtree2' 
+include { PHYTREEVIZ }  from '../../../modules/local/phytreeviz'
+include { SNPDISTS }    from '../../../modules/local/snp-dists'
 
 workflow MSA {
   take:
