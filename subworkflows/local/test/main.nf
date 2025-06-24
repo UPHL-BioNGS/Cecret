@@ -1,5 +1,5 @@
-include { ENA                         } from '../../modules/local/ena'
-include { DATASETS as DOWNLOAD_GENOME } from '../../modules/local/datasets'
+include { ENA                         } from '../../../modules/local/ena'
+include { DATASETS as DOWNLOAD_GENOME } from '../../../modules/local/datasets'
 
 workflow TEST {
     take:

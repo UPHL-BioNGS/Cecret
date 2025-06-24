@@ -1,7 +1,7 @@
 process PANGOLIN {
   tag        "SARS-CoV-2 lineage Determination"
   label      "process_medium"
-  container  'staphb/pangolin:4.3.1-pdata-1.33'
+  container  'staphb/pangolin:4.3.1-pdata-1.34'
 
   input:
   file(fasta)
