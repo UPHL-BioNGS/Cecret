@@ -20,7 +20,7 @@ jobs:
       - name: versions
         run: |
           issue_text="Needing updates:  " 
-          workflow_containers=($(grep container modules/local/* | grep staphb | sort | uniq | grep -v latest | awk '{print $3}' | sed 's/'\''//g'))
+          workflow_containers=($(grep container modules/local/*/main.nf | grep staphb | sort | uniq | grep -v latest | awk '{print $3}' | sed 's/'\''//g'))
           for container in ${workflow_containers[@]}
           do
             base=$(echo $container | cut -f 1 -d ":")
@@ -41,7 +41,7 @@ jobs:
           done
 
           latest_nextclade_version=$(docker run nextstrain/nextclade:latest nextclade --version | awk '{print $2}')
-          worfklow_nextclade_version=$(grep container modules/local/nextclade.nf | cut -f 2 -d ":" | cut -f 1 -d "'" | head -n 1)
+          worfklow_nextclade_version=$(grep container modules/local/nextclade/main.nf | cut -f 2 -d ":" | cut -f 1 -d "'" | head -n 1)
 
           if [[ "$latest_nextclade_version" == "$worfklow_nextclade_version" ]]
           then
