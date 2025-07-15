@@ -1,7 +1,7 @@
 process SAMTOOLS_QC {
   tag        "${meta.id}"
   label      "process_single"
-  container  'staphb/samtools:1.21'
+  container  'staphb/samtools:1.22'
 
   input:
   tuple val(meta), file(bam)
@@ -75,7 +75,7 @@ process SAMTOOLS_QC {
 process SAMTOOLS_AMPLICONSTATS {
   tag        "${meta.id}"
   label      "process_single"
-  container  'staphb/samtools:1.21'
+  container  'staphb/samtools:1.22'
   
   input:
   tuple val(meta), file(bam), file(primer_bed)
@@ -114,7 +114,7 @@ process SAMTOOLS_AMPLICONSTATS {
 process SAMTOOLS_PLOT_AMPLICONSTATS {
   tag           "${meta.id}"
   label         "process_single"
-  container     'staphb/samtools:1.21'
+  container     'staphb/samtools:1.22'
   // fails for empty samples
   errorStrategy 'ignore'
 
@@ -155,7 +155,7 @@ process SAMTOOLS_PLOT_AMPLICONSTATS {
 process SAMTOOLS_SORT {
   tag        "${meta.id}"
   label      "process_high"
-  container  'staphb/samtools:1.21'
+  container  'staphb/samtools:1.22'
 
   input:
   tuple val(meta), file(sam)
@@ -195,7 +195,7 @@ process SAMTOOLS_SORT {
 process SAMTOOLS_FILTER {
   tag        "${meta.id}"
   label      "process_single"
-  container  'staphb/samtools:1.21'
+  container  'staphb/samtools:1.22'
 
   input:
   tuple val(meta), file(sam)
@@ -238,7 +238,7 @@ process SAMTOOLS_FILTER {
 process SAMTOOLS_AMPLICONCLIP {
   tag        "${meta.id}"
   label      "process_single"
-  container  'staphb/samtools:1.21'
+  container  'staphb/samtools:1.22'
 
 
   input:
@@ -283,7 +283,7 @@ process SAMTOOLS_AMPLICONCLIP {
 process SAMTOOLS_MARKDUP {
   tag        "${meta.id}"
   label      "process_single"
-  container  'staphb/samtools:1.21'
+  container  'staphb/samtools:1.22'
 
   input:
   tuple val(meta), val(type), file(sam) 
