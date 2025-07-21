@@ -1,7 +1,7 @@
 //# some fastas are created with the header of >reference, so this changes the header
 process PREP {
   tag        "${fasta}"
-  container  'staphb/pandas:2.2.3'
+  container  'staphb/pandas:2.3.0'
   label      "process_single"
 
   input:
@@ -26,7 +26,7 @@ process PREP {
 process SUMMARY {
   tag        "Creating summary files"
   label      "process_low"
-  container  'staphb/pandas:2.2.3'
+  container  'staphb/pandas:2.3.0'
 
   input:
   tuple file(files), file(script), val(versions), file(multiqc)
@@ -67,7 +67,7 @@ process SUMMARY {
 process UNZIP {
   tag        "unzipping nextclade dataset"
   label      "process_single"
-  container  'staphb/pandas:2.2.3'
+  container  'staphb/pandas:2.3.0'
 
   input:
   file(input)
