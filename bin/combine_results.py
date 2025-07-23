@@ -382,10 +382,10 @@ if exists(versions_file) :
     columns = columns + version_columns
 
 summary_df['sample']    = summary_df['sample_id'].str.split("_").str[0]
-summary_df['sample_id'] = summary_df['sample_id'].astype('string')
-summary_df = summary_df.replace([" ", ",", "\t", "\n"], [" ", " ", " ", " "], regex=True)
+summary_df = summary_df.astype(str)
+summary_df = summary_df.replace({",": " ", "\t": " ", "\n": " "}, regex=True)
 summary_df = summary_df.sort_values(by=['sample_id'], ascending=True)
-summary_df = summary_df.replace([" ", ",", "\t", "\n"], [" ", " ", " ", " "], regex=True)
+summary_df = summary_df.replace({",": " ", "\t": " ", "\n": " "}, regex=True)
 summary_df = summary_df.drop_duplicates(keep='first')
 summary_df.to_csv('cecret_results.csv', columns = ['sample_id','sample'] + columns, index=False)
 summary_df.to_csv('cecret_results.txt', columns = ['sample_id','sample'] + columns, index=False, sep = "\t")
