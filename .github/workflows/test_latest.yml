@@ -1,0 +1,41 @@
+name: Test SARS-CoV-2 profile workflow with latest images
+
+on: [pull_request, workflow_dispatch]
+
+run-name: Test profile
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+        with:
+          lfs: true
+
+      - name: Checkout LFS objects
+        run: git lfs checkout
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Run Cecret
+        run: |
+          nextflow run . -profile docker,test,latest -c .github/workflows/github_actions.config || echo "Failed!"
+
+          ls cecret*  || echo "Failed!"
+            
+          cat cecret*/cecret_results.txt  || echo "Failed!"
+
+      - name: Run Cecret with fastp and minimap2
+        run: |
+          nextflow run . -profile docker,test,latest -c .github/workflows/github_actions.config --outdir cecret2 -resume  || echo "Failed!"
+
+          ls cecret*  || echo "Failed!"
+            
+          cat cecret*/cecret_results.txt  || echo "Failed!"
+
+      - name: Clean
+        run: rm -rf work .nextflow*
