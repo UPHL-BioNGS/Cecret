@@ -1,7 +1,7 @@
 process VADR {
   tag           "QC metrics"
   label         "process_medium"
-  container     'staphb/vadr:1.6.3'
+  container     'staphb/vadr:1.6.4-sarscov2'
 
   input:
   file(fasta)
