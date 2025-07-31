@@ -48,6 +48,7 @@ output:
 components:
   - fastqc
   - kraken2
+  - kraken2/db
   - samtools/ampliconstats
   - samtools/plot/ampliconstats
   - samtools/qc
