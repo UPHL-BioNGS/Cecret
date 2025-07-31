@@ -29,7 +29,6 @@ def determine_type(it) {
 
 workflow INITIALIZE {
     main:
-    ch_for_version = Channel.from("Cecret version", workflow.manifest.version)
     ch_versions = Channel.empty()
 
     //# For aesthetics - and, yes, we are aware that there are better ways to write 
@@ -381,12 +380,10 @@ workflow INITIALIZE {
                 exit 1
             }
             .set { ch_primer_bed }
-        } else if ( params.primer_set in available_primer_sets && params.species == 'sarscov2' ) {
+        } else if ( params.primer_set in available_primer_sets && params.species in ['sarscov2', 'mpx'] ) {
             Channel
                 .fromPath( included_primers )
-                .branch {
-                    match : it =~ /${params.primer_set}_*/
-                }
+                .filter { it ==~ /.*${params.primer_set}.*\.bed/ }
                 .first()
                 .set { ch_primer_bed }
         } else {
@@ -396,10 +393,10 @@ workflow INITIALIZE {
         
             ch_primer_bed = Channel.empty()
         }
+        ch_primer_bed.view { "Primer BedFile : $it"}
     } else {
         ch_primer_bed = Channel.empty()
     }
-    ch_primer_bed.view { "Primer BedFile : $it"}
 
     //# Getting the amplicon bedfile
     if ( params.aci ) {
@@ -415,9 +412,7 @@ workflow INITIALIZE {
         } else if ( params.primer_set in available_primer_sets ) {
             Channel
                 .fromPath( included_amplicons )
-                .branch{ 
-                    match : it =~ /${params.primer_set}_*/
-                }
+                .filter { it ==~ /.*${params.primer_set}.*\.bed/ }
                 .first()
                 .set { ch_amplicon_bed } 
         } else {
@@ -473,6 +468,7 @@ workflow INITIALIZE {
 
     if (params.sample_sheet || params.fastas ) {
         PREP(ch_fastas)
+        ch_versions = ch_versions.mix(PREP.out.versions)
         ch_prepped_fastas = PREP.out.fastas
     } else {
         ch_prepped_fastas = Channel.empty()
@@ -497,8 +493,7 @@ workflow INITIALIZE {
     reference           = ch_reference // channel: fasta
     gff                 = ch_gff // channel: gff file
     primer              = ch_primer_bed // channel: bedfile
-    amplicon            = ch_amplicon_bed // channel: bedfile
-    for_version         = ch_for_version // channel: value 
+    amplicon            = ch_amplicon_bed // channel: bedfile 
     versions            = ch_versions // channel: value
     kraken2_db          = ch_kraken2_db // channel: path
     scripts             = ch_scripts // channel: [scripts]
