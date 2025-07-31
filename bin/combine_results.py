@@ -19,7 +19,6 @@ fastq_names_file        = 'fastq_names.csv'
 fastqc_file             = 'multiqc_data/multiqc_fastqc.txt'
 freyja_file             = 'aggregated-freyja.tsv'
 seqyclean_file          = 'multiqc_data/multiqc_seqyclean.txt'
-versions_file           = 'versions.csv'
 
 columns = []
 summary_df = pd.DataFrame(columns=['sample_id'])
@@ -371,21 +370,12 @@ if exists(freyja_file) :
     summary_df.drop('freyja_Unnamed: 0', axis=1, inplace=True)
     columns = columns + freyja_columns
 
-if exists(versions_file) :
-    print("Adding versions to summary file from " + versions_file)
-    versions_df = pd.read_csv(versions_file, dtype = str)
-    version_columns = list(versions_df.columns)
-
-    for version in version_columns:
-        software_version = versions_df[version].iloc[0]
-        summary_df[version] = software_version
-    columns = columns + version_columns
-
 summary_df['sample']    = summary_df['sample_id'].str.split("_").str[0]
 summary_df = summary_df.astype(str)
 summary_df = summary_df.replace({",": " ", "\t": " ", "\n": " "}, regex=True)
 summary_df = summary_df.sort_values(by=['sample_id'], ascending=True)
 summary_df = summary_df.replace({",": " ", "\t": " ", "\n": " "}, regex=True)
 summary_df = summary_df.drop_duplicates(keep='first')
-summary_df.to_csv('cecret_results.csv', columns = ['sample_id','sample'] + columns, index=False)
-summary_df.to_csv('cecret_results.txt', columns = ['sample_id','sample'] + columns, index=False, sep = "\t")
+summary_df['Cecret version'] = sys.argv[2]
+summary_df.to_csv('cecret_results.csv', columns = ['sample_id','sample'] + columns + ['Cecret version'], index=False)
+summary_df.to_csv('cecret_results.txt', columns = ['sample_id','sample'] + columns + ['Cecret version'], index=False, sep = "\t")
