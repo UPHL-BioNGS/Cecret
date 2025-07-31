@@ -30,14 +30,12 @@ workflow CECRET {
     ch_gff // channel: gff file
     ch_primer // channel: bedfile
     ch_amplicon // channel: bedfile
-    ch_for_version // channel: value
     ch_versions // channel: value
     ch_kraken2_db // channel: path
     ch_scripts // channel: [scripts]
     ch_nextclade_dataset // channel: file
 
     main:
-    ch_for_version = ch_for_version
     ch_versions    = ch_versions
     ch_for_multiqc = Channel.empty()
     ch_for_summary = Channel.empty()
@@ -53,13 +51,12 @@ workflow CECRET {
       )
       ch_versions    = ch_versions.mix(CONSENSUS.out.versions)
       ch_consensus   = ch_consensus.mix(CONSENSUS.out.consensus)
-      ch_for_version = ch_for_version.mix(CONSENSUS.out.for_version)
       ch_for_multiqc = ch_for_multiqc.mix(CONSENSUS.out.for_multiqc)
       ch_wo_mltifna  = ch_wo_mltifna.mix(CONSENSUS.out.consensus)
 
       QC(ch_reads,
         CONSENSUS.out.clean_reads,
-        ch_kraken2_db,
+        ch_kraken2_db.ifEmpty([]),
         CONSENSUS.out.just_bam,
         CONSENSUS.out.trim_bam,
         ch_reference,
@@ -141,7 +138,6 @@ workflow CECRET {
       SUMMARY(
         ch_for_summary.mix(ch_wo_mltifna).collect().map{it -> tuple([it])}
           .combine(ch_scripts.map{it -> tuple([it])})
-          .combine(ch_for_version.collect().map{it -> tuple([it])})
           .combine(MULTIQC.out.files.ifEmpty([]).map{it -> tuple([it])})
       )
     }
