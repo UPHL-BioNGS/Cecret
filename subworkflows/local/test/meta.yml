@@ -1,0 +1,38 @@
+name: test
+description: >
+  Subworkflow to download sequencing reads from ENA and reference genomes using the NCBI datasets tool.
+  Supports both SRA accession-based read download and genome accession-based reference download.
+
+keywords:
+  - ena
+  - sra
+  - ncbi datasets
+  - read download
+  - reference genomes
+  - data ingestion
+
+input:
+  - ch_sra_accessions:
+      description: List of SRA accession strings to fetch FASTQ files from ENA
+  - ch_genome_accessions:
+      description: List of genome accession identifiers to fetch reference sequences using NCBI datasets
+
+output:
+  - reads:
+      description: Channel of [meta, reads] tuples from ENA downloads (paired or single-end)
+  - fastas:
+      description: Fasta files for genomes downloaded using NCBI datasets
+  - versions:
+      description: Version metadata for ENA and datasets tools used
+
+components:
+  - ena
+  - datasets
+
+tools:
+  - ena
+  - ncbi datasets
+
+authors:
+  - Erin Young <eriny@utah.gov>
+

@@ -1,0 +1,70 @@
+name: qc
+description: >
+  Comprehensive quality control and variant reporting subworkflow integrating multiple tools 
+  such as FastQC, Kraken2, Samtools, ACI, iVar, BCFtools, and IGV Reports. 
+  Generates outputs for summary statistics, variant calling, coverage, and MultiQC visualization.
+
+keywords:
+  - quality control
+  - fastqc
+  - kraken2
+  - samtools
+  - amplicon
+  - variant calling
+  - bcftools
+  - igv
+  - ivar
+  - visualization
+  - multiqc
+
+input:
+  - ch_raw_reads:
+      description: Raw reads input as [meta, reads]
+  - ch_clean_reads:
+      description: Cleaned reads input as [meta, reads]
+  - ch_kraken2_db:
+      description: Path to Kraken2 database
+  - ch_initial_bam:
+      description: Initial BAM input as [meta, sam]
+  - ch_trim_bam:
+      description: Trimmed BAM and BAI input as [meta, bam, bai]
+  - ch_reference_genome:
+      description: Reference genome in FASTA format
+  - ch_gff_file:
+      description: GFF annotation file (used with iVar)
+  - ch_amplicon_bed:
+      description: BED file of expected amplicons (for ACI)
+  - ch_primer_bed:
+      description: BED file of primer coordinates (for ampliconstats)
+
+output:
+  - for_multiqc:
+      description: MultiQC-compatible outputs from FastQC, Kraken2, Samtools, and ACI
+  - for_summary:
+      description: Summary files including read QC, variant calls, coverage stats, and amplicon analysis
+  - versions:
+      description: Tool version information from all modules used
+
+components:
+  - fastqc
+  - kraken2
+  - samtools/ampliconstats
+  - samtools/plot/ampliconstats
+  - samtools/qc
+  - aci
+  - bcftools
+  - ivar/variants
+  - igv/reports
+
+tools:
+  - fastqc
+  - kraken2
+  - samtools
+  - aci
+  - bcftools
+  - ivar
+  - igv-reports
+
+authors:
+  - Erin Young <eriny@utah.gov>
+
