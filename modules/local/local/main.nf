@@ -9,6 +9,7 @@ process PREP {
 
   output:
   path "fasta_prep/*", optional: true, emit: fastas
+  path "versions.yml", emit: versions
 
   when:
   task.ext.when == null || task.ext.when
@@ -20,6 +21,12 @@ process PREP {
 
   echo ">${prefix}" > fasta_prep/${prefix}.fasta
   grep -v ">" ${fasta} | fold -w 75 >> fasta_prep/${prefix}.fasta
+
+  cat <<-END_VERSIONS > versions.yml
+  "${task.process}":
+    prep: NA
+    container: ${task.container}
+  END_VERSIONS
   """
 }
 
@@ -29,7 +36,7 @@ process SUMMARY {
   container  'staphb/pandas:2.3.0'
 
   input:
-  tuple file(files), file(script), val(versions), file(multiqc)
+  tuple file(files), file(script), file(multiqc)
 
   output:
   path "cecret_results.{csv,txt}", emit: summary_file
@@ -40,11 +47,6 @@ process SUMMARY {
   script:
   def multiqc_files = multiqc.join(" ")
   """
-    echo "${versions}" | cut -f 1,3,5,7,9,11  -d ',' | sed 's/\\[//g' | sed 's/\\]//g' | sed 's/, /,/g' >  versions.csv
-    echo "${versions}" | cut -f 2,4,6,8,10,12 -d ',' | sed 's/\\[//g' | sed 's/\\]//g' | sed 's/, /,/g' | awk '{(\$1=\$1); print \$0}' >> versions.csv
-
-    echo "Summary files are ${files}"
-
     mkdir multiqc_data
     for file in ${multiqc_files}
     do
@@ -60,7 +62,7 @@ process SUMMARY {
 
     if [ -s "vadr.vadr.sqa" ] ; then tail -n +2 "vadr.vadr.sqa" | grep -v "#-" | tr -s '[:blank:]' ',' > vadr.csv ; fi
 
-    python3 combine_results.py ${params.minimum_depth}
+    python3 combine_results.py ${params.minimum_depth} ${workflow.manifest.version}
   """
 }
 
@@ -74,6 +76,7 @@ process UNZIP {
 
   output:
   path "dataset", emit: dataset
+  path "versions.yml", emit: versions
 
   when:
   task.ext.when == null || task.ext.when
@@ -82,5 +85,11 @@ process UNZIP {
   """
   mkdir dataset
   unzip ${input} -d dataset
+
+  cat <<-END_VERSIONS > versions.yml
+  "${task.process}":
+    unzip: NA
+    container: ${task.container}
+  END_VERSIONS
   """
 }
