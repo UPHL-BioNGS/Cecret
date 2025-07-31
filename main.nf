@@ -41,7 +41,6 @@ workflow {
       INITIALIZE.out.gff, // channel: gff file
       INITIALIZE.out.primer, // channel: bedfile
       INITIALIZE.out.amplicon, // channel: bedfile
-      INITIALIZE.out.for_version, // channel: value
       INITIALIZE.out.versions, // channel: value
       INITIALIZE.out.kraken2_db, // channel: path
       INITIALIZE.out.scripts, // channel: [scripts]

@@ -21,7 +21,6 @@ workflow CONSENSUS {
 
   main:
   ch_multiqc  = Channel.empty()
-  ch_sum_ver  = Channel.empty()
   ch_versions = Channel.empty()
 
   // running bbnorm to normalize large datasets
@@ -52,7 +51,6 @@ workflow CONSENSUS {
       .set { seqyclean_file2 }
 
     ch_clean_reads = SEQYCLEAN.out.clean_reads
-    ch_sum_ver     = ch_sum_ver.mix(SEQYCLEAN.out.cleaner_version)
     ch_multiqc     = ch_multiqc.mix(SEQYCLEAN.out.seqyclean_files_collect_paired).mix(SEQYCLEAN.out.seqyclean_files_collect_single)
     ch_versions    = ch_versions.mix(SEQYCLEAN.out.versions.first())
 
@@ -61,7 +59,6 @@ workflow CONSENSUS {
     FASTP(ch_norm_reads)
 
     ch_clean_reads = FASTP.out.clean_reads
-    ch_sum_ver     = ch_sum_ver.mix(FASTP.out.cleaner_version)
     ch_multiqc     = ch_multiqc.mix(FASTP.out.fastp_files) 
     ch_versions    = ch_versions.mix(FASTP.out.versions.first())
   }
@@ -72,7 +69,6 @@ workflow CONSENSUS {
     BWA(ch_clean_reads.combine(ch_reference))
 
     ch_sam      = BWA.out.sam
-    ch_sum_ver  = ch_sum_ver.mix(BWA.out.aligner_version)
     ch_versions = ch_versions.mix(BWA.out.versions.first())
   
   } else if ( params.aligner == 'minimap2' ) {
@@ -80,7 +76,6 @@ workflow CONSENSUS {
     MINIMAP2(ch_clean_reads.combine(ch_reference))
     
     ch_sam      = MINIMAP2.out.sam
-    ch_sum_ver  = ch_sum_ver.mix(MINIMAP2.out.aligner_version)
     ch_versions = ch_versions.mix(MINIMAP2.out.versions.first())
   
   }
@@ -94,6 +89,7 @@ workflow CONSENSUS {
   } else {
     SORT(ch_sam)
     ch_bam = SORT.out.bam_bai
+    ch_versions = ch_versions.mix(SORT.out.versions.first())
   }
 
   // removing primers
@@ -102,7 +98,6 @@ workflow CONSENSUS {
     IVAR_TRIM(ch_bam.filter{ it -> it[1].size() > 500 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
 
     ch_trim_bam = IVAR_TRIM.out.bam_bai
-    ch_sum_ver  = ch_sum_ver.mix(IVAR_TRIM.out.trimmer_version)
     ch_multiqc  = ch_multiqc.mix(IVAR_TRIM.out.ivar_trim_files)
     ch_versions = ch_versions.mix(IVAR_TRIM.out.versions.first())
 
@@ -111,7 +106,6 @@ workflow CONSENSUS {
     AMPLICONCLIP(ch_bam.filter{ it -> it[1].size() > 500 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
     
     ch_trim_bam = AMPLICONCLIP.out.bam_bai
-    ch_sum_ver  = ch_sum_ver.mix(AMPLICONCLIP.out.trimmer_version)
     ch_versions = ch_versions.mix(AMPLICONCLIP.out.versions.first())
   
   } else if ( params.trimmer == 'none' ) {
@@ -123,7 +117,6 @@ workflow CONSENSUS {
   // getting a consensus with ivar
   IVAR(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_reference))
   ch_versions = ch_versions.mix(IVAR.out.versions.first())
-  ch_sum_ver  = ch_sum_ver.mix(IVAR.out.ivar_version)
 
   // running artic on nanopore reads
   // TODO : Hide this if there are no nanopore reads
@@ -133,7 +126,6 @@ workflow CONSENSUS {
 
     if (params.artic) {
       ARTIC(ARTIC_FILTER.out.fastq.combine(ch_reference).combine(ch_primer_bed))
-      ch_sum_ver  = ch_sum_ver.mix(ARTIC.out.artic_version)
       ch_versions = ch_versions.mix(ARTIC.out.versions.first())
     }
   }
@@ -156,7 +148,6 @@ workflow CONSENSUS {
     filtered_reads   = ch_filtered_reads
 
     for_multiqc      = ch_multiqc 
-    for_version      = ch_sum_ver.unique().collect()
 
     versions         = ch_versions
 }
