@@ -9,7 +9,6 @@ process MINIMAP2 {
   output:
   tuple val(meta), file("aligned/*.sam"), emit: sam
   path "logs/${task.process}/*.log", emit: log
-  tuple val("${params.aligner}"), env("minimap2_version"), emit: aligner_version
   path "versions.yml", emit: versions
 
   when:
