@@ -50,6 +50,7 @@ workflow SARSCOV2 {
         } else {
             UNZIP(ch_input_dataset)
             ch_dataset = UNZIP.out.dataset
+            ch_versions = ch_versions.mix(UNZIP.out.versions)
         }
         
         if (params.nextclade) {

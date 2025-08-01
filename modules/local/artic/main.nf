@@ -9,7 +9,6 @@ process ARTIC {
     output:
     tuple val(meta), file("artic/*.primertrim.sorted.bam"), file("artic/*.primertrim.sorted.bam.bai"), emit: bam, optional: true
     path "consensus/*.consensus.fa", emit: consensus, optional: true
-    tuple val("artic"), env("artic_version"), emit: artic_version
     path "artic/*", emit: files
     path "logs/${task.process}/*.log", emit: log
     path "versions.yml", emit: versions

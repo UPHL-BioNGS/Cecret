@@ -1,0 +1,59 @@
+name: sarscov2
+description: >
+  Subworkflow for SARS-CoV-2 lineage assignment, variant calling, and QC reporting.
+  Integrates tools such as Pangolin, Pango Aliasor, Nextclade, Freyja, VADR, and dataset management.
+
+keywords:
+  - sars-cov-2
+  - lineage
+  - pangolin
+  - nextclade
+  - freyja
+  - variant analysis
+  - pango aliasor
+  - vadr
+  - multiqc
+  - virus surveillance
+
+input:
+  - ch_fastas:
+      description: FASTA files containing consensus genomes for analysis
+  - ch_bam:
+      description: Tuple of [meta, BAM] aligned reads for Freyja
+  - ch_reference_genome:
+      description: Reference genome used for alignment and variant calling
+  - ch_input_dataset:
+      description: Zipped Nextclade dataset archive (used if not downloading dataset)
+  - ch_script:
+      description: Workflow-specific scripts for aggregation or processing
+
+output:
+  - for_multiqc:
+      description: Outputs suitable for aggregation in MultiQC (e.g. lineage reports, QC)
+  - for_summary:
+      description: Summary files including lineage assignments, variant reports, aggregated Freyja output
+  - versions:
+      description: Software version information for all modules executed
+
+components:
+  - pangolin
+  - pango/aliasor
+  - nextclade
+  - freyja
+  - vadr
+  - unzip
+  - freyja/aggregate
+  - nextclade/dataset
+
+tools:
+  - pangolin
+  - pango_aliasor
+  - nextclade
+  - freyja
+  - vadr
+  - unzip
+  - freyja_aggregate
+
+authors:
+  - Erin Young <eriny@utah.gov>
+

@@ -13,142 +13,142 @@
         "required": ["outdir"],
         "properties": {
             "input": {
-            "type": "string",
-            "mimetype": "text/csv",
-            "description": "same as sample_sheet"
+                "type": "string",
+                "mimetype": "text/csv",
+                "description": "same as sample_sheet"
             },
             "sample_sheet": {
-            "type": "string",
-            "mimetype": "text/csv",
-            "description": "sample sheet with sample, fastq_1, and fastq_2 columns"
+                "type": "string",
+                "mimetype": "text/csv",
+                "description": "sample sheet with sample, fastq_1, and fastq_2 columns"
             },
             "reads": {
-            "type": "string",
-            "hidden": true,
-            "description": "Directory with paired-end fastq files"
+                "type": "string",
+                "hidden": true,
+                "description": "Directory with paired-end fastq files"
             },
             "single_reads": {
-            "type": "string",
-            "hidden": true,
-            "description": "Directory with single-end illumina fastq files"
+                "type": "string",
+                "hidden": true,
+                "description": "Directory with single-end illumina fastq files"
             },
             "nanopore": {
-            "type": "string",
-            "hidden": true,
-            "description": "Directory with nanopore fastq files"
+                "type": "string",
+                "hidden": true,
+                "description": "Directory with nanopore fastq files"
             },
             "fastas": {
-            "type": "string",
-            "hidden": true,
-            "description": "input channel for fastas"
+                "type": "string",
+                "hidden": true,
+                "description": "input channel for fastas"
             },
             "multifastas": {
-            "type": "string",
-            "hidden": true,
-            "description": "input channel for multifasta files"
+                "type": "string",
+                "hidden": true,
+                "description": "input channel for multifasta files"
             },
             "sra_accessions": {
-            "type": "string",
-            "default": "[]",
-            "hidden": true,
-            "description": "list encased in [] brackets of fastq accessions to download from SRA/ENA (Illumina reads only)"
+                "type": "string",
+                "default": "[]",
+                "hidden": true,
+                "description": "list encased in [] brackets of fastq accessions to download from SRA/ENA (Illumina reads only)"
             },
             "genome_accessions": {
-            "type": "string",
-            "default": "[]",
-            "hidden": true,
-            "description": "list encased in [] brackets of genome accessions to download with datasets"
+                "type": "string",
+                "default": "[]",
+                "hidden": true,
+                "description": "list encased in [] brackets of genome accessions to download with datasets"
             },
             "species": {
-            "type": "string",
-            "default": "sarscov2",
-            "description": "specifies species-specific sub-workflows",
-            "enum": ["other", "mpx", "sarscov2"]
+                "type": "string",
+                "default": "sarscov2",
+                "description": "specifies species-specific sub-workflows",
+                "enum": ["other", "mpx", "sarscov2"]
             },
             "vadr_reference": {
-            "type": "string",
-            "hidden": true,
-            "default": "sarscov2",
-            "description": "Specifies reference for vadr in container"
+                "type": "string",
+                "hidden": true,
+                "default": "sarscov2",
+                "description": "Specifies reference for vadr in container"
             },
             "nextclade_dataset": {
-            "type": "string",
-            "hidden": true,
-            "default": "sars-cov-2",
-            "description": "Specifies nextclade dataset"
+                "type": "string",
+                "hidden": true,
+                "default": "sars-cov-2",
+                "description": "Specifies nextclade dataset"
             },
             "iqtree2_outgroup": {
-            "type": "string",
-            "hidden": true,
-            "default": "MN908947",
-            "description": "outgroup for multiple sequence alignment"
+                "type": "string",
+                "hidden": true,
+                "default": "MN908947",
+                "description": "outgroup for multiple sequence alignment"
             },
             "minimum_depth": {
-            "type": "integer",
-            "default": 100,
-            "hidden": true,
-            "description": "minimum depth for calling a variant"
+                "type": "integer",
+                "default": 100,
+                "hidden": true,
+                "description": "minimum depth for calling a variant"
             },
             "mpileup_depth": {
-            "type": "integer",
-            "default": 8000,
-            "hidden": true,
-            "description": "number of reads put into memory by samtools/bcftools"
+                "type": "integer",
+                "default": 8000,
+                "hidden": true,
+                "description": "number of reads put into memory by samtools/bcftools"
             },
             "kraken2_db": {
-            "type": "string",
-            "description": "directory to kraken2 database"
+                "type": "string",
+                "description": "directory to kraken2 database"
             },
             "outdir": {
-            "type": "string",
-            "format": "directory-path",
-            "description": "The output directory where the results will be saved. Absolute paths are required on cloud infrastructure.",
-            "fa_icon": "fas fa-folder-open",
-            "default": "cecret"
+                "type": "string",
+                "format": "directory-path",
+                "description": "The output directory where the results will be saved. Absolute paths are required on cloud infrastructure.",
+                "fa_icon": "fas fa-folder-open",
+                "default": "cecret"
             }
         }
         },
         "reference_files": {
-        "title": "Reference files",
-        "type": "object",
-        "description": "Files related to the reference genome",
-        "default": "",
-        "fa_icon": "fas fa-virus",
-        "properties": {
-            "reference_genome": {
-            "type": "string",
-            "description": "THE Reference genome"
-            },
-            "amplicon_bed": {
-            "type": "string",
-            "description": "Bedfile for amplicons"
-            },
-            "gff": {
-            "type": "string",
-            "description": "File used in ivar variants. Must correspond with reference genome."
-            },
-            "primer_bed": {
-            "type": "string",
-            "description": "File with bedfile of primers used in the analysis"
-            },
-            "primer_set": {
-            "type": "string",
-            "default": "ncov_V5.3.2",
-            "description": "Specifies a primer set included in repo",
-            "enum": [
-                "midnight_idt_V1",
-                "midnight_ont_V1",
-                "midnight_ont_V2",
-                "midnight_ont_V3",
-                "ncov_V3",
-                "ncov_V4",
-                "ncov_V4.1",
-                "ncov_V5.3.2",
-                "mpx_primalseq",
-                "mpx_idt"
-            ]
+            "title": "Reference files",
+            "type": "object",
+            "description": "Files related to the reference genome",
+            "default": "",
+            "fa_icon": "fas fa-virus",
+            "properties": {
+                "reference_genome": {
+                    "type": "string",
+                    "description": "THE Reference genome"
+                },
+                "amplicon_bed": {
+                    "type": "string",
+                    "description": "Bedfile for amplicons"
+                },
+                "gff": {
+                    "type": "string",
+                    "description": "File used in ivar variants. Must correspond with reference genome."
+                },
+                "primer_bed": {
+                    "type": "string",
+                    "description": "File with bedfile of primers used in the analysis"
+                },
+                "primer_set": {
+                    "type": "string",
+                    "default": "ncov_V5.3.2",
+                    "description": "Specifies a primer set included in repo",
+                    "enum": [
+                        "midnight_idt_V1",
+                        "midnight_ont_V1",
+                        "midnight_ont_V2",
+                        "midnight_ont_V3",
+                        "ncov_V3",
+                        "ncov_V4",
+                        "ncov_V4.1",
+                        "ncov_V5.3.2",
+                        "mpx_primalseq",
+                        "mpx_idt"
+                    ]
+                }
             }
-        }
         },
         "workflow_components": {
         "title": "Workflow Components",
@@ -158,426 +158,426 @@
         "fa_icon": "fas fa-align-center",
         "properties": {
             "cleaner": {
-            "type": "string",
-            "default": "seqyclean",
-            "hidden": true,
-            "description": "Specifies what tool to use to remove low quality reads",
-            "enum": ["seqyclean", "fastp"]
+                "type": "string",
+                "default": "seqyclean",
+                "hidden": true,
+                "description": "Specifies what tool to use to remove low quality reads",
+                "enum": ["seqyclean", "fastp"]
             },
             "aligner": {
-            "type": "string",
-            "default": "bwa",
-            "hidden": true,
-            "description": "Specifies which aligner is going to be used.",
-            "enum": ["bwa", "minimap2"]
+                "type": "string",
+                "default": "bwa",
+                "hidden": true,
+                "description": "Specifies which aligner is going to be used.",
+                "enum": ["bwa", "minimap2"]
             },
             "trimmer": {
-            "type": "string",
-            "default": "ivar",
-            "hidden": true,
-            "description": "Specifies which tool to use to trim primers from primerbedfile",
-            "enum": ["samtools", "ivar", "none"]
+                "type": "string",
+                "default": "ivar",
+                "hidden": true,
+                "description": "Specifies which tool to use to trim primers from primerbedfile",
+                "enum": ["samtools", "ivar", "none"]
             },
             "msa": {
-            "type": "string",
-            "default": "mafft",
-            "hidden": true,
-            "description": "Specifies what tool to use for multiple sequence alignment. Current options are only mafft."
+                "type": "string",
+                "default": "mafft",
+                "hidden": true,
+                "description": "Specifies what tool to use for multiple sequence alignment. Current options are only mafft."
             },
             "download_nextclade_dataset": {
-            "type": "boolean",
-            "default": true,
-            "description": "Uses included nextclade dataset for SARS-CoV-2 during runtime when false."
+                "type": "boolean",
+                "default": true,
+                "description": "Uses included nextclade dataset for SARS-CoV-2 during runtime when false."
             },
             "filter": {
-            "type": "boolean",
-            "description": "Specifies if reference-mapped fastq files should be extracted"
+                "type": "boolean",
+                "description": "Specifies if reference-mapped fastq files should be extracted"
             },
             "markdup": {
-            "type": "boolean",
-            "description": "Specifies if duplicate reads should be removed (not recommended for nanopore)"
+                "type": "boolean",
+                "description": "Specifies if duplicate reads should be removed (not recommended for nanopore)"
             },
             "relatedness": {
-            "type": "boolean",
-            "description": "Turns on multiple sequence alignment subworkflow when true"
+                "type": "boolean",
+                "description": "Turns on multiple sequence alignment subworkflow when true"
             }
         }
         },
         "toggles": {
-        "title": "Toggles",
-        "type": "object",
-        "description": "Toggles processes on (true)/off (false)",
-        "default": "",
-        "fa_icon": "fas fa-lock-open",
-        "properties": {
-            "aci": {
-            "type": "boolean",
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "artic": {
-            "type": "boolean",
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "artic_filter": {
-            "type": "boolean",
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "bbnorm": {
-            "type": "boolean",
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "bcftools_variants": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "fastqc": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "freyja": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "freyja_aggregate": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "heatcluster": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "igv_reports": {
-            "type": "boolean",
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "iqtree2": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "ivar_variants": {
-            "type": "boolean",
-            "hidden": false,
-            "description": "Specifies if process should be used"
-            },
-            "kraken2": {
-            "type": "boolean",
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "multiqc": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "nextclade": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "pango_aliasor": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "pangolin": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "phytreeviz": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "samtools_qc": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "samtools_ampliconstats": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "samtools_plot_ampliconstats": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "snpdists": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
-            },
-            "vadr": {
-            "type": "boolean",
-            "default": true,
-            "hidden": true,
-            "description": "Specifies if process should be used"
+            "title": "Toggles",
+            "type": "object",
+            "description": "Toggles processes on (true)/off (false)",
+            "default": "",
+            "fa_icon": "fas fa-lock-open",
+            "properties": {
+                "aci": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "artic": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "artic_filter": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "bbnorm": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "bcftools_variants": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "fastqc": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "freyja": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "freyja_aggregate": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "heatcluster": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "igv_reports": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "iqtree2": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "ivar_variants": {
+                    "type": "boolean",
+                    "hidden": false,
+                    "description": "Specifies if process should be used"
+                },
+                "kraken2": {
+                    "type": "boolean",
+                    "hidden": true,
+                    "default": true,
+                    "description": "Specifies if process should be used"
+                },
+                "multiqc": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "nextclade": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "pango_aliasor": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "pangolin": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "phytreeviz": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "samtools_qc": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "samtools_ampliconstats": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "samtools_plot_ampliconstats": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "snpdists": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                },
+                "vadr": {
+                    "type": "boolean",
+                    "default": true,
+                    "hidden": true,
+                    "description": "Specifies if process should be used"
+                }
             }
-        }
         },
         "process_adjustments": {
-        "title": "Process Adjustments",
-        "type": "object",
-        "description": "Adjusts how processes are run. These are similar to how task.ext values in modern nf-core workflows.",
-        "default": "",
-        "properties": {
-            "aci_options": {
-            "type": "string",
+            "title": "Process Adjustments",
+            "type": "object",
+            "description": "Adjusts how processes are run. These are similar to how task.ext values in modern nf-core workflows.",
             "default": "",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "artic_read_filtering_options": {
-            "type": "string",
-            "default": "--min-length 400 --max-length 700",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "artic_options": {
-            "type": "string",
-            "default": "--normalise 200 --model ont --model-dir /opt/conda/envs/artic/bin/models/",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "bbnorm_options": {
-            "type": "string",
-            "default": "target=200 min=5",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "bcftools_variants_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "fastp_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "fastqc_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "filter_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "heatcluster_options": {
-            "type": "string",
-            "default": "-t png",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "igv_reports_options": {
-            "type": "string",
-            "default": "--flanking 1000",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "iqtree2_options": {
-            "type": "string",
-            "default": "-ninit 2 -n 2 -me 0.05 -m GTR",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "ivar_consensus_options": {
-            "type": "string",
-            "default": "-q 20 -t 0.6 -n N",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "ivar_trim_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "ivar_variants_options": {
-            "type": "string",
-            "default": "-q 20 -t 0.6",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "mafft_options": {
-            "type": "string",
-            "default": "--maxambiguous 0.5",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "minimap2_options": {
-            "type": "string",
-            "default": "-K 20M",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "multiqc_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "phytreeviz_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "pangolin_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "samtools_coverage_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "samtools_ampliconclip_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "samtools_flagstat_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "samtools_stats_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "samtools_ampliconstats_options": {
-            "type": "string",
-            "default": "--max-amplicon-length 3000 --max-amplicons 3000",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "samtools_plot_ampliconstats_options": {
-            "type": "string",
-            "default": "-size 1200,900 -size2 1200,900 -size3 1200,900",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "samtools_depth_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "samtools_markdup_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "samtools_fixmate_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "seqyclean_options": {
-            "type": "string",
-            "default": "-minlen 25 -qual",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "seqyclean_contaminant_file": {
-            "type": "string",
-            "default": "/Adapters_plus_PhiX_174.fasta",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "snpdists_options": {
-            "type": "string",
-            "default": "-c",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "nextclade_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "vadr_mdir": {
-            "type": "string",
-            "default": "/opt/vadr/vadr-models",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "freyja_demix_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "freyja_variants_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "pango_aliasor_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "freyja_aggregate_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "freyja_plot_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "freyja_plot_filetype": {
-            "type": "string",
-            "default": "png",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "kraken2_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "vadr_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
-            },
-            "vadr_trim_options": {
-            "type": "string",
-            "hidden": true,
-            "description": "Options for process"
+            "properties": {
+                "aci_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "artic_read_filtering_options": {
+                    "type": "string",
+                    "default": "--min-length 400 --max-length 700",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "artic_options": {
+                    "type": "string",
+                    "default": "--normalise 200 --model ont --model-dir /opt/conda/envs/artic/bin/models/",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "bbnorm_options": {
+                    "type": "string",
+                    "default": "target=200 min=5",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "bcftools_variants_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "fastp_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "fastqc_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "filter_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "heatcluster_options": {
+                    "type": "string",
+                    "default": "-t png",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "igv_reports_options": {
+                    "type": "string",
+                    "default": "--flanking 1000",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "iqtree2_options": {
+                    "type": "string",
+                    "default": "-ninit 2 -n 2 -me 0.05 -m GTR",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "ivar_consensus_options": {
+                    "type": "string",
+                    "default": "-q 20 -t 0.6 -n N",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "ivar_trim_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "ivar_variants_options": {
+                    "type": "string",
+                    "default": "-q 20 -t 0.6",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "mafft_options": {
+                    "type": "string",
+                    "default": "--maxambiguous 0.5",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "minimap2_options": {
+                    "type": "string",
+                    "default": "-K 20M",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "multiqc_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "phytreeviz_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "pangolin_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_coverage_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_ampliconclip_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_flagstat_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_stats_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_ampliconstats_options": {
+                    "type": "string",
+                    "default": "--max-amplicon-length 3000 --max-amplicons 3000",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_plot_ampliconstats_options": {
+                    "type": "string",
+                    "default": "-size 1200,900 -size2 1200,900 -size3 1200,900",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_depth_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_markdup_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "samtools_fixmate_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "seqyclean_options": {
+                    "type": "string",
+                    "default": "-minlen 25 -qual",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "seqyclean_contaminant_file": {
+                    "type": "string",
+                    "default": "/Adapters_plus_PhiX_174.fasta",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "snpdists_options": {
+                    "type": "string",
+                    "default": "-c",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "nextclade_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "vadr_mdir": {
+                    "type": "string",
+                    "default": "/opt/vadr/vadr-models",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "freyja_demix_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "freyja_variants_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "pango_aliasor_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "freyja_aggregate_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "freyja_plot_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "freyja_plot_filetype": {
+                    "type": "string",
+                    "default": "png",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "kraken2_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "vadr_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
+                "vadr_trim_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                }
             }
-        }
         },
         "institutional_config_options": {
             "title": "Institutional config options",
