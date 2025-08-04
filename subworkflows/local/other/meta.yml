@@ -1,0 +1,43 @@
+name: other
+description: >
+  Performs quality control and annotation using tools like Nextclade and VADR.
+  Supports optional dataset downloading and dynamic tool selection based on parameters.
+  Outputs include results for MultiQC and summary metrics.
+
+keywords:
+  - nextclade
+  - vadr
+  - qc
+  - annotation
+  - virus
+  - lineage assignment
+  - multiqc
+
+input:
+  - ch_fastas:
+      description: Input FASTA file(s) for QC and annotation
+  # - name: ch_input_dataset (future)
+  #   type: channel (path)
+  #   description: Optional zipped Nextclade dataset directory (planned)
+
+output:
+  - for_multiqc:
+      description: Files formatted for MultiQC, including Nextclade JSON/TSV reports
+  - for_summary:
+      description: Summary annotation files, such as VADR or Nextclade results
+  - versions:
+      description: Tool version metadata emitted from each module
+
+components:
+  - vadr
+  - nextclade
+  - nextclade/dataset
+  - datasets
+
+tools:
+  - vadr
+  - nextclade
+
+authors:
+  - Erin Young <eriny@utah.gov>
+

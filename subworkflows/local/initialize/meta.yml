@@ -1,0 +1,80 @@
+name: initialize
+
+description: >
+  Initializes the Cecret pipeline by handling input files, verifying configurations, and 
+  preparing references, primers, amplicons, and optional datasets. Also sets default values,
+  checks for deprecated parameters, and generates structured input channels.
+
+keywords:
+  - initialization
+  - setup
+  - metadata
+  - input parsing
+  - configuration
+  - Cecret
+
+input:
+  - sample_sheet:
+      description: "Sample sheet with columns specifying sample names and read paths"
+  - reads:
+      description:  Directory containing paired-end Illumina reads
+  - single_reads:
+      description:  Directory containing single-end Illumina reads
+  - fastas:
+      description:  Directory of individual FASTA files
+  - multifastas:
+      description:  Directory of multifasta files
+  - nanopore:
+      description:  Directory of Nanopore reads
+  - reference_genome:
+      description:  Reference genome FASTA file (optional if species is defined)
+  - primer_bed:
+      description:  Primer BED file for trimming (optional if primer_set is provided)
+  - amplicon_bed:
+      description:  Amplicon BED file for amplicon coverage analysis
+  - gff:
+      description:  GFF file for variant annotation
+  - sra_accessions:
+      description: NCBI SRA accession(s) to fetch reads (Illumina only)
+  - genome_accessions:
+      description: NCBI genome accession(s) to fetch reference sequences
+  - primer_set:
+      description: Primer set name to use from included Cecret sets (e.g., mpx_yale)
+  - kraken2_db:
+      description:  Path to Kraken2 database for host read filtering
+  - predownloaded_nextclade_dataset:
+      description:  Nextclade dataset file if not downloading dynamically
+
+output:
+  - reads:
+      description: Combined Illumina reads [meta, reads]
+  - fastas:
+      description: Prepared FASTA sequences [meta, fasta]
+  - multifasta:
+      description: Multifasta file(s) for downstream processing
+  - nanopore:
+      description: Nanopore reads [meta, reads]
+  - reference:
+      description: Reference genome FASTA
+  - gff:
+      description: GFF annotation file
+  - primer:
+      description: Primer BED file used for trimming
+  - amplicon:
+      description: Amplicon BED file for ACI (Amplicon Coverage Inspection)
+  - versions:
+      description: Collected version metadata from submodules
+  - kraken2_db:
+      description: Kraken2 database path
+  - scripts:
+      description: Included legacy Python scripts for result processing
+  - nextclade_dataset:
+      description: Nextclade dataset file used for downstream analysis
+
+components:
+  - prep
+  - test
+
+authors:
+  - Erin Young <eriny@utah.gov>
+

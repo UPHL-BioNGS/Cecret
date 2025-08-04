@@ -3,7 +3,8 @@ include { BCFTOOLS                                          } from '../../../mod
 include { IGV_REPORTS                                       } from '../../../modules/local/igvreports' 
 include { IVAR_VARIANTS                                     } from '../../../modules/local/ivar'    
 include { FASTQC                                            } from '../../../modules/local/fastqc' 
-include { KRAKEN2                                           } from '../../../modules/local/kraken2' 
+include { KRAKEN2                                           } from '../../../modules/local/kraken2'
+include { KRAKEN2_DB                                        } from '../../../modules/local/kraken2' 
 include { SAMTOOLS_QC as INITIAL_QC                         } from '../../../modules/local/samtools'  
 include { SAMTOOLS_QC as FINAL_QC                           } from '../../../modules/local/samtools'   
 include { SAMTOOLS_AMPLICONSTATS as AMPLICONSTATS           } from '../../../modules/local/samtools'
@@ -34,11 +35,21 @@ workflow QC {
       ch_for_multiqc = ch_for_multiqc.mix(FASTQC.out.fastqc_files)
     }
 
-    if ( params.kraken2_db ) {
-      KRAKEN2(ch_clean_reads.combine(ch_kraken2_db))
-      ch_for_multiqc = ch_for_multiqc.mix(KRAKEN2.out.kraken2_files)
-      ch_summary     = ch_summary.mix(KRAKEN2.out.kraken2_files)
-      ch_versions    = ch_versions.mix(KRAKEN2.out.versions.first())
+    if ( params.kraken2 ) {
+      if ( params.kraken2_db ) {
+        KRAKEN2_DB(ch_clean_reads.combine(ch_kraken2_db))
+        ch_for_multiqc = ch_for_multiqc.mix(KRAKEN2_DB.out.kraken2_files)
+        ch_summary     = ch_summary.mix(KRAKEN2_DB.out.kraken2_files)
+        ch_versions    = ch_versions.mix(KRAKEN2_DB.out.versions.first())
+
+      } else {
+        KRAKEN2(ch_clean_reads)
+        ch_for_multiqc = ch_for_multiqc.mix(KRAKEN2.out.kraken2_files)
+        ch_summary     = ch_summary.mix(KRAKEN2.out.kraken2_files)
+        ch_versions    = ch_versions.mix(KRAKEN2.out.versions.first())
+
+      }
+
     }
 
     // TODO: Something clever with inital vs final qc

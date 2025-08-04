@@ -1,0 +1,50 @@
+name: msa
+description: >
+  Multiple sequence alignment and phylogenetic analysis subworkflow. 
+  Performs MSA using MAFFT, constructs a phylogenetic tree with IQ-TREE2, 
+  computes pairwise SNP distances using snp-dists, and optionally visualizes 
+  results using PhyTreeViz and HeatCluster.
+keywords:
+  - multiple sequence alignment
+  - phylogenetics
+  - mafft
+  - iqtree2
+  - snp-dists
+  - phylogenetic tree
+  - heatmap
+  - visualization
+
+input:
+  - ch_fasta:
+      description: Input FASTA file(s) for alignment
+  - ch_reference_genome:
+      description: Reference genome in FASTA format (optional, used in MAFFT)
+
+output:
+  - tree:
+      description: Newick tree file produced by IQ-TREE2
+  - matrix:
+      description: SNP distance matrix file from snp-dists
+  - msa:
+      description: Multiple sequence alignment file produced by MAFFT
+  - for_multiqc:
+      description: Visualization outputs for MultiQC integration from PhyTreeViz and/or HeatCluster
+  - versions:
+      description: Collected tool version information
+
+components:
+  - mafft
+  - iqtree2
+  - snpdists
+  - phytreeviz
+  - heatcluster
+
+tools:
+  - mafft
+  - iqtree2
+  - snpdists
+  - phytreeviz
+  - heatcluster
+
+authors:
+  - Erin Young <eriny@utah.gov>
