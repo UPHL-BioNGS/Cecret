@@ -1,7 +1,7 @@
 process NEXTCLADE_DATASET {
   tag        "Downloading Dataset"
   label      "process_medium"
-  container  'nextstrain/nextclade:3.15.3'
+  container  'nextstrain/nextclade:3.16.0'
 
   output:
   path "dataset", emit: dataset
@@ -38,7 +38,7 @@ process NEXTCLADE_DATASET {
 process NEXTCLADE {
   tag        "Clade Determination"
   label      "process_medium"
-  container  'nextstrain/nextclade:3.15.3'
+  container  'nextstrain/nextclade:3.16.0'
 
   input:
   file(fasta)
