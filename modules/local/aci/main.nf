@@ -1,7 +1,7 @@
 process ACI {
     tag        "${meta.id}"
     label      "process_high"
-    container  'staphb/aci:1.4.20240116'
+    container  'staphb/aci:1.15.250702'
 
     input:
     tuple val(meta), file(bam), file(bed)
