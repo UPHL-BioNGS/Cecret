@@ -2,7 +2,7 @@ process DATASETS {
   tag           "${accession}"
   // because there's no way to specify threads
   label         "process_low"
-  container     'staphb/ncbi-datasets:18.0.2'
+  container     'staphb/ncbi-datasets:18.5.0'
 
   input:
   val(accession)

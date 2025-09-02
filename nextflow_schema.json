@@ -363,7 +363,7 @@
                 },
                 "artic_options": {
                     "type": "string",
-                    "default": "--normalise 200 --model ont --model-dir /opt/conda/envs/artic/bin/models/",
+                    "default": "--normalise 200 --model r1041_e82_400bps_sup_v500 --model-dir /opt/conda/envs/artic/bin/models/",
                     "hidden": true,
                     "description": "Options for process"
                 },

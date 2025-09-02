@@ -1,7 +1,7 @@
 process MINIMAP2 {
   tag         "${meta.id}"
   label       "process_high"
-  container   'staphb/minimap2:2.29'
+  container   'staphb/minimap2:2.30'
 
   input:
   tuple val(meta), file(reads), file(reference_genome)

@@ -1,7 +1,7 @@
 process IGV_REPORTS {
   tag         "${meta.id}"
   label       "process_high"
-  container   'staphb/igv-reports:1.12.0'
+  container   'staphb/igv-reports:1.15.1'
 
   input:
   tuple val(meta), file(vcf), file(bam), file(bai), file(reference_genome)
