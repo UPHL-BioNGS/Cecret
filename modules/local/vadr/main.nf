@@ -41,7 +41,6 @@ process VADR {
     if [ -s "trimmed_ultimate.fasta" ] &&  [ -f "trimmed_ultimate.fasta" ]
     then
       v-annotate.pl ${args} \
-        --cpu ${task.cpus} \
         --noseqnamemax \
         --mkey ${params.vadr_reference} \
         --mdir ${params.vadr_mdir} \
