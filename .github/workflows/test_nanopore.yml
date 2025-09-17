@@ -20,8 +20,8 @@ jobs:
         run: |
           mkdir nanopore
           cd nanopore
-          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR224/050/SRR22452250/SRR22452250_1.fastq.gz
-          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR224/031/SRR22452231/SRR22452231_1.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR224/050/SRR22452250/SRR22452250_1.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR224/031/SRR22452231/SRR22452231_1.fastq.gz
           cd ../
 
       - name: Run Cecret
