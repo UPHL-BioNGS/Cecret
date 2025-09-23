@@ -35,6 +35,7 @@ if exists(fastqc_file) and exists(fastq_names_file):
     fastq_R2_df['fastqc_raw_reads_2'] = fastq_R1_df['Total Sequences']
     fastq_both_df = pd.merge(fastq_R1_df, fastq_R2_df, left_on='sample',right_on='sample', how = 'left')
     fastqc_tmp_df = fastq_both_df[['sample', 'fastqc_raw_reads_1', 'fastqc_raw_reads_2']]
+    fastqc_tmp_df['sample'] = fastqc_tmp_df['sample'].astype(str)
     
     summary_df = pd.merge(summary_df, fastqc_tmp_df, left_on = 'sample_id', right_on = 'sample', how = 'outer' )
     summary_df['sample_id'].fillna(summary_df['sample'], inplace=True)
@@ -42,6 +43,7 @@ if exists(fastqc_file) and exists(fastq_names_file):
     columns = columns + ['fastqc_raw_reads_1', 'fastqc_raw_reads_2']
 
 fasta_df = pd.DataFrame(columns=['fasta_sample', "fasta_line", "num_N", "num_total"])
+fasta_df['fasta_sample'] = fasta_df['fasta_sample'].astype(str)
 fasta_files = glob.glob("*.fa") + glob.glob("*.fasta") + glob.glob("*.fna")
 for file in fasta_files :
     print("Getting basic information from fasta " + file)
@@ -67,7 +69,7 @@ if not fasta_df.empty :
     summary_df              = summary_df.drop('fasta_sample', axis=1)
     columns                 = ['fasta_line'] + columns + ['num_N', 'num_total']
 
-summary_df['sample_id'] = summary_df['sample_id'].astype(object)
+summary_df['sample_id'] = summary_df['sample_id'].astype(str)
 
 if exists(fastp_file) :
     with open(fastp_file) as file:
@@ -82,6 +84,7 @@ if exists(fastp_file) :
 
             fastp_tmp_df = fastp_df[['fastp_sample_match', 'fastp_passed_reads', 'fastp_pct_surviving']]
             fastp_tmp1_df = fastp_tmp_df[~fastp_tmp_df['fastp_passed_reads'].isna()]
+            fastp_tmp1_df['fastp_sample_match'] = fastp_tmp1_df['fastp_sample_match'].astype(str)
 
             fastp_columns = list(fastp_tmp1_df.columns)
             fastp_columns.remove('fastp_sample_match')
@@ -108,6 +111,7 @@ if exists(seqyclean_file) :
     seqyclean_columns = list(seqyclean_df.columns)
     seqyclean_columns.remove('seqyclean_Sample')
     seqyclean_columns.remove('seqyclean_name')
+    seqyclean_df['seqyclean_name'] = seqyclean_df['seqyclean_name'].astype(str)
 
     summary_df = pd.merge(summary_df, seqyclean_df, left_on = 'sample_id', right_on = 'seqyclean_name', how = 'outer')
     summary_df['sample_id'].fillna(summary_df['seqyclean_name'], inplace=True)
@@ -178,6 +182,7 @@ if exists(aci_file) :
     tmp_df = aci_df.iloc[:,aci_df.columns != 'aci_bam'].astype('float').copy()
     aci_df['aci_num_failed_amplicons'] = tmp_df.apply(lambda x: x[x < min_depth ].count(), axis=1)
     aci_df['aci_name'] = aci_df['aci_bam'].str.replace(".primertrim.sorted.bam", "", regex = False).str.replace('.sorted.bam', '', regex = False)
+    aci_df['aci_name'] = aci_df['aci_name'].astype(str)
 
     summary_df = pd.merge(summary_df, aci_df[['aci_name', 'aci_num_failed_amplicons']], left_on = 'sample_id', right_on = 'aci_name', how = 'outer')
     summary_df['sample_id'].fillna(summary_df['aci_name'], inplace=True)
@@ -191,6 +196,7 @@ if not ( os.stat(ampliconstats_file).st_size==0 ) :
     amp_df['samtools_num_failed_amplicons'] = amp_df.iloc[ : , 2: ].lt(20).sum( axis=1 )
     amp_df['sample_name'] = amp_df['sample'].str.replace('.primertrim.sorted', '', regex = False)
     amp_tmp_df = amp_df[['sample_name', 'samtools_num_failed_amplicons']]
+    amp_tmp_df['sample_name'] = amp_tmp_df['sample_name'].astype(str)
     
     summary_df = pd.merge(summary_df, amp_tmp_df, left_on = 'sample_id', right_on = 'sample_name', how = 'outer' )
     summary_df['sample_id'].fillna(summary_df['sample_name'], inplace=True)
@@ -270,6 +276,7 @@ if exists(samtools_coverage_file) :
     scov_df['samtools_meandepth_after_trimming'] = scov_df['meandepth']
     scov_df['samtools_per_1X_coverage_after_trimming'] = scov_df['coverage']
     scov_tmp_df = scov_df[['sample','samtools_meandepth_after_trimming','samtools_per_1X_coverage_after_trimming' ]]
+    scov_df['sample'] = scov_df['sample'].astype(str)
 
     summary_df              = pd.merge(summary_df, scov_df, left_on = 'sample_id', right_on = 'sample', how = 'outer')
     summary_df['sample_id'] = summary_df['sample_id'].fillna(summary_df['sample'])
@@ -325,6 +332,7 @@ if exists(nextclade_file) :
     nextclade_df['sample_match'] = nextclade_df['nextclade_seqName'].str.replace('Consensus_', '', regex =  False).str.split(' ').str[0]
     nextclade_columns.remove('nextclade_seqName')
     nextclade_columns.remove('nextclade_clade')
+    nextclade_df['sample_match'] = nextclade_df['sample_match'].astype(str)
 
     summary_df = pd.merge(summary_df, nextclade_df, left_on = 'sample_id', right_on = 'sample_match', how = 'outer')
     summary_df['sample_id'].fillna(summary_df['sample_match'], inplace=True)
@@ -339,6 +347,7 @@ if exists(pangolin_file) :
     pangolin_df = pangolin_df.add_prefix('pangolin_')
     pangolin_columns = list(pangolin_df.columns)
     pangolin_df['sample_match'] = pangolin_df['pangolin_taxon'].str.replace('Consensus_', '', regex= False).str.split(' ').str[0]
+    pangolin_df['sample_match'] = pangolin_df['sample_match'].astype(str)
     pangolin_columns.remove('pangolin_taxon')
     pangolin_columns.remove('pangolin_lineage')
 
@@ -363,6 +372,7 @@ if exists(freyja_file) :
     freyja_df = pd.read_table(freyja_file, dtype = str, sep="\t")
     freyja_df = freyja_df.add_prefix('freyja_')
     freyja_df['freyja_Unnamed: 0'] = freyja_df['freyja_Unnamed: 0'].str.replace("_variants.tsv", "", regex = False)
+    freyja_df['freyja_Unnamed: 0'] = freyja_df['freyja_Unnamed: 0'].astype(str)
     freyja_columns = ['freyja_summarized']
     
     summary_df = pd.merge(summary_df, freyja_df, left_on = 'sample_id', right_on = 'freyja_Unnamed: 0', how = 'outer')
