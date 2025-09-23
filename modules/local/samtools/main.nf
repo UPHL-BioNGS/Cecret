@@ -76,6 +76,7 @@ process SAMTOOLS_AMPLICONSTATS {
   tag        "${meta.id}"
   label      "process_single"
   container  'staphb/samtools:1.22.1'
+  errorStrategy 'ignore'
   
   input:
   tuple val(meta), file(bam), file(primer_bed)
