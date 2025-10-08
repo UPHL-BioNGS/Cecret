@@ -1,11 +1,11 @@
-include { NEXTCLADE }                    from '../../../modules/local/nextclade'
-include { NEXTCLADE_DATASET as DATASET } from '../../../modules/local/nextclade'
-include { VADR }                         from '../../../modules/local/vadr'
+include { NEXTCLADE                     } from '../../../modules/local/nextclade'
+include { NEXTCLADE_DATASET as DATASET  } from '../../../modules/local/nextclade'
+include { VADR                          } from '../../../modules/local/vadr'
 
 workflow OTHER {
   take:
   ch_fastas // channel: fasta 
-  // ch_input_dataset // future goal of zipped directory of nextclade dataset
+  ch_nextclade_dataset // channel: zipped directory of nextclade dataset
 
   main:
   // create some empty channels for optional results
