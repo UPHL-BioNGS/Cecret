@@ -43,7 +43,7 @@ workflow SARSCOV2 {
         }
 
         // running nextclade
-        if ( params.download_nextclade_dataset ) {
+        if ( params.download_nextclade_dataset ) || (! params.predownloaded_nextclade_dataset ) {
             DATASET()
             ch_dataset = DATASET.out.dataset
             ch_versions = ch_versions.mix(DATASET.out.versions)
