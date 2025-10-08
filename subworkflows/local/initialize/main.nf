@@ -448,7 +448,7 @@ workflow INITIALIZE {
         ch_kraken2_db = Channel.empty()
     }
 
-    if ( ! params.download_nextclade_dataset ) {
+    if ( params.predownloaded_nextclade_dataset ) {
         Channel
             .fromPath(params.predownloaded_nextclade_dataset, type:'file', checkIfExists: true)
             .ifEmpty{
