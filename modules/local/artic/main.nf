@@ -13,9 +13,6 @@ process ARTIC {
     path "artic/*{tsv,txt}", emit: txt, optional: true
     path "artic/*preconsensus*", emit: preconsensus, optional: true
     path "artic/*primertrimmed.rg*", emit: rg, optional: true
-    path "artic/*rg_1", emit: rg_1, optional: true
-    path "artic/*rg_2", emit: rg_2, optional: true
-    path "artic/*rg_unmatched", emit: unmatched, optional: true
     path "logs/${task.process}/*.log", emit: log
     path "versions.yml", emit: versions
 
