@@ -34,7 +34,7 @@ workflow CONSENSUS {
   }
 
   // filtering out low quality reads
-  if ( params.cleaner == 'seqyclean' ) {
+  if ( params.cleaner == 'seqyclean') {
     // running seqyclean
     SEQYCLEAN(ch_norm_reads)
 
@@ -61,6 +61,8 @@ workflow CONSENSUS {
     ch_clean_reads = FASTP.out.clean_reads
     ch_multiqc     = ch_multiqc.mix(FASTP.out.fastp_files) 
     ch_versions    = ch_versions.mix(FASTP.out.versions.first())
+  } else {
+    ch_clean_reads = Channel.empty()
   }
 
   // aligning reads to reference
@@ -71,13 +73,15 @@ workflow CONSENSUS {
     ch_sam      = BWA.out.sam
     ch_versions = ch_versions.mix(BWA.out.versions.first())
   
-  } else if ( params.aligner == 'minimap2' ) {
+  } else if ( params.aligner == 'minimap2') {
     // running minimap2
     MINIMAP2(ch_clean_reads.combine(ch_reference))
     
     ch_sam      = MINIMAP2.out.sam
     ch_versions = ch_versions.mix(MINIMAP2.out.versions.first())
   
+  } else {
+    ch_sam = Channel.empty()
   }
 
   // removing duplicates

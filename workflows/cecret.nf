@@ -87,14 +87,20 @@ workflow CECRET {
       ch_versions    = ch_versions.mix(SARSCOV2.out.versions)
     
     } else if ( params.species == 'mpx') {
-      MPOX(ch_consensus)
+      MPOX(
+        ch_consensus,
+        ch_nextclade_dataset
+        )
       
       ch_for_multiqc = ch_for_multiqc.mix(MPOX.out.for_multiqc)
       ch_for_summary = ch_for_summary.mix(MPOX.out.for_summary)
       ch_versions    = ch_versions.mix(MPOX.out.versions)
 
     } else if ( (params.species != 'sarscov2' && params.species != 'mpx' ) && (params.nextclade_dataset != 'sarscov2' || params.vadr_reference != 'sarscov2')) {
-      OTHER(ch_consensus)
+      OTHER(
+        ch_consensus,
+        ch_nextclade_dataset
+        )
       
       ch_for_multiqc = ch_for_multiqc.mix(OTHER.out.for_multiqc)
       ch_for_summary = ch_for_summary.mix(OTHER.out.for_summary)

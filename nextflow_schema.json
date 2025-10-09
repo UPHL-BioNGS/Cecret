@@ -189,6 +189,10 @@
                 "default": true,
                 "description": "Uses included nextclade dataset for SARS-CoV-2 during runtime when false."
             },
+            "predownloaded_nextclade_dataset":{
+                "type": "string",
+                "description" : "Path to predownloaded nextclade dataset"
+            },
             "filter": {
                 "type": "boolean",
                 "description": "Specifies if reference-mapped fastq files should be extracted"

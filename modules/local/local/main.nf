@@ -69,7 +69,7 @@ process SUMMARY {
 process UNZIP {
   tag        "unzipping nextclade dataset"
   label      "process_single"
-  container  'staphb/pandas:2.3.2'
+  container  'staphb/ncbi-datasets:18.7.0'
 
   input:
   file(input)
