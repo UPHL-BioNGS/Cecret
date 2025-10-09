@@ -25,8 +25,8 @@ Table of Contents:
 - [SARS-CoV-2 Wastewater](https://github.com/UPHL-BioNGS/Cecret/wiki/sarscov2%E2%80%90wastewater)
 - [Monkeypox](https://github.com/UPHL-BioNGS/Cecret/wiki/MPOX)
 - [Updating Cecret](https://github.com/UPHL-BioNGS/Cecret#updating-cecret)
-- Optional toggles:
-- Determining relatedness or creating trees
+- [Optional toggles](https://github.com/UPHL-BioNGS/Cecret/wiki/Usage#optional-toggles)
+- [Determining relatedness or creating trees](https://github.com/UPHL-BioNGS/Cecret/wiki/Usage#determining-relatedness)
 - [Classified reads with Kraken2](https://github.com/UPHL-BioNGS/Cecret#classify-reads-with-kraken2)
 - [Main components](https://github.com/UPHL-BioNGS/Cecret#the-main-components-of-cecret-are)
 - [Turning off unneeded processes](https://github.com/UPHL-BioNGS/Cecret#turning-off-unneeded-processes)
