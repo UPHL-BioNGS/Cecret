@@ -73,7 +73,7 @@ workflow CONSENSUS {
     ch_sam      = BWA.out.sam
     ch_versions = ch_versions.mix(BWA.out.versions.first())
   
-  } else if ( params.aligner == 'minimap2' && !ch_reads.empty()) {
+  } else if ( params.aligner == 'minimap2') {
     // running minimap2
     MINIMAP2(ch_clean_reads.combine(ch_reference))
     
