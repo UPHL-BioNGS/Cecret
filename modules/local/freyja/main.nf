@@ -1,7 +1,7 @@
 process FREYJA {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/freyja:2.0.1-10_27_2025-00-37-2025-10-27'
+  container     'staphb/freyja:2.0.1-11_02_2025-00-37-2025-11-03'
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
@@ -51,7 +51,7 @@ process FREYJA {
 process FREYJA_AGGREGATE {
   tag        "Aggregating results from freyja"
   label      "process_single"
-  container  'staphb/freyja:2.0.1-10_27_2025-00-37-2025-10-27'
+  container  'staphb/freyja:2.0.1-11_02_2025-00-37-2025-11-03'
 
   input:
   file(demix)
@@ -99,5 +99,61 @@ process FREYJA_AGGREGATE {
       container: ${task.container}
     END_VERSIONS
 
+  """
+}
+
+process FREYJA_PATHOGEN {
+  tag           "${meta.id}"
+  label         "process_medium"
+  container     'staphb/freyja:2.0.1-11_02_2025-00-37-2025-11-03'
+
+  input:
+  tuple val(meta), file(bam), file(reference_genome)
+
+  output:
+  tuple val(meta), file("freyja/*_{depths,variants}.tsv"), optional: true, emit: variants
+  path("freyja/*_demix.tsv"), optional: true, emit: demix
+  path "freyja/*", optional: true, emit: files
+  path "logs/${task.process}/*.log", emit: log
+  path "versions.yml", emit: versions
+
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
+  def args     = task.ext.args   ?: "${params.freyja_variants_options}"
+  def pathogen = task.ext.args   ?: "${params.freyja_pathogen}"
+  def prefix   = task.ext.prefix ?: "${meta.id}"
+  """
+    mkdir -p freyja db logs/${task.process}
+    log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
+
+    date > \$log
+    freyja --version >> \$log
+
+    freyja update --pathogen ${pathogen} --outdir db
+    freyja demix  --pathogen ${pathogen} --version | tee -a \$log
+
+    barcode_file=\$(ls db/*csv) || barcode_file=\$(ls db/*feather)
+    
+    freyja variants ${args} \
+      ${bam} \
+      --variants freyja/${prefix}_variants.tsv \
+      --depths freyja/${prefix}_depths.tsv \
+      --ref ${reference_genome} \
+      | tee -a \$log
+
+    freyja demix ${args} \
+      freyja/${prefix}_variants.tsv \
+      freyja/${prefix}_depths.tsv \
+      --barcodes \$barcode_file \
+      --output freyja/${prefix}_demix.tsv \
+      | tee -a \$log
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+      freyja: \$(freyja --version | awk '{print \$NF}')
+      container: ${task.container}
+    END_VERSIONS
   """
 }
