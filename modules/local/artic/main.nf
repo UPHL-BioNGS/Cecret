@@ -1,13 +1,14 @@
 process ARTIC {
     tag        "${meta.id}"
     label      "process_high"
-    container  'staphb/artic:1.8.4'
+    container  'staphb/artic:1.8.5'
 
     input:
     tuple val(meta), file(fastq), file(reference), file(bed)
 
     output:
-    tuple val(meta), file("artic/*.primertrim.sorted.bam"), file("artic/*.primertrim.sorted.bam.bai"), emit: bam, optional: true
+    //tuple val(meta), file("artic/*.primertrim.sorted.bam"), file("artic/*.primertrim.sorted.bam.bai"), emit: bam, optional: true
+    tuple val(meta), file("artic/*.primertrim.sorted.bam"), file("artic/*.primertrim.sorted.bam.bai"), emit: bam
     path "consensus/*.consensus.fa", emit: consensus, optional: true
     path "artic/*vcf*", emit: vcf, optional: true
     path "artic/*{tsv,txt}", emit: txt, optional: true
@@ -64,7 +65,7 @@ process ARTIC {
 
 process ARTIC_FILTER {
     tag        "${meta.id}"
-    container  'staphb/artic:1.8.4'
+    container  'staphb/artic:1.8.5'
     label      "process_low"
 
     input:
