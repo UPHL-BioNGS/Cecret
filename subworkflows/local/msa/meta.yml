@@ -8,7 +8,7 @@ keywords:
   - multiple sequence alignment
   - phylogenetics
   - mafft
-  - iqtree2
+  - iqtree
   - snp-dists
   - phylogenetic tree
   - heatmap
@@ -34,14 +34,14 @@ output:
 
 components:
   - mafft
-  - iqtree2
+  - iqtree
   - snpdists
   - phytreeviz
   - heatcluster
 
 tools:
   - mafft
-  - iqtree2
+  - iqtree
   - snpdists
   - phytreeviz
   - heatcluster
