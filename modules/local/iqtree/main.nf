@@ -23,7 +23,7 @@ process IQTREE {
     log=logs/${task.process}/${task.process}.${workflow.sessionId}.log
 
     date > \$log
-    iqtree --version >> \$log
+    iqtree3 --version >> \$log
 
     if [ -n "${params.iqtree_outgroup}" ] && [ "${params.iqtree_outgroup}" != "null" ] && [ "${params.msa}" != "nextclade" ]
     then
@@ -35,7 +35,7 @@ process IQTREE {
     fi
 
     # creating a tree
-    iqtree ${args} \
+    iqtree3 ${args} \
       -nt AUTO \
       -ntmax ${task.cpus} \
       -s ${msa}.renamed \
@@ -47,7 +47,7 @@ process IQTREE {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-      iqtree: \$(iqtree --version | head -n 1 | awk '{print \$4}')
+      iqtree3: \$(iqtree3 --version | head -n 1 | awk '{print \$4}')
       container: ${task.container}
     END_VERSIONS
   """
