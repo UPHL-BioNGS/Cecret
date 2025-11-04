@@ -33,10 +33,14 @@ components:
   - nextclade
   - nextclade/dataset
   - datasets
+  - freyja/pathogen
+  - freyja/aggregate
+  - unzip
 
 tools:
   - vadr
   - nextclade
+  - freyja
 
 authors:
   - Erin Young <eriny@utah.gov>
