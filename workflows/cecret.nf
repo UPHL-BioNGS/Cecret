@@ -89,7 +89,10 @@ workflow CECRET {
     } else if ( params.species == 'mpx') {
       MPOX(
         ch_consensus,
-        ch_nextclade_dataset
+        ch_bam,
+        ch_reference,
+        ch_nextclade_dataset,
+        ch_scripts
         )
       
       ch_for_multiqc = ch_for_multiqc.mix(MPOX.out.for_multiqc)
@@ -99,7 +102,10 @@ workflow CECRET {
     } else if ( (params.species != 'sarscov2' && params.species != 'mpx' ) && (params.nextclade_dataset != 'sarscov2' || params.vadr_reference != 'sarscov2')) {
       OTHER(
         ch_consensus,
-        ch_nextclade_dataset
+        ch_bam,
+        ch_reference,
+        ch_nextclade_dataset,
+        ch_scripts
         )
       
       ch_for_multiqc = ch_for_multiqc.mix(OTHER.out.for_multiqc)

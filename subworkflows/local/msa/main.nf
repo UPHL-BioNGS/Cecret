@@ -1,6 +1,6 @@
 include { MAFFT }       from '../../../modules/local/mafft'
 include { HEATCLUSTER } from '../../../modules/local/heatcluster'
-include { IQTREE2 }     from '../../../modules/local/iqtree2' 
+include { IQTREE }      from '../../../modules/local/iqtree' 
 include { PHYTREEVIZ }  from '../../../modules/local/phytreeviz'
 include { SNPDISTS }    from '../../../modules/local/snp-dists'
 
@@ -25,11 +25,11 @@ workflow MSA {
       ch_msa = Channel.empty()
     }
     
-    // run iqtree2
-    if (params.iqtree2) {
-      IQTREE2(ch_msa)
-      ch_versions = ch_versions.mix(IQTREE2.out.versions)
-      ch_nwk      = ch_nwk.mix(IQTREE2.out.newick)
+    // run iqtree
+    if (params.iqtree) {
+      IQTREE(ch_msa)
+      ch_versions = ch_versions.mix(IQTREE.out.versions)
+      ch_nwk      = ch_nwk.mix(IQTREE.out.newick)
     }
 
     if (params.phytreeviz) {
@@ -51,7 +51,7 @@ workflow MSA {
     }
 
   emit:
-    tree        = IQTREE2.out.newick
+    tree        = IQTREE.out.newick
     matrix      = SNPDISTS.out.matrix
     msa         = ch_msa
     for_multiqc = PHYTREEVIZ.out.for_multiqc.mix(HEATCLUSTER.out.for_multiqc)

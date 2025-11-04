@@ -114,7 +114,7 @@ Cecret has a weekly update schedule. Cecret's versions have three numbers : X.Y.
 - [fastqc](https://github.com/s-andrews/FastQC) - for QC metrics
 - [freyja](https://github.com/andersen-lab/Freyja) - for multiple SARS-CoV-2 lineage classifications
 - [heatcluster](https://github.com/DrB-S/heatcluster) - for visualizing SNP matrices generated via SNP dists
-- [iqtree2](http://www.iqtree.org/) - for phylogenetic tree generation (optional, set params.relatedness = true)
+- [iqtree](http://www.iqtree.org/) - for phylogenetic tree generation (optional, set params.relatedness = true)
 - [igv-reports](https://github.com/igvteam/igv-reports) - visualizing SNPs (optional, set params.igv_reports = true)
 - [ivar](https://andersen-lab.github.io/ivar/html/manualpage.html) - calling variants and creating a consensus fasta; default primer trimmer
 - [kraken2](https://ccb.jhu.edu/software/kraken2/) - for read classification
@@ -149,12 +149,12 @@ params.aci = false                        # coverage approximation of amplicons
 parms.igv_reports = false                 # SNP IGV images
 params.nextclade = true                   # SARS-CoV-2 clade determination
 params.pangolin = true                    # SARS-CoV-2 lineage determination
-params.pango_aliasor = true              # SARS-CoV-2 lineage tracing
+params.pango_aliasor = true               # SARS-CoV-2 lineage tracing
 params.freyja = true                      # multiple SARS-CoV-2 lineage determination
 params.vadr = false                       # NCBI fasta QC
 params.relatedness = false                # create multiple sequence alignments with input fastq and fasta files
 params.snpdists = true                    # creates snp matrix from mafft multiple sequence alignment
-params.iqtree2 = true                     # creates phylogenetic tree from mafft multiple sequence alignement
+params.iqtree = true                      # creates phylogenetic tree from mafft multiple sequence alignement
 params.bamsnap = false                    # has been removed
 params.rename = false                     # needs a corresponding sample file and will rename files for GISAID and NCBI submission
 params.filter = false                     # takes the aligned reads and turns them back into fastq.gz files

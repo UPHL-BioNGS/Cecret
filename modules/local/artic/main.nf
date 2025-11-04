@@ -1,7 +1,7 @@
 process ARTIC {
     tag        "${meta.id}"
     label      "process_high"
-    container  'staphb/artic:1.8.4'
+    container  'staphb/artic:1.8.5'
 
     input:
     tuple val(meta), file(fastq), file(reference), file(bed)
@@ -64,7 +64,7 @@ process ARTIC {
 
 process ARTIC_FILTER {
     tag        "${meta.id}"
-    container  'staphb/artic:1.8.4'
+    container  'staphb/artic:1.8.5'
     label      "process_low"
 
     input:

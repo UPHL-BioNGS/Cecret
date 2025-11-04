@@ -5,3 +5,27 @@ reports:
     display: "Full report in txt format"
   cecret_results.csv:
     display: "Full report in csv format"
+  lineage_report.csv:
+    display: "Pangolin lineage report"
+  pango_aliasor.csv:
+    display: "Pangolin lineage report with full lineage tracing"
+  "execution_report_*.html ":
+    display: "Nextflow execution report"
+  "execution_timeline_*.html":
+    display: "Nextflow execution timeline"
+  "execution_trace_*.txt":
+    display: "Nextflow trace file"
+  "pipeline_dag_*.html":
+    display: "Nextflow workflow diagram"
+  vadr.vadr.pass.fa:
+    display: "VADR multifasta of passes samples"
+  vadr.vadr.pass.list:
+    display: "VADR pass list"
+  vadr.vadr.pass.tbl:
+    display: "VADR annotation tbl"
+  aggregated-freyja.tsv:
+    display: "Aggregated Freyja Results"
+  nextclade.csv:
+    display: "NextClade report"
+  Combined_SummaryStatistics.tsv:
+    display: "SeqyClean Summary Statistics"

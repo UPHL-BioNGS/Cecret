@@ -1,11 +1,17 @@
+include { FREYJA_PATHOGEN as FREYJA     } from '../../../modules/local/freyja'
+include { FREYJA_AGGREGATE as AGGREGATE } from '../../../modules/local/freyja'
 include { NEXTCLADE                     } from '../../../modules/local/nextclade'
 include { NEXTCLADE_DATASET as DATASET  } from '../../../modules/local/nextclade'
+include { UNZIP                         } from '../../../modules/local/local' 
 include { VADR                          } from '../../../modules/local/vadr'
 
 workflow OTHER {
   take:
-  ch_fastas // channel: fasta 
-  ch_nextclade_dataset // channel: zipped directory of nextclade dataset
+  ch_fastas // channel: fasta
+  ch_bam // channel: [meta, bam]
+  ch_reference_genome // channel: fasta
+  ch_input_dataset // channel: zipped file
+  ch_script // channel: workflow scripts
 
   main:
   // create some empty channels for optional results
@@ -20,12 +26,33 @@ workflow OTHER {
     ch_for_summary = ch_for_summary.mix(VADR.out.vadr_file)
   }
 
-  // run nextclade only if nextclade is expected to run
-  // TODO : Allow user to download and zip their own nextclade dataset
-  if ( params.nextclade_dataset && params.nextclade_dataset != 'sars-cov-2' && params.download_nextclade_dataset ) {
+  // run freyja only if freyja is expected to run
+  if (params.freyja_pathogen && params.freyja_pathogen != 'SARS-CoV-2') {
+    // running freyja
+    FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
+    ch_versions = ch_versions.mix(FREYJA.out.versions.first())
 
-    DATASET()
-    ch_versions = ch_versions.mix(DATASET.out.versions)
+    if (params.freyja_aggregate) {
+      AGGREGATE(FREYJA.out.demix.collect(), ch_script)
+      ch_versions    = ch_versions.mix(AGGREGATE.out.versions)
+      ch_for_multiqc = ch_for_multiqc.mix(AGGREGATE.out.for_multiqc)
+      ch_for_summary = ch_for_summary.mix(AGGREGATE.out.aggregated_freyja_file)
+    }
+  }
+
+  // run nextclade only if nextclade is expected to run
+  if (( params.nextclade_dataset && params.nextclade_dataset != 'sars-cov-2' && params.download_nextclade_dataset ) || params.predownloaded_nextclade_dataset ) {
+
+    // running nextclade
+    if ( params.download_nextclade_dataset && !params.predownloaded_nextclade_dataset ) {
+      DATASET()
+      ch_dataset  = DATASET.out.dataset
+      ch_versions = ch_versions.mix(DATASET.out.versions)
+    } else {
+      UNZIP(ch_input_dataset)
+      ch_dataset  = UNZIP.out.dataset
+      ch_versions = ch_versions.mix(UNZIP.out.versions)
+    }
     
     NEXTCLADE(ch_fastas.collect(), DATASET.out.dataset)
     ch_versions    = ch_versions.mix(NEXTCLADE.out.versions)
