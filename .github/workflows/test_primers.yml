@@ -57,7 +57,7 @@ jobs:
               --vadr false \
               --relatedness false \
               --snpdists false \
-              --iqtree2 false \
+              --iqtree false \
               --bamsnap false \
               --rename false \
               --filter false \

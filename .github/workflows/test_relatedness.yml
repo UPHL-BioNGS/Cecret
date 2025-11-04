@@ -53,7 +53,7 @@ jobs:
             
           head cecret/cecret_results.txt
 
-          head cecret/iqtree2/iqtree2.treefile
+          head cecret/iqtree/iqtree.treefile
 
       - name: Run Cecret with latest
         run: |
@@ -63,7 +63,7 @@ jobs:
             
           head cecret*/cecret_results.txt
 
-          head cecret*/iqtree2/iqtree2.treefile
+          head cecret*/iqtree/iqtree.treefile
 
 
       - name: Clean
