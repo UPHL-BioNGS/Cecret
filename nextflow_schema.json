@@ -71,13 +71,18 @@
                 "default": "sarscov2",
                 "description": "Specifies reference for vadr in container"
             },
+            "freyja_pathogen": {
+                "type": "string",
+                "hidden": true,
+                "description": "Specifies freyja pathogen"
+            },
             "nextclade_dataset": {
                 "type": "string",
                 "hidden": true,
                 "default": "sars-cov-2",
                 "description": "Specifies nextclade dataset"
             },
-            "iqtree2_outgroup": {
+            "iqtree_outgroup": {
                 "type": "string",
                 "hidden": true,
                 "default": "MN908947",
@@ -269,7 +274,7 @@
                     "hidden": true,
                     "description": "Specifies if process should be used"
                 },
-                "iqtree2": {
+                "iqtree": {
                     "type": "boolean",
                     "default": true,
                     "hidden": true,
@@ -409,7 +414,7 @@
                     "hidden": true,
                     "description": "Options for process"
                 },
-                "iqtree2_options": {
+                "iqtree_options": {
                     "type": "string",
                     "default": "-ninit 2 -n 2 -me 0.05 -m GTR",
                     "hidden": true,
