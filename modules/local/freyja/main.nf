@@ -1,7 +1,7 @@
 process FREYJA {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/freyja:2.0.1-11_02_2025-00-37-2025-11-03'
+  container     'staphb/freyja:2.0.1-11_10_2025-00-36-2025-11-10'
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
@@ -51,7 +51,7 @@ process FREYJA {
 process FREYJA_AGGREGATE {
   tag        "Aggregating results from freyja"
   label      "process_single"
-  container  'staphb/freyja:2.0.1-11_02_2025-00-37-2025-11-03'
+  container  'staphb/freyja:2.0.1-11_10_2025-00-36-2025-11-10'
 
   input:
   file(demix)
@@ -105,7 +105,7 @@ process FREYJA_AGGREGATE {
 process FREYJA_PATHOGEN {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/freyja:2.0.1-11_02_2025-00-37-2025-11-03'
+  container     'staphb/freyja:2.0.1-11_10_2025-00-36-2025-11-10'
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
@@ -147,6 +147,7 @@ process FREYJA_PATHOGEN {
       freyja/${prefix}_variants.tsv \
       freyja/${prefix}_depths.tsv \
       --barcodes \$barcode_file \
+      --pathogen ${pathogen} \
       --output freyja/${prefix}_demix.tsv \
       | tee -a \$log
 
