@@ -10,11 +10,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
-        with:
-          lfs: true
 
-      - name: Checkout LFS objects
-        run: git lfs checkout
+      - name: Clean up Disk space
+        uses: jlumbroso/free-disk-space@main
 
       - name: Install Nextflow
         run: |
