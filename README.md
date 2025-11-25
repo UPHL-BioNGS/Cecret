@@ -1,4 +1,28 @@
-# Cecret
+<div align="center">
+  <img src="images/logo.png" alt="Cecret Logo" width="220">
+  <h1>Cecret</h1>
+  
+  <p>
+    <strong>Reference-based consensus creation.</strong>
+  </p>
+
+</div>
+
+<br>
+
+[![Nextflow](https://img.shields.io/badge/Nextflow-%E2%89%A522.04.0-3c5890.svg?logo=nextflow)](https://www.nextflow.io/)
+[![Launch with Nextflow Tower](https://img.shields.io/badge/Launch%20on%20-Tower-%23425666?logo=nextflow)](https://tower.nf/launch?repo=https://github.com/UPHL-BioNGS/Cecret)
+[![CI Status](https://github.com/UPHL-BioNGS/Cecret/actions/workflows/ci.yml/badge.svg)](https://github.com/UPHL-BioNGS/Cecret/actions/workflows/ci.yml)
+[![Pipeline Status](https://img.shields.io/badge/Workflow-Production%20Ready-green)](https://github.com/UPHL-BioNGS/Cecret)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Stars](https://img.shields.io/github/stars/UPHL-BioNGS/Cecret?style=social)](https://github.com/UPHL-BioNGS/Cecret/stargazers)
+
+**A Nextflow workflow for reference-based amplicon consensus generation.**
+
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/UPHL-BioNGS/Cecret)
+
+
 
 Named after the beautiful [Cecret lake](https://en.wikipedia.org/wiki/Cecret_Lake)
 
@@ -46,6 +70,8 @@ The library preparation method greatly impacts which bioinformatic tools are rec
 It is possible to use this workflow to simply annotate fastas generated from any workflow or downloaded from [GISAID](https://www.gisaid.org/) or [NCBI](https://www.ncbi.nlm.nih.gov/sars-cov-2/). There are also options for multiple sequence alignment (MSA) and phylogenetic tree creation from the fasta files.
 
 Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_toolkit).
+
+
 
 ## Dependencies
 
