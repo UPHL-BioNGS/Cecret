@@ -1,5 +1,6 @@
-include { FREYJA_PATHOGEN as FREYJA     } from '../../../modules/local/freyja'
 include { FREYJA_AGGREGATE as AGGREGATE } from '../../../modules/local/freyja'
+include { FREYJA_PATHOGEN as FREYJA     } from '../../../modules/local/freyja'
+include { FREYJA_UPDATE                 } from '../../../modules/local/freyja'
 include { NEXTCLADE                     } from '../../../modules/local/nextclade'
 include { NEXTCLADE_DATASET as DATASET  } from '../../../modules/local/nextclade'
 include { UNZIP                         } from '../../../modules/local/local' 
@@ -29,7 +30,10 @@ workflow OTHER {
   // run freyja only if freyja is expected to run
   if (params.freyja_pathogen && params.freyja_pathogen != 'SARS-CoV-2') {
     // running freyja
-    FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
+    FREYJA_UPDATE()
+    ch_versions = ch_versions.mix(FREYJA_UPDATE.out.versions)
+
+    FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome).combine(FREYJA_UPDATE.out.db))
     ch_versions = ch_versions.mix(FREYJA.out.versions.first())
 
     if (params.freyja_aggregate) {
