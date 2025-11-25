@@ -159,12 +159,11 @@ process FREYJA_PATHOGEN {
 }
 
 process FREYJA_UPDATE {
-  tag           "${meta.id}"
+  tag           "Downloading Freyja Barcodes"
   label         "process_medium"
   container     'staphb/freyja:2.0.1'
 
   input:
-  tuple val(meta), file(bam), file(reference_genome)
 
   output:
   path "db", emit: db
@@ -175,16 +174,16 @@ process FREYJA_UPDATE {
   task.ext.when == null || task.ext.when
 
   script:
-  def args     = task.ext.args   ?: "${params.freyja_variants_options}"
+  def args     = task.ext.args   ?: "${params.freyja_update_options}"
   def pathogen = task.ext.args   ?: "${params.freyja_pathogen}"
   """
-    mkdir -p freyja db logs/${task.process}
-    log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
+    mkdir -p db logs/${task.process}
+    log=logs/${task.process}/freyja_update.${workflow.sessionId}.log
 
     date > \$log
     freyja --version >> \$log
 
-    freyja update ${args} --pathogen ${pathogen} --outdir db
+    freyja update ${args} --pathogen ${pathogen} --outdir db | tee -a \$log
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
