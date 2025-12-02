@@ -1,0 +1,32 @@
+name: Test SARS-CoV-2 workflow for CI
+
+on: [pull_request, workflow_dispatch]
+
+run-name: CI test run
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Clean up Disk space
+        uses: jlumbroso/free-disk-space@main
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Run Cecret
+        run: |
+          docker --version
+
+          nextflow run . -profile docker,test -c .github/workflows/github_actions.config
+          ls cecret*
+            
+          cat cecret*/cecret_results.txt
+
+      - name: Clean
+        run: rm -rf work .nextflow*

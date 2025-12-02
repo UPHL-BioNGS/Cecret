@@ -1,7 +1,7 @@
 process FREYJA {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/freyja:2.0.1-11_17_2025-00-36-2025-11-17'
+  container     'staphb/freyja:2.0.1-11_23_2025-00-39-2025-11-24'
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
@@ -51,7 +51,7 @@ process FREYJA {
 process FREYJA_AGGREGATE {
   tag        "Aggregating results from freyja"
   label      "process_single"
-  container  'staphb/freyja:2.0.1-11_17_2025-00-36-2025-11-17'
+  container  'staphb/freyja:2.0.1-11_23_2025-00-39-2025-11-24'
 
   input:
   file(demix)
@@ -108,7 +108,7 @@ process FREYJA_PATHOGEN {
   container     'staphb/freyja:2.0.1'
 
   input:
-  tuple val(meta), file(bam), file(reference_genome)
+  tuple val(meta), file(bam), file(reference_genome), path(db)
 
   output:
   tuple val(meta), file("freyja/*_{depths,variants}.tsv"), optional: true, emit: variants
@@ -131,10 +131,9 @@ process FREYJA_PATHOGEN {
     date > \$log
     freyja --version >> \$log
 
-    freyja update --pathogen ${pathogen} --outdir db
     freyja demix  --pathogen ${pathogen} --version | tee -a \$log
 
-    barcode_file=\$(ls db/*csv) || barcode_file=\$(ls db/*feather)
+    barcode_file=\$(ls ${db}/*csv) || barcode_file=\$(ls db/*feather)
     
     freyja variants ${args} \
       ${bam} \
@@ -150,6 +149,41 @@ process FREYJA_PATHOGEN {
       --pathogen ${pathogen} \
       --output freyja/${prefix}_demix.tsv \
       | tee -a \$log
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+      freyja: \$(freyja --version | awk '{print \$NF}')
+      container: ${task.container}
+    END_VERSIONS
+  """
+}
+
+process FREYJA_UPDATE {
+  tag           "Downloading Freyja Barcodes"
+  label         "process_medium"
+  container     'staphb/freyja:2.0.1'
+
+  input:
+
+  output:
+  path "db", emit: db
+  path "logs/${task.process}/*.log", emit: log
+  path "versions.yml", emit: versions
+
+  when:
+  task.ext.when == null || task.ext.when
+
+  script:
+  def args     = task.ext.args   ?: "${params.freyja_update_options}"
+  def pathogen = task.ext.args   ?: "${params.freyja_pathogen}"
+  """
+    mkdir -p db logs/${task.process}
+    log=logs/${task.process}/freyja_update.${workflow.sessionId}.log
+
+    date > \$log
+    freyja --version >> \$log
+
+    freyja update ${args} --pathogen ${pathogen} --outdir db | tee -a \$log
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

@@ -35,6 +35,7 @@ components:
   - datasets
   - freyja/pathogen
   - freyja/aggregate
+  - freyja/update
   - unzip
 
 tools:

@@ -545,6 +545,11 @@
                     "hidden": true,
                     "description": "Options for process"
                 },
+                "freyja_update_options": {
+                    "type": "string",
+                    "hidden": true,
+                    "description": "Options for process"
+                },
                 "freyja_variants_options": {
                     "type": "string",
                     "hidden": true,
