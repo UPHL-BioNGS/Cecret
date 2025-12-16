@@ -1,28 +1,21 @@
 {
-  "name": "Nextflow Pipeline",
-  "image": "mcr.microsoft.com/devcontainers/java:17",
-  "features": {
-    // Installs Docker and wires up the socket so Nextflow can run containers
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-      "version": "latest",
-      "enableNonRootDocker": "true",
-      "moby": "true"
+    "name": "Nextflow Pipeline",
+    "image": "mcr.microsoft.com/devcontainers/java:17",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+            "version": "latest",
+            "enableNonRootDocker": "true",
+            "moby": "false"
+        },
+        "ghcr.io/devcontainers/features/common-utils:2": {}
     },
-    // Useful command line tools (curl, git, etc.)
-    "ghcr.io/devcontainers/features/common-utils:2": {}
-  },
-  
-  // This command runs automatically after the container is created
-  // It downloads Nextflow and moves it to your path
-  "postCreateCommand": "curl -s https://get.nextflow.io | bash && sudo mv nextflow /usr/local/bin/",
-
-  // VS Code customizations (optional but recommended)
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "nextflow.nextflow",       // Syntax highlighting for Nextflow
-        "ms-azuretools.vscode-docker" // Docker explorer
-      ]
+    "postCreateCommand": "curl -s https://get.nextflow.io | bash && sudo mv nextflow /usr/local/bin/",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "nextflow.nextflow",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
     }
-  }
 }
