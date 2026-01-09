@@ -1,7 +1,7 @@
 process SNPDISTS {
   tag           "creating snp matrix with snp-dists"
-  label         "process_single"
-  container     'staphb/snp-dists:0.8.2'
+  label         "process_medium"
+  container     'staphb/snp-dists:1.2.0'
 
   input:
   file(msa)
@@ -24,7 +24,10 @@ process SNPDISTS {
     date > \$log
     snp-dists -v >> \$log
 
-    snp-dists ${args} ${msa} > snp-dists/${prefix}.txt
+    snp-dists ${args} \
+      -j ${task.cpus} \
+      ${msa} \
+      > snp-dists/${prefix}.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

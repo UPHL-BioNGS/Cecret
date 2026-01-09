@@ -30,18 +30,20 @@ workflow OTHER {
   // run freyja only if freyja is expected to run
   if (params.freyja_pathogen && params.freyja_pathogen != 'SARS-CoV-2') {
     // running freyja
-    FREYJA_UPDATE()
-    ch_versions = ch_versions.mix(FREYJA_UPDATE.out.versions)
+    // TODO : FIX WHEN NOT BROKEN
+    // FREYJA_UPDATE()
+    // ch_versions = ch_versions.mix(FREYJA_UPDATE.out.versions)
 
-    FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome).combine(FREYJA_UPDATE.out.db))
-    ch_versions = ch_versions.mix(FREYJA.out.versions.first())
+    //FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome).combine(FREYJA_UPDATE.out.db))
+    // FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
+    // ch_versions = ch_versions.mix(FREYJA.out.versions.first())
 
-    if (params.freyja_aggregate) {
-      AGGREGATE(FREYJA.out.demix.collect(), ch_script)
-      ch_versions    = ch_versions.mix(AGGREGATE.out.versions)
-      ch_for_multiqc = ch_for_multiqc.mix(AGGREGATE.out.for_multiqc)
-      ch_for_summary = ch_for_summary.mix(AGGREGATE.out.aggregated_freyja_file)
-    }
+     // if (params.freyja_aggregate) {
+     // AGGREGATE(FREYJA.out.demix.collect(), ch_script)
+     // ch_versions    = ch_versions.mix(AGGREGATE.out.versions)
+     // ch_for_multiqc = ch_for_multiqc.mix(AGGREGATE.out.for_multiqc)
+     // ch_for_summary = ch_for_summary.mix(AGGREGATE.out.aggregated_freyja_file)
+    // }
   }
 
   // run nextclade only if nextclade is expected to run
