@@ -1,32 +1,20 @@
-// .devcontainer/devcontainer.json
 {
-    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-    
+    "name": "Nextflow Pipeline",
+    "image": "mcr.microsoft.com/devcontainers/java:17",
     "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
             "version": "latest",
-            "moby": true
-        }
+            "enableNonRootDocker": "true",
+            "moby": "false"
+        },
+        "ghcr.io/devcontainers/features/common-utils:2": {}
     },
-    
-    // This command installs JRE and Nextflow
-    "postCreateCommand": "sudo apt-get update && sudo apt-get install -y default-jre && curl -s https://get.nextflow.io | bash && sudo mv nextflow /usr/local/bin/",
-    
-    "remoteEnv": {
-        "PATH": "${containerEnv:PATH}:/usr/local/bin"
-    },
-    
-    // This sets the Nextflow profile to use Docker (required for Cecret's containers)
-    "containerEnv": {
-        "NXF_DEFAULT_LAUNCHER": "docker"
-    },
-    
+    "postCreateCommand": "curl -s https://get.nextflow.io | bash && sudo mv nextflow /usr/local/bin/",
     "customizations": {
         "vscode": {
             "extensions": [
-                "ms-vscode.live-server",
-                "redhat.vscode-yaml",
-                "humao.rest-client"
+                "nextflow.nextflow",
+                "ms-azuretools.vscode-docker"
             ]
         }
     }

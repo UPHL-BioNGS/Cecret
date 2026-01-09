@@ -53,6 +53,7 @@ process FREYJA_AGGREGATE {
   label      "process_single"
   container  'staphb/freyja:2.0.2-SARS-CoV-2-01_05_2026-00-41-2026-01-05'
 
+
   input:
   file(demix)
   file(graphs)
