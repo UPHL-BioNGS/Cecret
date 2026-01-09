@@ -1,7 +1,7 @@
 process SNPDISTS {
   tag           "creating snp matrix with snp-dists"
-  label         "process_single"
-  container     'staphb/snp-dists:0.8.2'
+  label         "process_medium"
+  container     'staphb/snp-dists:1.2.0'
 
   input:
   file(msa)

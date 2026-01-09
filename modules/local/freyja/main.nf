@@ -1,7 +1,7 @@
 process FREYJA {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/freyja:2.0.1-11_23_2025-00-39-2025-11-24'
+  container     'staphb/freyja:2.0.2-SARS-CoV-2-01_05_2026-00-41-2026-01-05'
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
@@ -51,7 +51,7 @@ process FREYJA {
 process FREYJA_AGGREGATE {
   tag        "Aggregating results from freyja"
   label      "process_single"
-  container  'staphb/freyja:2.0.1-11_23_2025-00-39-2025-11-24'
+  container  'staphb/freyja:2.0.2-SARS-CoV-2-01_05_2026-00-41-2026-01-05'
 
   input:
   file(demix)
@@ -105,10 +105,12 @@ process FREYJA_AGGREGATE {
 process FREYJA_PATHOGEN {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/freyja:2.0.1'
+  container     'staphb/freyja:2.0.2'
+  // fails for samples that need db downloaded
+  errorStrategy 'ignore'
 
   input:
-  tuple val(meta), file(bam), file(reference_genome), path(db)
+  tuple val(meta), file(bam), file(reference_genome)
 
   output:
   tuple val(meta), file("freyja/*_{depths,variants}.tsv"), optional: true, emit: variants
@@ -130,10 +132,6 @@ process FREYJA_PATHOGEN {
 
     date > \$log
     freyja --version >> \$log
-
-    freyja demix  --pathogen ${pathogen} --version | tee -a \$log
-
-    barcode_file=\$(ls ${db}/*csv) || barcode_file=\$(ls db/*feather)
     
     freyja variants ${args} \
       ${bam} \
@@ -145,7 +143,6 @@ process FREYJA_PATHOGEN {
     freyja demix ${args} \
       freyja/${prefix}_variants.tsv \
       freyja/${prefix}_depths.tsv \
-      --barcodes \$barcode_file \
       --pathogen ${pathogen} \
       --output freyja/${prefix}_demix.tsv \
       | tee -a \$log
@@ -161,9 +158,9 @@ process FREYJA_PATHOGEN {
 process FREYJA_UPDATE {
   tag           "Downloading Freyja Barcodes"
   label         "process_medium"
-  container     'staphb/freyja:2.0.1'
-
-  input:
+  container     'staphb/freyja:2.0.2'
+  // fails for empty samples
+  errorStrategy 'ignore'
 
   output:
   path "db", emit: db

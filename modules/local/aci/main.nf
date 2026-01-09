@@ -1,7 +1,7 @@
 process ACI {
     tag        "${meta.id}"
     label      "process_high"
-    container  'staphb/aci:1.15.250702'
+    container  'staphb/aci:1.45.251125'
 
     input:
     tuple val(meta), file(bam), file(bed)
@@ -13,7 +13,7 @@ process ACI {
     path "aci/*/*", emit: everything
     path "logs/${task.process}/*.log", emit: log
     path "versions.yml", emit: versions
-  
+
     when:
     task.ext.when == null || task.ext.when
 

@@ -1,6 +1,6 @@
 process BCFTOOLS {
   tag           "${meta.id}"
-  container     'staphb/bcftools:1.22'
+  container     'staphb/bcftools:1.23'
   label         'process_single'
 
   input:

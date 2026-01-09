@@ -30,10 +30,12 @@ workflow OTHER {
   // run freyja only if freyja is expected to run
   if (params.freyja_pathogen && params.freyja_pathogen != 'SARS-CoV-2') {
     // running freyja
-    FREYJA_UPDATE()
-    ch_versions = ch_versions.mix(FREYJA_UPDATE.out.versions)
+    // TODO : FIX WHEN NOT BROKEN
+    // FREYJA_UPDATE()
+    // ch_versions = ch_versions.mix(FREYJA_UPDATE.out.versions)
 
-    FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome).combine(FREYJA_UPDATE.out.db))
+    //FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome).combine(FREYJA_UPDATE.out.db))
+    FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
     ch_versions = ch_versions.mix(FREYJA.out.versions.first())
 
     if (params.freyja_aggregate) {
