@@ -30,10 +30,8 @@ Location: 40.570°N 111.622°W , Elevation: 9,875 feet (3,010 m), [Hiking level:
 
 |                                                                                                                                                                |                                                                                                                                                                |
 | :------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-13.jpg" width="500"/>  | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-1.jpg" width="500" />  |
-| <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-10.jpg" width="500" /> | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-11.jpg" width="500" /> |
-
-([Image credit: Intermountain Healthcare](https://intermountainhealthcare.org/services/wellness-preventive-medicine/live-well/move-well/healthy-hikes/find-a-hike/cecret-lake/))
+| <img src="https://en.wikipedia.org/wiki/Cecret_Lake#/media/File:Cecret_Lake_Panorama_Albion_Basin_Alta_Utah_July_2009.jpg" width="500"/>  | 
+([Image credit: Jeffrey McGrath posted on the Wikipedia Article](https://en.wikipedia.org/wiki/Cecret_Lake))
 
 Table of Contents:
 
