@@ -14,7 +14,9 @@
         "properties": {
             "input": {
                 "type": "string",
+                "format": "file-path",
                 "mimetype": "text/csv",
+                "hidden": true,
                 "description": "same as sample_sheet"
             },
             "sample_sheet": {
@@ -75,6 +77,12 @@
                 "type": "string",
                 "hidden": true,
                 "description": "Specifies freyja pathogen"
+            },
+            "freyja_update": {
+                "type": "boolean",
+                "hidden": true,
+                "default": true,
+                "description": "Whether to update freyja db"
             },
             "nextclade_dataset": {
                 "type": "string",
@@ -762,10 +770,6 @@
         },
         {
             "$ref": "#/$defs/generic_options"
-        },
-        {
-            "$ref": "#/$defs/generic_options"
         }
-
     ]
 }
