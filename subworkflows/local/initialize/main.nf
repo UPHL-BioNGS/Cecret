@@ -24,70 +24,70 @@ def determine_type(it) {
 // Define all presets and their corresponding files
 def primer_presets = [
     'midnight_idt_V1' : [
-        reference: "${workflow.projectDir}/genomes/MN908947.3.fasta",
-        gff: "${workflow.projectDir}/genomes/MN908947.3.gff",
-        primer_bed :  "${workflow.projectDir}/schema/midnight_idt_V1_SARS-CoV-2.primer.bed",
-        amplicon_bed: "${workflow.projectDir}/schema/midnight_idt_V1_SARS-CoV-2.insert.bed",
+        reference: "${projectDir}/genomes/MN908947.3.fasta",
+        gff: "${projectDir}/genomes/MN908947.3.gff",
+        primer_bed :  "${projectDir}/schema/midnight_idt_V1_SARS-CoV-2.primer.bed",
+        amplicon_bed: "${projectDir}/schema/midnight_idt_V1_SARS-CoV-2.insert.bed",
     ],
     'midnight_ont_V1'  : [
-        reference: "${workflow.projectDir}/genomes/MN908947.3.fasta",
-        gff: "${workflow.projectDir}/genomes/MN908947.3.gff",
-        primer_bed :  "${workflow.projectDir}/schema/midnight_ont_V1_SARS-CoV-2.primer.bed",
-        amplicon_bed: "${workflow.projectDir}/schema/midnight_ont_V1_SARS-CoV-2.insert.bed",
+        reference: "${projectDir}/genomes/MN908947.3.fasta",
+        gff: "${projectDir}/genomes/MN908947.3.gff",
+        primer_bed :  "${projectDir}/schema/midnight_ont_V1_SARS-CoV-2.primer.bed",
+        amplicon_bed: "${projectDir}/schema/midnight_ont_V1_SARS-CoV-2.insert.bed",
     ],
     'midnight_ont_V2'  : [
-        reference: "${workflow.projectDir}/genomes/MN908947.3.fasta",
-        gff: "${workflow.projectDir}/genomes/MN908947.3.gff",
-        primer_bed :  "${workflow.projectDir}/schema/midnight_ont_V2_SARS-CoV-2.primer.bed",
-        amplicon_bed: "${workflow.projectDir}/schema/midnight_ont_V2_SARS-CoV-2.insert.bed",
+        reference: "${projectDir}/genomes/MN908947.3.fasta",
+        gff: "${projectDir}/genomes/MN908947.3.gff",
+        primer_bed :  "${projectDir}/schema/midnight_ont_V2_SARS-CoV-2.primer.bed",
+        amplicon_bed: "${projectDir}/schema/midnight_ont_V2_SARS-CoV-2.insert.bed",
     ],
     'midnight_ont_V3'  : [
-        reference: "${workflow.projectDir}/genomes/MN908947.3.fasta",
-        gff: "${workflow.projectDir}/genomes/MN908947.3.gff",
-        primer_bed :  "${workflow.projectDir}/schema/midnight_ont_V3_SARS-CoV-2.primer.bed",
-        amplicon_bed: "${workflow.projectDir}/schema/midnight_ont_V3_SARS-CoV-2.insert.bed",
+        reference: "${projectDir}/genomes/MN908947.3.fasta",
+        gff: "${projectDir}/genomes/MN908947.3.gff",
+        primer_bed :  "${projectDir}/schema/midnight_ont_V3_SARS-CoV-2.primer.bed",
+        amplicon_bed: "${projectDir}/schema/midnight_ont_V3_SARS-CoV-2.insert.bed",
     ],
     'ncov_V3'  : [
-        reference: "${workflow.projectDir}/genomes/MN908947.3.fasta",
-        gff: "${workflow.projectDir}/genomes/MN908947.3.gff",
-        primer_bed :  "${workflow.projectDir}/schema/ncov_V3_nCoV-2019.primer.bed",
-        amplicon_bed: "${workflow.projectDir}/schema/ncov_V3_nCoV-2019.insert.bed",
+        reference: "${projectDir}/genomes/MN908947.3.fasta",
+        gff: "${projectDir}/genomes/MN908947.3.gff",
+        primer_bed :  "${projectDir}/schema/ncov_V3_nCoV-2019.primer.bed",
+        amplicon_bed: "${projectDir}/schema/ncov_V3_nCoV-2019.insert.bed",
     ],
     'ncov_V4'  : [
-        reference: "${workflow.projectDir}/genomes/MN908947.3.fasta",
-        gff: "${workflow.projectDir}/genomes/MN908947.3.gff",
-        primer_bed :  "${workflow.projectDir}/schema/ncov_V4_SARS-CoV-2.primer.bed",
-        amplicon_bed: "${workflow.projectDir}/schema/ncov_V4_SARS-CoV-2.insert.bed",
+        reference: "${projectDir}/genomes/MN908947.3.fasta",
+        gff: "${projectDir}/genomes/MN908947.3.gff",
+        primer_bed :  "${projectDir}/schema/ncov_V4_SARS-CoV-2.primer.bed",
+        amplicon_bed: "${projectDir}/schema/ncov_V4_SARS-CoV-2.insert.bed",
     ],
     'ncov_V4.1'  : [
-        reference: "${workflow.projectDir}/genomes/MN908947.3.fasta",
-        gff: "${workflow.projectDir}/genomes/MN908947.3.gff",
-        primer_bed :  "${workflow.projectDir}/schema/ncov_V4.1_SARS-CoV-2.primer.bed",
-        amplicon_bed: "${workflow.projectDir}/schema/ncov_V4.1_SARS-CoV-2.insert.bed",
+        reference: "${projectDir}/genomes/MN908947.3.fasta",
+        gff: "${projectDir}/genomes/MN908947.3.gff",
+        primer_bed :  "${projectDir}/schema/ncov_V4.1_SARS-CoV-2.primer.bed",
+        amplicon_bed: "${projectDir}/schema/ncov_V4.1_SARS-CoV-2.insert.bed",
     ],
     'ncov_V5.3.2' : [
-        reference: "${workflow.projectDir}/genomes/MN908947.3.fasta",
-        gff: "${workflow.projectDir}/genomes/MN908947.3.gff",
-        primer_bed :  "${workflow.projectDir}/schema/ncov_V5.3.2_SARS-CoV-2.primer.bed",
-        amplicon_bed: "${workflow.projectDir}/schema/ncov_V5.3.2_SARS-CoV-2.insert.bed",
+        reference: "${projectDir}/genomes/MN908947.3.fasta",
+        gff: "${projectDir}/genomes/MN908947.3.gff",
+        primer_bed :  "${projectDir}/schema/ncov_V5.3.2_SARS-CoV-2.primer.bed",
+        amplicon_bed: "${projectDir}/schema/ncov_V5.3.2_SARS-CoV-2.insert.bed",
     ],
     'mpx_primalseq' : [
-        reference: "${workflow.projectDir}/genomes/NC_063383.1.fasta",
-        gff: "${workflow.projectDir}/genomes/NC_063383.1.gff3",
-        primer_bed :  "${workflow.projectDir}/schema/mpx_primalseq_primer.bed",
-        amplicon_bed: "${workflow.projectDir}/schema/mpx_primalseq_insert.bed",
+        reference: "${projectDir}/genomes/NC_063383.1.fasta",
+        gff: "${projectDir}/genomes/NC_063383.1.gff3",
+        primer_bed :  "${projectDir}/schema/mpx_primalseq_primer.bed",
+        amplicon_bed: "${projectDir}/schema/mpx_primalseq_insert.bed",
     ],
     'mpx_yale' : [
-        reference: "${workflow.projectDir}/genomes/MT903345.1.fasta",
-        gff: "${workflow.projectDir}/genomes/MT903345.1.gff",
-        primer_bed :  "${workflow.projectDir}/schema/mpx_yale_primer.bed",
-        amplicon_bed: "${workflow.projectDir}/schema/mpx_yale_insert.bed",
+        reference: "${projectDir}/genomes/MT903345.1.fasta",
+        gff: "${projectDir}/genomes/MT903345.1.gff",
+        primer_bed :  "${projectDir}/schema/mpx_yale_primer.bed",
+        amplicon_bed: "${projectDir}/schema/mpx_yale_insert.bed",
     ],
     'mpx_idt' : [
-        reference: "${workflow.projectDir}/genomes/NC_063383.1.fasta",
-        gff: "${workflow.projectDir}/genomes/NC_063383.1.gff3",
-        primer_bed :  "${workflow.projectDir}/schema/mpx_idt_primer.bed",
-        amplicon_bed: "${workflow.projectDir}/schema/mpx_idt_insert.bed",
+        reference: "${projectDir}/genomes/NC_063383.1.fasta",
+        gff: "${projectDir}/genomes/NC_063383.1.gff3",
+        primer_bed :  "${projectDir}/schema/mpx_idt_primer.bed",
+        amplicon_bed: "${projectDir}/schema/mpx_idt_insert.bed",
     ]
 ]
 
@@ -237,7 +237,6 @@ workflow INITIALIZE {
             Channel
                 .fromFilePairs(["${params.reads}/*_R{1,2}*.{fastq,fastq.gz,fq,fq.gz}",
                         "${params.reads}/*_{1,2}*.{fastq,fastq.gz,fq,fq.gz}"], size: 2 )
-                .unique()
                 .map { it ->
                     def meta = [id:it[0].replaceAll(~/_S[0-9]+_L[0-9]+/,""), single_end:false] 
                     tuple( meta, [
@@ -336,10 +335,14 @@ workflow INITIALIZE {
     }
 
     // getting fastq files from sra accessions (Illumina only)
-    ch_sra_accessions = Channel.from( params.sra_accessions )
+    ch_sra_accessions = params.sra_accessions
+        ? Channel.from(params.sra_accessions)
+        : Channel.empty()
 
     // getting genome accessions (ncbi virus is default)
-    ch_genome_accessions = Channel.from( params.genome_accessions )
+    ch_genome_accessions = params.genome_accessions
+        ? Channel.from(params.genome_accessions)
+        : Channel.empty()
 
     //# getting a reference genome file
     if (params.reference_genome){
@@ -379,7 +382,7 @@ workflow INITIALIZE {
                 type:'file'
             )
             .ifEmpty{
-                println("No gff file was selected. Set with 'params.reference_genome'")
+                println("No gff file was selected. Set with 'params.gff'")
                 exit 1
             }
             .set { ch_gff }
@@ -409,10 +412,11 @@ workflow INITIALIZE {
     }
 
     if ( params.trimmer != 'none' ) {
+
         //# Getting the primer file
         if (params.primer_bed) {
             Channel.fromPath(
-                params.primer_bed, 
+                params.primer_bed,
                 type:'file'
             )
             .ifEmpty{
@@ -421,22 +425,31 @@ workflow INITIALIZE {
                 exit 1
             }
             .set { ch_primer_bed }
-        } else if ( params.primer_set && primer_presets.containsKey(params.primer_set)) {
-            Channel
-                .fromPath(
-                    primer_presets[params.primer_set].primer_bed, 
-                    type:'file', 
-                    checkIfExists: true
-                )
-                .set { ch_primer_bed }
+
+        } else if ( params.primer_set ) {
+
+            if (primer_presets.containsKey(params.primer_set)) {
+                Channel
+                    .fromPath(
+                        primer_presets[params.primer_set].primer_bed,
+                        type:'file',
+                        checkIfExists: true
+                    )
+                    .set { ch_primer_bed }
+
+            } else {
+                println("Primer set ${params.primer_set} not found!")
+                println("Set primer schema with 'params.primer_bed' or specify to 'none' if primers were not used")
+                println("Or use included primer set by setting 'params.primer_set' to one of ${primer_presets.keySet()}")
+                exit 1
+            }
+
         } else {
-            println("WARN: No primers were found!")
-            println("Set primer schema with 'params.primer_bed' or specify to 'none' if primers were not used")
-            println("Or use included primer set by setting 'params.primer_set' to one of ${primer_presets.keySet()}")
-        
             ch_primer_bed = Channel.empty()
         }
-        ch_primer_bed.view { "Primer BedFile : $it"}
+
+        ch_primer_bed.view { "Primer BedFile : $it" }
+
     } else {
         ch_primer_bed = Channel.empty()
     }
@@ -447,7 +460,8 @@ workflow INITIALIZE {
             Channel
                 .fromPath(
                     params.amplicon_bed, 
-                    type:'file'
+                    type:'file',
+                    checkIfExists: true
                 )
                 .ifEmpty{
                     println("A bedfile for amplicons is required. Set with 'params.amplicon_bed'.")
@@ -480,9 +494,9 @@ workflow INITIALIZE {
 
     //# scripts for legacy reasons
     scripts = [
-        "${workflow.projectDir}/bin/combine_results.py",
-        "${workflow.projectDir}/bin/freyja_graphs.py",
-        "${workflow.projectDir}/bin/versions.py"
+        "${projectDir}/bin/combine_results.py",
+        "${projectDir}/bin/freyja_graphs.py",
+        "${projectDir}/bin/versions.py"
     ]
 
     ch_scripts = Channel.fromPath(scripts, type: 'file').collect()
@@ -512,7 +526,7 @@ workflow INITIALIZE {
     } else if (! params.download_nextclade_dataset ) {
         Channel
             .fromPath(
-                "${workflow.projectDir}/data/sars.zip", 
+                "${projectDir}/data/sars.zip", 
                 type:'file',
                 checkIfExists: true
             )

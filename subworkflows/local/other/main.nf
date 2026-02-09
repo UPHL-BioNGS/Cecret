@@ -1,5 +1,6 @@
-include { FREYJA_AGGREGATE as AGGREGATE } from '../../../modules/local/freyja'
-include { FREYJA_PATHOGEN as FREYJA     } from '../../../modules/local/freyja'
+include { FREYJA                        } from '../../../modules/local/freyja'
+include { FREYJA_AGGREGATE              } from '../../../modules/local/freyja'
+include { FREYJA_PATHOGEN               } from '../../../modules/local/freyja'
 include { FREYJA_UPDATE                 } from '../../../modules/local/freyja'
 include { NEXTCLADE                     } from '../../../modules/local/nextclade'
 include { NEXTCLADE_DATASET as DATASET  } from '../../../modules/local/nextclade'
@@ -29,21 +30,26 @@ workflow OTHER {
 
   // run freyja only if freyja is expected to run
   if (params.freyja_pathogen && params.freyja_pathogen != 'SARS-CoV-2') {
-    // running freyja
-    // TODO : FIX WHEN NOT BROKEN
-    // FREYJA_UPDATE()
-    // ch_versions = ch_versions.mix(FREYJA_UPDATE.out.versions)
 
-    //FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome).combine(FREYJA_UPDATE.out.db))
-    // FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
-    // ch_versions = ch_versions.mix(FREYJA.out.versions.first())
+    if (params.freyja_update) {
+      FREYJA_UPDATE(params.freyja_pathogen)
+      ch_versions = ch_versions.mix(FREYJA_UPDATE.out.versions)
 
-     // if (params.freyja_aggregate) {
-     // AGGREGATE(FREYJA.out.demix.collect(), ch_script)
-     // ch_versions    = ch_versions.mix(AGGREGATE.out.versions)
-     // ch_for_multiqc = ch_for_multiqc.mix(AGGREGATE.out.for_multiqc)
-     // ch_for_summary = ch_for_summary.mix(AGGREGATE.out.aggregated_freyja_file)
-    // }
+      FREYJA_PATHOGEN(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome).combine(FREYJA_UPDATE.out.db))
+      ch_versions = ch_versions.mix(FREYJA_PATHOGEN.out.versions.first())
+      ch_freyja_out = FREYJA_PATHOGEN.out.demix
+    } else {
+      FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
+      ch_versions = ch_versions.mix(FREYJA.out.versions.first())
+      ch_freyja_out = FREYJA.out.demix
+    }
+
+    if (params.freyja_aggregate) {
+      FREYJA_AGGREGATE(ch_freyja_out.collect(), ch_script)
+      ch_versions    = ch_versions.mix(FREYJA_AGGREGATE.out.versions)
+      ch_for_multiqc = ch_for_multiqc.mix(FREYJA_AGGREGATE.out.for_multiqc)
+      ch_for_summary = ch_for_summary.mix(FREYJA_AGGREGATE.out.aggregated_freyja_file)
+    }
   }
 
   // run nextclade only if nextclade is expected to run
