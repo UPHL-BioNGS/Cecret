@@ -28,12 +28,13 @@ Named after the beautiful [Cecret lake](https://en.wikipedia.org/wiki/Cecret_Lak
 
 Location: 40.570°N 111.622°W , Elevation: 9,875 feet (3,010 m), [Hiking level: easy](https://www.alltrails.com/trail/us/utah/cecret-lake-trail)
 
-|                                                                                                                                                                |                                                                                                                                                                |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-13.jpg" width="500"/>  | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-1.jpg" width="500" />  |
-| <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-10.jpg" width="500" /> | <img src="https://intermountainhealthcare.org/-/media/images/enterpriseserviceslines/live-well/healthy-hikes/cecret-lake/cecret-lake-md-11.jpg" width="500" /> |
+---
 
-([Image credit: Intermountain Healthcare](https://intermountainhealthcare.org/services/wellness-preventive-medicine/live-well/move-well/healthy-hikes/find-a-hike/cecret-lake/))
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Cecret_Lake_Panorama_Albion_Basin_Alta_Utah_July_2009.jpg/3840px-Cecret_Lake_Panorama_Albion_Basin_Alta_Utah_July_2009.jpg" width="500"/>  
+
+[Image credit: Jeffrey McGrath posted on the Wikipedia Article](https://en.wikipedia.org/wiki/Cecret_Lake)
+
+---
 
 Table of Contents:
 
@@ -58,6 +59,8 @@ Table of Contents:
 - [Config files](https://github.com/UPHL-BioNGS/Cecret#config-files)
   - [Using config files](https://github.com/UPHL-BioNGS/Cecret#using-config-files)
 - [Frequently Asked Questions (aka FAQ)](https://github.com/UPHL-BioNGS/Cecret#frequently-asked-questions-aka-faq)
+
+---
 
 ## Introduction
 
@@ -128,6 +131,8 @@ nextflow pull UPHL-BioNGS/Cecret
 ```
 
 Cecret has a weekly update schedule. Cecret's versions have three numbers : X.Y.Z. If the first number, X, changes, there has been a major modification. Params may have changed or subworkflows/channels may have been modified. If the second number, Y, changes, there has been a minor to moderate change. These are mainly for bug fixes or the changing the defaults of params. If the last number has been modified, Z, the workflow is basically the same, there have just been some updates in the containers pulled for the workflow. Most of these updates are to keep Freyja, NextClade, and Pangolin current for SARS-CoV-2 analysis.
+
+---
 
 ## The main components of Cecret are:
 

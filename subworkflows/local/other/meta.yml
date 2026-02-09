@@ -33,6 +33,7 @@ components:
   - nextclade
   - nextclade/dataset
   - datasets
+  - freyja
   - freyja/pathogen
   - freyja/aggregate
   - freyja/update

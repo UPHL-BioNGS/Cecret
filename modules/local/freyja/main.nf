@@ -1,7 +1,7 @@
 process FREYJA {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/freyja:2.0.2-SARS-CoV-2-01_18_2026-00-42-2026-01-19'
+  container     'staphb/freyja:2.0.3-SARS-CoV-2-02_08_2026-01-01-2026-02-09'
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
@@ -42,7 +42,7 @@ process FREYJA {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
       freyja: \$(freyja --version | awk '{print \$NF}')
-      barcode: \$(freyja demix --version | head -n 2 | tail -n 1 )
+      barcode: \$(freyja demix --version | tail -n 3 | head -n 1 | awk '{print \$NF}')
       container: ${task.container}
     END_VERSIONS
   """
@@ -51,7 +51,7 @@ process FREYJA {
 process FREYJA_AGGREGATE {
   tag        "Aggregating results from freyja"
   label      "process_single"
-  container  'staphb/freyja:2.0.2-SARS-CoV-2-01_18_2026-00-42-2026-01-19'
+  container  'staphb/freyja:2.0.3-SARS-CoV-2-02_08_2026-01-01-2026-02-09'
 
 
   input:
@@ -106,12 +106,10 @@ process FREYJA_AGGREGATE {
 process FREYJA_PATHOGEN {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/freyja:2.0.2'
-  // fails for samples that need db downloaded
-  errorStrategy 'ignore'
+  container     'staphb/freyja:2.0.3'
 
   input:
-  tuple val(meta), file(bam), file(reference_genome)
+  tuple val(meta), file(bam), file(reference_genome), file(db)
 
   output:
   tuple val(meta), file("freyja/*_{depths,variants}.tsv"), optional: true, emit: variants
@@ -133,6 +131,8 @@ process FREYJA_PATHOGEN {
 
     date > \$log
     freyja --version >> \$log
+
+    barcode=\$(ls db/*barcodes.csv)
     
     freyja variants ${args} \
       ${bam} \
@@ -144,13 +144,14 @@ process FREYJA_PATHOGEN {
     freyja demix ${args} \
       freyja/${prefix}_variants.tsv \
       freyja/${prefix}_depths.tsv \
-      --pathogen ${pathogen} \
       --output freyja/${prefix}_demix.tsv \
+      --barcodes \$barcode \
       | tee -a \$log
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
       freyja: \$(freyja --version | awk '{print \$NF}')
+      barcode: \$(freyja demix --version | tail -n 3 | head -n 1 | awk '{print \$NF}')
       container: ${task.container}
     END_VERSIONS
   """
@@ -159,9 +160,10 @@ process FREYJA_PATHOGEN {
 process FREYJA_UPDATE {
   tag           "Downloading Freyja Barcodes"
   label         "process_medium"
-  container     'staphb/freyja:2.0.2'
-  // fails for empty samples
-  errorStrategy 'ignore'
+  container     'staphb/freyja:2.0.3'
+
+  input:
+  val pathogen
 
   output:
   path "db", emit: db
