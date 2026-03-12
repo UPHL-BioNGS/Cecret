@@ -48,7 +48,11 @@ Relevant params and their values:
     - Designates which tool will trim primers from aligned sequences.
     - Options are 'samtools', 'ivar', and 'none'.
     - Setting this as 'none' will skip primer trimming.
-    
+- 'params.filter' : ${params.filter}
+    - Produces FASTQ files aligned to reference.
+- 'params.markdup' : ${params.markdup}
+    - Removes duplicates (may increase artifact rates in amplicon sequencing)
+
 ┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ process            ┃ description                                                       ┃
 ┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫

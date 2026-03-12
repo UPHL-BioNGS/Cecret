@@ -622,6 +622,8 @@ Initializing Subworkflow Toggles
 ┃ cleaner                           ┃ ${params.cleaner ?: 'None'}
 ┃ aligner                           ┃ ${params.aligner ?: 'None'}
 ┃ msa                               ┃ ${params.msa ?: 'None'}
+┃ filter                            ┃ ${params.filter ?: 'None'}
+┃ markdup                           ┃ ${params.markdup ?: 'None'}
 ┃ relatedness                       ┃ ${params.relatedness ?: 'None'}
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     """
