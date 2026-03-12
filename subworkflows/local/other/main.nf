@@ -16,10 +16,34 @@ workflow OTHER {
   ch_script // channel: workflow scripts
 
   main:
+  log.info """
+
+Running specific species or custom pathogen analysis. This workflow performs
+sequence validation, clade assignment, and lineage abundance estimation for 
+organisms other than the default SARS-CoV-2.
+
+Relevant params and their values:
+- 'params.minimum_reads' : ${params.minimum_reads}
+    - Any samples with fewer than this will not be included in other steps.
+
+
+┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ process            ┃ description                                                       ┃
+┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ VADR               ┃ Validates viral sequences and annotates expected features/errors. ┃
+┃ NEXTCLADE_DATASET  ┃ Downloads the requested Nextclade dataset for the target pathogen.┃
+┃ NEXTCLADE          ┃ Performs clade assignment, mutation calling, and QC.              ┃
+┃ FREYJA_UPDATE      ┃ Updates the Freyja database for the specified pathogen.           ┃
+┃ FREYJA             ┃ Estimates lineage abundances from BAM files (e.g., wastewater).   ┃
+┃ FREYJA_AGGREGATE   ┃ Aggregates Freyja abundance outputs across multiple samples.      ┃
+┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+"""
+
   // create some empty channels for optional results
-  ch_versions    = Channel.empty()
-  ch_for_summary = Channel.empty()
-  ch_for_multiqc = Channel.empty()
+  ch_versions    = channel.empty()
+  ch_for_summary = channel.empty()
+  ch_for_multiqc = channel.empty()
 
   // run vadr only if vadr is expected to run
   if (params.vadr_reference && params.vadr_reference != 'sarscov2') {
@@ -66,7 +90,7 @@ workflow OTHER {
       ch_versions = ch_versions.mix(UNZIP.out.versions)
     }
     
-    NEXTCLADE(ch_fastas.collect(), DATASET.out.dataset)
+    NEXTCLADE(ch_fastas.collect(), ch_dataset)
     ch_versions    = ch_versions.mix(NEXTCLADE.out.versions)
     ch_for_multiqc = ch_for_multiqc.mix(NEXTCLADE.out.nextclade_file)
     ch_for_summary = ch_for_summary.mix(NEXTCLADE.out.nextclade_file)

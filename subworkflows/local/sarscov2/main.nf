@@ -16,9 +16,34 @@ workflow SARSCOV2 {
         ch_script // channel: workflow scripts
 
     main:
-        ch_versions = Channel.empty()
-        ch_multiqc  = Channel.empty()
-        ch_summary  = Channel.empty()
+
+    log.info """
+
+Relevant params and their values:
+- 'params.minimum_reads' : ${params.minimum_reads}
+    - Any samples with fewer than this will not be included in other steps.
+
+
+Running SARS-CoV-2 specific analysis. This workflow performs lineage assignment, 
+clade typing, sequence validation, and wastewater abundance estimation tailored 
+for SARS-CoV-2 genomes.
+
+┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ process            ┃ description                                                       ┃
+┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ VADR               ┃ Validates sequences against a SARS-CoV-2 reference model.         ┃
+┃ PANGOLIN           ┃ Assigns PANGO lineages to the generated consensus sequences.      ┃
+┃ PANGO_ALIASOR      ┃ Translates PANGO aliases (e.g., BA.1) to full lineage strings.    ┃
+┃ DATASET / UNZIP    ┃ Fetches or extracts the Nextclade SARS-CoV-2 dataset.             ┃
+┃ NEXTCLADE          ┃ Assigns Nextstrain clades, calls mutations, and performs QC.      ┃
+┃ FREYJA             ┃ Estimates relative lineage abundance from mixed BAM files.        ┃
+┃ AGGREGATE          ┃ Aggregates Freyja abundance outputs across multiple samples.      ┃
+┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+"""
+        ch_versions = channel.empty()
+        ch_multiqc  = channel.empty()
+        ch_summary  = channel.empty()
 
         if (params.vadr) {
             // running vadr
@@ -43,17 +68,17 @@ workflow SARSCOV2 {
         }
 
         // running nextclade
-        if ( params.download_nextclade_dataset && !params.predownloaded_nextclade_dataset ) {
-            DATASET()
-            ch_dataset = DATASET.out.dataset
-            ch_versions = ch_versions.mix(DATASET.out.versions)
-        } else {
-            UNZIP(ch_input_dataset)
-            ch_dataset = UNZIP.out.dataset
-            ch_versions = ch_versions.mix(UNZIP.out.versions)
-        }
-        
         if (params.nextclade) {
+            if ( params.download_nextclade_dataset && !params.predownloaded_nextclade_dataset ) {
+                DATASET()
+                ch_dataset = DATASET.out.dataset
+                ch_versions = ch_versions.mix(DATASET.out.versions)
+            } else {
+                UNZIP(ch_input_dataset)
+                ch_dataset = UNZIP.out.dataset
+                ch_versions = ch_versions.mix(UNZIP.out.versions)
+            }
+            
             NEXTCLADE(ch_fastas.collect(), ch_dataset)
             ch_versions = ch_versions.mix(NEXTCLADE.out.versions)
             ch_summary  = ch_summary.mix(NEXTCLADE.out.nextclade_file)

@@ -7,9 +7,29 @@ workflow TEST {
     ch_genome_accessions // channel: list
 
     main:
-    ch_reads   = Channel.empty()
-    ch_fastas  = Channel.empty()
-    ch_versions = Channel.empty()
+    log.info """
+
+Running public data retrieval. This workflow fetches raw sequencing reads (FASTQ) 
+and reference genomes (FASTA) from public repositories like ENA and NCBI for 
+testing or downstream analysis.
+
+Relevant params and their values:
+- 'params.minimum_reads' : ${params.minimum_reads}
+    - Any samples with fewer than this will not be included in other steps.
+
+
+┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ process            ┃ description                                                       ┃
+┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ ENA                ┃ Downloads single or paired-end FASTQ files using SRA accessions.  ┃
+┃ DATASETS           ┃ Downloads reference genome FASTA files using NCBI Datasets.       ┃
+┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+"""
+
+    ch_reads   = channel.empty()
+    ch_fastas  = channel.empty()
+    ch_versions = channel.empty()
 
     // downloads fastq files from the ENA
     // note: works with GA, but not locally

@@ -1,5 +1,5 @@
 include { ARTIC                                 } from '../../../modules/local/artic'
-include { ARTIC_FILTER                          } from '../../../modules/local/artic'
+include { ARTIC_FILTER                          } from '../../../modules/local/artic_filter'
 include { BBNORM                                } from '../../../modules/local/bbnorm'
 include { BWA                                   } from '../../../modules/local/bwa/'
 include { FASTP                                 } from '../../../modules/local/fastp'
@@ -20,8 +20,33 @@ workflow CONSENSUS {
   ch_primer_bed // channel: bedfile
 
   main:
-  ch_multiqc  = Channel.empty()
-  ch_versions = Channel.empty()
+
+  log.info """
+
+Running consensus creation analysis. This workflow performs reference-based 
+consensus generation and variant calling.
+
+Relevant params and their values:
+- 'params.minimum_reads' : ${params.minimum_reads}
+    - Any samples with fewer than this will not be included in other steps.
+
+┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ process            ┃ description                                                       ┃
+┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ BBNORM             ┃ Normalizes large read datasets to a target depth.                 ┃
+┃ SEQYCLEAN / FASTP  ┃ Filters out low-quality reads and removes adapters.               ┃
+┃ BWA / MINIMAP2     ┃ Aligns the cleaned reads to the provided reference genome.        ┃
+┃ SAMTOOLS           ┃ Sorts alignments, marks duplicates, and filters out non-targets.  ┃
+┃ IVAR / AMPLICONCLIP┃ Trims amplicon primer sequences from the BAM alignments.          ┃
+┃ IVAR CONSENSUS     ┃ Calls variants and generates the final consensus sequence.        ┃
+┃ ARTIC              ┃ Filters Nanopore reads and generates Nanopore consensus fastas.   ┃
+┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+"""
+
+
+  ch_multiqc  = channel.empty()
+  ch_versions = channel.empty()
 
   // running bbnorm to normalize large datasets
   // this is not recommended for wastewater
@@ -42,13 +67,11 @@ workflow CONSENSUS {
       .collectFile(name: "Combined_SummaryStatistics.tsv",
         keepHeader: true,
         storeDir: "${params.outdir}/seqyclean")
-      .set { seqyclean_file1 }
 
     SEQYCLEAN.out.seqyclean_files_collect_single
       .collectFile(name: "Combined_seqyclean_SummaryStatistics.tsv",
         keepHeader: true,
         storeDir: "${params.outdir}/seqyclean")
-      .set { seqyclean_file2 }
 
     ch_clean_reads = SEQYCLEAN.out.clean_reads
     ch_multiqc     = ch_multiqc.mix(SEQYCLEAN.out.seqyclean_files_collect_paired).mix(SEQYCLEAN.out.seqyclean_files_collect_single)
@@ -62,7 +85,7 @@ workflow CONSENSUS {
     ch_multiqc     = ch_multiqc.mix(FASTP.out.fastp_files) 
     ch_versions    = ch_versions.mix(FASTP.out.versions.first())
   } else {
-    ch_clean_reads = Channel.empty()
+    ch_clean_reads = channel.empty()
   }
 
   // aligning reads to reference
@@ -81,7 +104,7 @@ workflow CONSENSUS {
     ch_versions = ch_versions.mix(MINIMAP2.out.versions.first())
   
   } else {
-    ch_sam = Channel.empty()
+    ch_sam = channel.empty()
   }
 
   // removing duplicates
@@ -141,7 +164,7 @@ workflow CONSENSUS {
     ch_filtered_reads = FILTER.out.filtered_reads
     ch_versions       = ch_versions.mix(FILTER.out.versions.first())
   } else {
-    ch_filtered_reads = Channel.empty()
+    ch_filtered_reads = channel.empty()
   }
 
   emit:
