@@ -19,11 +19,6 @@
 <br>
 **A Nextflow workflow for reference-based amplicon consensus generation.**
 
-
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/UPHL-BioNGS/Cecret)
-
-
-
 Named after the beautiful [Cecret lake](https://en.wikipedia.org/wiki/Cecret_Lake)
 
 Location: 40.570°N 111.622°W , Elevation: 9,875 feet (3,010 m), [Hiking level: easy](https://www.alltrails.com/trail/us/utah/cecret-lake-trail)
@@ -74,7 +69,8 @@ It is possible to use this workflow to simply annotate fastas generated from any
 
 Cecret is also part of the [staphb-toolkit](https://github.com/StaPH-B/staphb_toolkit).
 
-
+NF-CORE style docs cat be found in [docs](./docs/)
+WIKI can be found at [https://github.com/UPHL-BioNGS/Cecret/wiki](https://github.com/UPHL-BioNGS/Cecret/wiki)
 
 ## Dependencies
 
