@@ -41,8 +41,14 @@ Relevant params and their values:
     // there used to be nextalign for an option
     // TODO : add in USHER as an option
     // TODO : allow the user to use nextclades aligned fasta
+
+    ch_fasta
+      .collect()
+      .filter { it -> it.size() >= 3 }
+      .set{ch_collected_fastas }
+
     if ( params.msa == 'mafft' ) {
-      MAFFT(ch_fasta.collect(), ch_reference_genome)
+      MAFFT(ch_collected_fastas, ch_reference_genome)
       ch_msa = MAFFT.out.msa
       ch_versions = ch_versions.mix(MAFFT.out.versions)
     } else {
