@@ -25,7 +25,6 @@ process SNPDISTS {
     snp-dists -v >> \$log
 
     snp-dists ${args} \
-      -j ${task.cpus} \
       ${msa} \
       > snp-dists/${prefix}.txt
 
