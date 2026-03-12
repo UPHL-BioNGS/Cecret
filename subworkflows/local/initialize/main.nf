@@ -143,7 +143,7 @@ Initializing Sample Input Files
             .view { item -> "Sample sheet found : ${item}" }
             .splitCsv( header: true, sep: ',' )
             .map { it -> 
-                def is_single = (it.fastq_2 == '' || it.fastq_2 == 'single') ? true : false
+                def is_single = (it.fastq_2 == '' || it.fastq_2 == 'single' || it.fastq_2 == 'ont' || it.fastq_2 == 'fasta' || it.fastq_2 == 'multifasta') ? true : false
                 def meta = [id:it.sample, single_end:is_single]
                 def files = is_single ? [file("${it.fastq_1}", checkIfExists: true)] : [file("${it.fastq_1}", checkIfExists: true), file("${it.fastq_2}", checkIfExists: true)]
                 
@@ -303,10 +303,10 @@ Initializing References and Databases
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ species                           ┃ ${params.species}
 ┃ primer_set                        ┃ ${params.primer_set ?: 'None'}
-┃ reference_genome                  ┃ ${params.reference_genome ?: 'Set with Primer Set'}
-┃ gff                               ┃ ${params.gff ?: 'Set with Primer Set'}
-┃ primer_bed                        ┃ ${params.primer_bed ?: 'Set with Primer Set'}
-┃ amplicon_bed                      ┃ ${params.amplicon_bed ?: 'Set with Primer Set'}
+┃ reference_genome                  ┃ ${params.reference_genome ?: 'Set with params.primer_set'}
+┃ gff                               ┃ ${params.gff ?: 'Set with params.primer_set'}
+┃ primer_bed                        ┃ ${params.primer_bed ?: 'Set with params.primer_set'}
+┃ amplicon_bed                      ┃ ${params.amplicon_bed ?: 'Set with params.primer_set'}
 ┃ kraken2_db                        ┃ ${params.kraken2_db ?: 'Included in Container'}
 ┃ predownloaded_nextclade_dataset   ┃ ${params.predownloaded_nextclade_dataset ?: 'Included SARS-CoV-2'}
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
