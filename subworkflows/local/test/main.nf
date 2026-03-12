@@ -14,9 +14,10 @@ and reference genomes (FASTA) from public repositories like ENA and NCBI for
 testing or downstream analysis.
 
 Relevant params and their values:
-- 'params.minimum_reads' : ${params.minimum_reads}
-    - Any samples with fewer than this will not be included in other steps.
-
+- 'params.sra_accessions' : ${params.sra_accessions}
+    - Array of SRA accessions to download from the ENA
+- 'params.genome_accessions' : ${params.genome_accessions}
+    - Array of genome accessions to download from NCBI genomes
 
 ┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ process            ┃ description                                                       ┃

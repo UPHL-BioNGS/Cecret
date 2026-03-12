@@ -19,14 +19,17 @@ workflow SARSCOV2 {
 
     log.info """
 
-Relevant params and their values:
-- 'params.minimum_reads' : ${params.minimum_reads}
-    - Any samples with fewer than this will not be included in other steps.
-
-
 Running SARS-CoV-2 specific analysis. This workflow performs lineage assignment, 
 clade typing, sequence validation, and wastewater abundance estimation tailored 
 for SARS-CoV-2 genomes.
+
+Relevant params and their values:
+- 'params.download_nextclade_dataset' : ${params.download_nextclade_dataset}
+    - Will used nextclade to download the nextclade dataset according.
+- 'params.predownloaded_nextclade_dataset' : ${params.predownloaded_nextclade_dataset}
+    - Allows the user to use an existing nextclade dataset in a zipped directory.
+    - See https://github.com/UPHL-BioNGS/Cecret/wiki/Usage#nextclade-datasets for more 
+      information.
 
 ┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ process            ┃ description                                                       ┃

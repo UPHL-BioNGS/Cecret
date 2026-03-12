@@ -23,9 +23,32 @@ sequence validation, clade assignment, and lineage abundance estimation for
 organisms other than the default SARS-CoV-2.
 
 Relevant params and their values:
-- 'params.minimum_reads' : ${params.minimum_reads}
-    - Any samples with fewer than this will not be included in other steps.
 
+- 'params.species' : ${params.species}
+    - Designates subworkflows
+- 'params.nextclade_dataset': ${params.nextclade_dataset}
+    - Designate which dataset to download in NEXTCLADE_DATASET.
+    - will be ignored if value is set to 'sars-cov-2'.
+    - See Nextclade documentation at 
+      https://docs.nextstrain.org/projects/nextclade/en/stable/user/datasets.html to see 
+      available datasets.
+- 'params.freyja_pathogen': ${params.freyja_pathogen}
+    - Designate which pathogen to download in FREYJA_UPDATE.
+    - Will be ignored if value is set to 'SARS-CoV-2'.
+    - See Freyja's documentation at 
+      https://andersen-lab.github.io/Freyja/src/usage/update.html to see available 
+      pathogens.
+- 'params.vadr_reference': ${params.vadr_reference}
+    - Designate with reference to use in the VADR process and corresponding container.
+    - Will be ignored if value is equal to 'sarscov2'.
+    - See available images at https://hub.docker.com/r/staphb/vadr/tags.
+- 'params.download_nextclade_dataset' : ${params.download_nextclade_dataset}
+    - Will used nextclade to download the dataset according to 'params.nextclade_dataset' 
+      in NEXTCLADE_DATASET.
+- 'params.predownloaded_nextclade_dataset' : ${params.predownloaded_nextclade_dataset}
+    - Allows the user to use an existing nextclade dataset in a zipped directory.
+    - See https://github.com/UPHL-BioNGS/Cecret/wiki/Usage#nextclade-datasets for more 
+      information.
 
 ┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ process            ┃ description                                                       ┃

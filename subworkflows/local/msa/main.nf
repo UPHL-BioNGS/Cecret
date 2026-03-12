@@ -17,10 +17,8 @@ consensus sequences, aligns them to the reference, and calculates genetic
 distances and phylogenetic trees.
 
 Relevant params and their values:
-- 'params.minimum_reads' : ${params.minimum_reads}
-    - Any samples with fewer than this will not be included in other steps.
-
-
+- 'params.iqtree_outgroup' : ${params.iqtree_outgroup}
+    - Explicitly designate the outgroup for IQTREE.
 
 ┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ process            ┃ description                                                       ┃

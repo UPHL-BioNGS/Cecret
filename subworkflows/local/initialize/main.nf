@@ -120,6 +120,7 @@ Initializing Sample Input Files
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ param                             ┃ value                            
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ outdir                            ┃ ${params.outdir ?: 'None'}
 ┃ sample_sheet                      ┃ ${params.sample_sheet ?: 'None'}
 ┃ reads                             ┃ ${params.reads ?: 'None'}
 ┃ single_reads                      ┃ ${params.single_reads ?: 'None'}
@@ -302,12 +303,12 @@ Initializing References and Databases
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┃ species                           ┃ ${params.species}
 ┃ primer_set                        ┃ ${params.primer_set ?: 'None'}
-┃ reference_genome                  ┃ ${params.reference_genome ?: 'None'}
-┃ gff                               ┃ ${params.gff ?: 'None'}
-┃ primer_bed                        ┃ ${params.primer_bed ?: 'None'}
-┃ amplicon_bed                      ┃ ${params.amplicon_bed ?: 'None'}
-┃ kraken2_db                        ┃ ${params.kraken2_db ?: 'None'}
-┃ predownloaded_nextclade_dataset   ┃ ${params.predownloaded_nextclade_dataset ?: 'None'}
+┃ reference_genome                  ┃ ${params.reference_genome ?: 'Set with Primer Set'}
+┃ gff                               ┃ ${params.gff ?: 'Set with Primer Set'}
+┃ primer_bed                        ┃ ${params.primer_bed ?: 'Set with Primer Set'}
+┃ amplicon_bed                      ┃ ${params.amplicon_bed ?: 'Set with Primer Set'}
+┃ kraken2_db                        ┃ ${params.kraken2_db ?: 'Included in Container'}
+┃ predownloaded_nextclade_dataset   ┃ ${params.predownloaded_nextclade_dataset ?: 'Included SARS-CoV-2'}
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
     // Define all presets and their corresponding files
@@ -594,6 +595,21 @@ Initializing References and Databases
         ch_prepped_fastas = ch_prepped_fastas.mix(TEST.out.fastas)
         ch_versions = ch_versions.mix(TEST.out.versions)
     }
+
+    log.info """
+------------------------------------------------------
+Initializing Species Values
+------------------------------------------------------
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ param                             ┃ value                            
+┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┃ species                           ┃ ${params.species ?: 'None'}
+┃ vadr_reference                    ┃ ${params.vadr_reference ?: 'None'}
+┃ nextclade_dataset                 ┃ ${params.nextclade_dataset ?: 'None'}
+┃ freyja_pathogen                   ┃ ${params.freyja_pathogen ?: 'None'}
+┃ iqtree_outgroup                   ┃ ${params.iqtree_outgroup ?: 'None'}
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    """
 
     log.info """
 ------------------------------------------------------

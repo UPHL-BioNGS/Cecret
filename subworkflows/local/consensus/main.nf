@@ -27,9 +27,28 @@ Running consensus creation analysis. This workflow performs reference-based
 consensus generation and variant calling.
 
 Relevant params and their values:
-- 'params.minimum_reads' : ${params.minimum_reads}
-    - Any samples with fewer than this will not be included in other steps.
-
+- 'params.primer_set' : ${params.primer_set}
+    - Master variable with corresponding a corresponding primer and amplicon bed, 
+      reference, and gff file.
+- 'params.primer_bed' : ${params.primer_bed}
+    - File designating the primers used to create the amplicons.
+    - See https://github.com/UPHL-BioNGS/Cecret/wiki/Creating on creating a custom
+      primer scheme.
+- 'params.reference_genome' : ${params.reference_genome}
+    - FASTA file used to align reads to.
+    - Must match reference line in primer BED file.
+    - See https://github.com/UPHL-BioNGS/Cecret/wiki/Reference for more information.
+- 'params.cleaner' : ${params.cleaner}
+    - Designates which tool will filter FASTQ files.
+    - Options are 'seqyclean' and 'fastp'.
+- 'params.aligner' : ${params.aligner}
+    - Designates which tool will align clean reads to the reference.
+    - OPtions are 'bwa' and 'minimap2'.
+- 'params.trimmer' : ${params.trimmer}
+    - Designates which tool will trim primers from aligned sequences.
+    - Options are 'samtools', 'ivar', and 'none'.
+    - Setting this as 'none' will skip primer trimming.
+    
 ┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ process            ┃ description                                                       ┃
 ┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫

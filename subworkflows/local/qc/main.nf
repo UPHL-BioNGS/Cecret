@@ -31,9 +31,12 @@ read quality metrics, checks for contamination, calculates amplicon coverage,
 and identifies genomic variants.
 
 Relevant params and their values:
-- 'params.minimum_reads' : ${params.minimum_reads}
-    - Any samples with fewer than this will not be included in other steps.
-
+- 'params.gff' : ${params.gff}
+    - File used for annotating variants in IVAR_VARIANTS and BCFTOOLS.
+- 'params.amplicon_bed' : ${params.amplicon_bed}
+    - File used by ACI to designate amplicon boundaries.
+- 'params.kraken2_db' : ${params.kraken2_db}
+    - Will use a user-supplied kraken2 database instead of default one.
 
 ┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ process            ┃ description                                                       ┃
