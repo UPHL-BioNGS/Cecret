@@ -64,8 +64,7 @@
             "species": {
                 "type": "string",
                 "default": "sarscov2",
-                "description": "specifies species-specific sub-workflows",
-                "enum": ["other", "mpx", "sarscov2"]
+                "description": "specifies species-specific sub-workflows"
             },
             "vadr_reference": {
                 "type": "string",
