@@ -79,6 +79,42 @@ WIKI can be found at [https://github.com/UPHL-BioNGS/Cecret/wiki](https://github
 
 ## Usage
 
+```bash
+$ nextflow run UPHL-BioNGS/Grandeur --help
+
+ N E X T F L O W   ~  version 25.10.0
+
+Launching `./main.nf` [special_lovelace] DSL2 - revision: 944ec1d4ed
+            
+Typical pipeline command:
+
+  nextflow run UPHL-BioNGS/Cecret -profile docker --sample_sheet samplesheet.csv --outdir cecret
+
+
+Input/output options
+  --sample_sheet                    [string] sample sheet with sample, fastq_1, and fastq_2 columns 
+  --species                         [string] specifies species-specific sub-workflows [default: sarscov2] 
+  --kraken2_db                      [string] directory to kraken2 database 
+  --outdir                          [string] The output directory where the results will be saved. Absolute paths are required on cloud infrastructure. [default: cecret] 
+
+Reference files
+  --reference_genome                [string] THE Reference genome 
+  --amplicon_bed                    [string] Bedfile for amplicons 
+  --gff                             [string] File used in ivar variants. Must correspond with reference genome. 
+  --primer_bed                      [string] File with bedfile of primers used in the analysis 
+  --primer_set                      [string] Specifies a primer set included in repo  (accepted: midnight_idt_V1, midnight_ont_V1, midnight_ont_V2, midnight_ont_V3, ncov_V3, ncov_V4, ncov_V4.1, 
+ncov_V5.3.2, mpx_primalseq, mpx_idt, mpx_yale) [default: ncov_V5.3.2]  
+
+Workflow Components
+  --download_nextclade_dataset      [boolean] Uses included nextclade dataset for SARS-CoV-2 during runtime when false. [default: true] 
+  --predownloaded_nextclade_dataset [string]  Path to predownloaded nextclade dataset 
+  --filter                          [boolean] Specifies if reference-mapped fastq files should be extracted 
+  --markdup                         [boolean] Specifies if duplicate reads should be removed (not recommended for nanopore) 
+  --relatedness                     [boolean] Turns on multiple sequence alignment subworkflow when true 
+
+------------------------------------------------------
+```
+
 Cecret can also use a sample sheet for input with the sample name and reads separated by commas. The header must be `sample,fastq_1,fastq_2`. The general rule is the identifier for the file(s), the file locations, and the type if not paired-end fastq files.
 
 Rows match files with their processing needs.
