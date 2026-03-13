@@ -1,0 +1,29 @@
+.nextflow/
+.nextflow.log*
+work/
+
+# Default output directory
+cecret/
+
+# Any local testing data
+data/
+results/
+raw_data/
+*.fastq.gz
+*.fq.gz
+*.fasta
+*.fna
+*.bam
+*.vcf
+
+conda/
+singularity/
+.env
+.venv
+__pycache__/
+*.py[cod]
+
+.DS_Store
+.vscode/
+.idea/
+*.swp

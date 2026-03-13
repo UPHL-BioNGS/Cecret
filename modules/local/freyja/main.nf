@@ -1,7 +1,7 @@
 process FREYJA {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/freyja:2.0.3-SARS-CoV-2-02_08_2026-01-01-2026-02-09'
+  container     'staphb/freyja:2.0.3-SARS-CoV-2-03_02_2026-00-45-2026-03-02'
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
@@ -51,7 +51,7 @@ process FREYJA {
 process FREYJA_AGGREGATE {
   tag        "Aggregating results from freyja"
   label      "process_single"
-  container  'staphb/freyja:2.0.3-SARS-CoV-2-02_08_2026-01-01-2026-02-09'
+  container  'staphb/freyja:2.0.3-SARS-CoV-2-03_02_2026-00-45-2026-03-02'
 
 
   input:
@@ -123,7 +123,6 @@ process FREYJA_PATHOGEN {
 
   script:
   def args     = task.ext.args   ?: "${params.freyja_variants_options}"
-  def pathogen = task.ext.args   ?: "${params.freyja_pathogen}"
   def prefix   = task.ext.prefix ?: "${meta.id}"
   """
     mkdir -p freyja db logs/${task.process}
@@ -175,7 +174,6 @@ process FREYJA_UPDATE {
 
   script:
   def args     = task.ext.args   ?: "${params.freyja_update_options}"
-  def pathogen = task.ext.args   ?: "${params.freyja_pathogen}"
   """
     mkdir -p db logs/${task.process}
     log=logs/${task.process}/freyja_update.${workflow.sessionId}.log

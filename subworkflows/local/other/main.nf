@@ -16,10 +16,57 @@ workflow OTHER {
   ch_script // channel: workflow scripts
 
   main:
+  log.info """
+
+Running specific species or custom pathogen analysis. This workflow performs
+sequence validation, clade assignment, and lineage abundance estimation for 
+organisms other than the default SARS-CoV-2.
+
+Relevant params and their values:
+
+- 'params.species' : ${params.species}
+    - Designates subworkflows
+- 'params.nextclade_dataset': ${params.nextclade_dataset}
+    - Designate which dataset to download in NEXTCLADE_DATASET.
+    - will be ignored if value is set to 'sars-cov-2'.
+    - See Nextclade documentation at 
+      https://docs.nextstrain.org/projects/nextclade/en/stable/user/datasets.html to see 
+      available datasets.
+- 'params.freyja_pathogen': ${params.freyja_pathogen}
+    - Designate which pathogen to download in FREYJA_UPDATE.
+    - Will be ignored if value is set to 'SARS-CoV-2'.
+    - See Freyja's documentation at 
+      https://andersen-lab.github.io/Freyja/src/usage/update.html to see available 
+      pathogens.
+- 'params.vadr_reference': ${params.vadr_reference}
+    - Designate with reference to use in the VADR process and corresponding container.
+    - Will be ignored if value is equal to 'sarscov2'.
+    - See available images at https://hub.docker.com/r/staphb/vadr/tags.
+- 'params.download_nextclade_dataset' : ${params.download_nextclade_dataset}
+    - Will used nextclade to download the dataset according to 'params.nextclade_dataset' 
+      in NEXTCLADE_DATASET.
+- 'params.predownloaded_nextclade_dataset' : ${params.predownloaded_nextclade_dataset}
+    - Allows the user to use an existing nextclade dataset in a zipped directory.
+    - See https://github.com/UPHL-BioNGS/Cecret/wiki/Usage#nextclade-datasets for more 
+      information.
+
+┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ process            ┃ description                                                       ┃
+┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ VADR               ┃ Validates viral sequences and annotates expected features/errors. ┃
+┃ NEXTCLADE_DATASET  ┃ Downloads the requested Nextclade dataset for the target pathogen.┃
+┃ NEXTCLADE          ┃ Performs clade assignment, mutation calling, and QC.              ┃
+┃ FREYJA_UPDATE      ┃ Updates the Freyja database for the specified pathogen.           ┃
+┃ FREYJA             ┃ Estimates lineage abundances from BAM files (e.g., wastewater).   ┃
+┃ FREYJA_AGGREGATE   ┃ Aggregates Freyja abundance outputs across multiple samples.      ┃
+┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+"""
+
   // create some empty channels for optional results
-  ch_versions    = Channel.empty()
-  ch_for_summary = Channel.empty()
-  ch_for_multiqc = Channel.empty()
+  ch_versions    = channel.empty()
+  ch_for_summary = channel.empty()
+  ch_for_multiqc = channel.empty()
 
   // run vadr only if vadr is expected to run
   if (params.vadr_reference && params.vadr_reference != 'sarscov2') {
@@ -66,7 +113,7 @@ workflow OTHER {
       ch_versions = ch_versions.mix(UNZIP.out.versions)
     }
     
-    NEXTCLADE(ch_fastas.collect(), DATASET.out.dataset)
+    NEXTCLADE(ch_fastas.collect(), ch_dataset)
     ch_versions    = ch_versions.mix(NEXTCLADE.out.versions)
     ch_for_multiqc = ch_for_multiqc.mix(NEXTCLADE.out.nextclade_file)
     ch_for_summary = ch_for_summary.mix(NEXTCLADE.out.nextclade_file)

@@ -24,9 +24,38 @@ workflow QC {
     ch_primer_bed  // channel: bedfile
 
   main:
-    ch_for_multiqc = Channel.empty()
-    ch_summary     = Channel.empty()
-    ch_versions    = Channel.empty()
+    log.info """
+
+Running Quality Control and Variant Calling analysis. This workflow generates
+read quality metrics, checks for contamination, calculates amplicon coverage, 
+and identifies genomic variants.
+
+Relevant params and their values:
+- 'params.gff' : ${params.gff}
+    - File used for annotating variants in IVAR_VARIANTS and BCFTOOLS.
+- 'params.amplicon_bed' : ${params.amplicon_bed}
+    - File used by ACI to designate amplicon boundaries.
+- 'params.kraken2_db' : ${params.kraken2_db}
+    - Will use a user-supplied kraken2 database instead of default one.
+
+┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ process            ┃ description                                                       ┃
+┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ FASTQC             ┃ Assesses raw read quality and generates basic sequence metrics.   ┃
+┃ KRAKEN2            ┃ Screens reads for contamination and classifies taxonomy.          ┃
+┃ SAMTOOLS QC        ┃ Calculates alignment stats, coverage, and depths for BAM files.   ┃
+┃ ACI                ┃ Analyzes amplicon coverage and calculates depth per amplicon.     ┃
+┃ BCFTOOLS           ┃ Calls genomic variants from alignments and generates VCF files.   ┃
+┃ IGV_REPORTS        ┃ Generates standalone HTML reports to visually inspect variants.   ┃
+┃ IVAR_VARIANTS      ┃ Calls variants using iVar (optimized for viral amplicon data).    ┃
+┃ AMPLICONSTATS      ┃ Generates statistics and visual plots for amplicon performance.   ┃
+┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+"""
+
+    ch_for_multiqc = channel.empty()
+    ch_summary     = channel.empty()
+    ch_versions    = channel.empty()
     
     if (params.fastqc ) {
       FASTQC(ch_raw_reads)

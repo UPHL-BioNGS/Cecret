@@ -36,9 +36,33 @@ workflow CECRET {
     ch_nextclade_dataset // channel: file
 
     main:
+    log.info """
+
+Running the complete Cecret Pipeline. This master workflow orchestrates consensus 
+generation, quality control, species-specific typing, and phylogenetic analysis.
+
+More information can be found at https://github.com/UPHL-BioNGS/Cecret/wiki/
+
+If you run into issues or have feature requests, please contact the developers or 
+submit an issue on GitHub at https://github.com/UPHL-BioNGS/Cecret/issues
+
+┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ subworkflow        ┃ description                                                       ┃
+┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ CONSENSUS          ┃ Generates consensus sequences from raw reads (Illumina/Nanopore). ┃
+┃ QC                 ┃ Performs comprehensive quality control and variant calling.       ┃
+┃ SARSCOV2 / MPOX    ┃ Runs species-specific typing, validation, and abundance estimates.┃
+┃ OTHER              ┃ Handles clade and lineage assignment for alternative pathogens.   ┃
+┃ MSA                ┃ Aligns consensus sequences and builds a phylogenetic tree.        ┃
+┃ MULTIQC            ┃ Aggregates QC metrics and logs into a single HTML report.         ┃
+┃ SUMMARY            ┃ Compiles all pipeline outputs into a final results spreadsheet.   ┃
+┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+"""
     ch_versions    = ch_versions
-    ch_for_multiqc = Channel.empty()
-    ch_for_summary = Channel.empty()
+    ch_for_multiqc = channel.empty()
+    ch_for_summary = channel.empty()
+    ch_bam         = channel.empty()
     ch_consensus   = ch_fastas.mix(ch_multifasta)
     ch_wo_mltifna  = ch_fastas
 
@@ -69,9 +93,7 @@ workflow CECRET {
       ch_versions    = ch_versions.mix(QC.out.versions)
 
       ch_bam         = CONSENSUS.out.trim_bam
-    } else {
-      ch_bam = Channel.empty()
-    }
+    } 
 
     if ( params.species == 'sarscov2' ) {
       SARSCOV2(
@@ -129,9 +151,9 @@ workflow CECRET {
       ch_versions    = ch_versions.mix(MSA.out.versions)
 
     } else {
-      tree      = Channel.empty()
-      alignment = Channel.empty()
-      matrix    = Channel.empty()
+      tree      = channel.empty()
+      alignment = channel.empty()
+      matrix    = channel.empty()
     }
 
     ch_versions

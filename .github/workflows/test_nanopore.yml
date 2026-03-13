@@ -33,6 +33,8 @@ jobs:
 
           ls cecret*
             
+          ls cecret/consensus/*consensus.fa
+          
           head cecret*/cecret_results.txt
 
       - name: Clean

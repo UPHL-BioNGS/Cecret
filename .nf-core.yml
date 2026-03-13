@@ -5,16 +5,20 @@ lint:
   files_unchanged: False
   multiqc_config: False
   template_strings: False
-  version_consistencey: False
+  version_consistency: False
   nextflow_config:
+    - manifest_version_dev  # This is the specific key for the 'dev' version check
+    - manifest_name
     - manifest.name
+    - manifest.version
     - manifest.homePage
-    - validation.help.beforeText
-    - validation.help.afterText
-    - validation.summary.beforeText
-    - validation.summary.afterText
-nf_core_version: 3.3.2
-org_path: null
+    - manifest_homepage
+  readme:
+    - readme_nfcore_badge   # Specific key for the template badge
+    - readme_nextflow_badge # Specific key for the version badge
+  pipeline_name_conventions: False
+
+nf_core_version: 3.5.2
 repository_type: pipeline
 template:
   author: Erin Young
@@ -24,6 +28,4 @@ template:
   name: Cecret
   org: UPHL-BioNGS/Cecret
   outdir: .
-  skip_features: null
   version: 1.0.0
-update: null

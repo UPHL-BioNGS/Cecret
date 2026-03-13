@@ -1,5 +1,5 @@
 include { ARTIC                                 } from '../../../modules/local/artic'
-include { ARTIC_FILTER                          } from '../../../modules/local/artic'
+include { ARTIC_FILTER                          } from '../../../modules/local/artic_filter'
 include { BBNORM                                } from '../../../modules/local/bbnorm'
 include { BWA                                   } from '../../../modules/local/bwa/'
 include { FASTP                                 } from '../../../modules/local/fastp'
@@ -20,8 +20,56 @@ workflow CONSENSUS {
   ch_primer_bed // channel: bedfile
 
   main:
-  ch_multiqc  = Channel.empty()
-  ch_versions = Channel.empty()
+
+  log.info """
+
+Running consensus creation analysis. This workflow performs reference-based 
+consensus generation and variant calling.
+
+Relevant params and their values:
+- 'params.primer_set' : ${params.primer_set}
+    - Master variable with corresponding a corresponding primer and amplicon bed, 
+      reference, and gff file.
+- 'params.primer_bed' : ${params.primer_bed}
+    - File designating the primers used to create the amplicons.
+    - See https://github.com/UPHL-BioNGS/Cecret/wiki/Creating on creating a custom
+      primer scheme.
+- 'params.reference_genome' : ${params.reference_genome}
+    - FASTA file used to align reads to.
+    - Must match reference line in primer BED file.
+    - See https://github.com/UPHL-BioNGS/Cecret/wiki/Reference for more information.
+- 'params.cleaner' : ${params.cleaner}
+    - Designates which tool will filter FASTQ files.
+    - Options are 'seqyclean' and 'fastp'.
+- 'params.aligner' : ${params.aligner}
+    - Designates which tool will align clean reads to the reference.
+    - OPtions are 'bwa' and 'minimap2'.
+- 'params.trimmer' : ${params.trimmer}
+    - Designates which tool will trim primers from aligned sequences.
+    - Options are 'samtools', 'ivar', and 'none'.
+    - Setting this as 'none' will skip primer trimming.
+- 'params.filter' : ${params.filter}
+    - Produces FASTQ files aligned to reference.
+- 'params.markdup' : ${params.markdup}
+    - Removes duplicates (may increase artifact rates in amplicon sequencing)
+
+┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ process            ┃ description                                                       ┃
+┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ BBNORM             ┃ Normalizes large read datasets to a target depth.                 ┃
+┃ SEQYCLEAN / FASTP  ┃ Filters out low-quality reads and removes adapters.               ┃
+┃ BWA / MINIMAP2     ┃ Aligns the cleaned reads to the provided reference genome.        ┃
+┃ SAMTOOLS           ┃ Sorts alignments, marks duplicates, and filters out non-targets.  ┃
+┃ IVAR / AMPLICONCLIP┃ Trims amplicon primer sequences from the BAM alignments.          ┃
+┃ IVAR CONSENSUS     ┃ Calls variants and generates the final consensus sequence.        ┃
+┃ ARTIC              ┃ Filters Nanopore reads and generates Nanopore consensus fastas.   ┃
+┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+"""
+
+
+  ch_multiqc  = channel.empty()
+  ch_versions = channel.empty()
 
   // running bbnorm to normalize large datasets
   // this is not recommended for wastewater
@@ -42,13 +90,11 @@ workflow CONSENSUS {
       .collectFile(name: "Combined_SummaryStatistics.tsv",
         keepHeader: true,
         storeDir: "${params.outdir}/seqyclean")
-      .set { seqyclean_file1 }
 
     SEQYCLEAN.out.seqyclean_files_collect_single
       .collectFile(name: "Combined_seqyclean_SummaryStatistics.tsv",
         keepHeader: true,
         storeDir: "${params.outdir}/seqyclean")
-      .set { seqyclean_file2 }
 
     ch_clean_reads = SEQYCLEAN.out.clean_reads
     ch_multiqc     = ch_multiqc.mix(SEQYCLEAN.out.seqyclean_files_collect_paired).mix(SEQYCLEAN.out.seqyclean_files_collect_single)
@@ -62,7 +108,7 @@ workflow CONSENSUS {
     ch_multiqc     = ch_multiqc.mix(FASTP.out.fastp_files) 
     ch_versions    = ch_versions.mix(FASTP.out.versions.first())
   } else {
-    ch_clean_reads = Channel.empty()
+    ch_clean_reads = channel.empty()
   }
 
   // aligning reads to reference
@@ -81,7 +127,7 @@ workflow CONSENSUS {
     ch_versions = ch_versions.mix(MINIMAP2.out.versions.first())
   
   } else {
-    ch_sam = Channel.empty()
+    ch_sam = channel.empty()
   }
 
   // removing duplicates
@@ -141,7 +187,7 @@ workflow CONSENSUS {
     ch_filtered_reads = FILTER.out.filtered_reads
     ch_versions       = ch_versions.mix(FILTER.out.versions.first())
   } else {
-    ch_filtered_reads = Channel.empty()
+    ch_filtered_reads = channel.empty()
   }
 
   emit:
