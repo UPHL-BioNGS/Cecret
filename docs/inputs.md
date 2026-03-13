@@ -293,7 +293,7 @@ Specifies if reference-mapped fastq files should be extracted
 
 **Type:** `boolean` | *Optional*
 
-Specifies if duplicate reads should be removed (not recommended for nanopore)
+Specifies if duplicate reads should be removed
 
 
 ### `--relatedness` {#relatedness}
