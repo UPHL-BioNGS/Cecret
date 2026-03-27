@@ -41,6 +41,13 @@ process ARTIC {
         artic/${prefix} \
         | tee -a \$log
 
+    if grep -q "Invalid bed file format" \$log
+    then
+        echo "Error bed file is invalid for artic" >> \$log
+        cat \$log
+        exit 1
+    fi
+
     if [ -f "artic/${prefix}.consensus.fasta" ]
     then
         echo ">${prefix}"                            > consensus/${prefix}.consensus.fa
