@@ -168,6 +168,8 @@ Cecret has a weekly update schedule. Cecret's versions have three numbers : X.Y.
 
 ## The main components of Cecret are:
 
+- [nf-core](https://nf-co.re/) - for schema validation and linting
+- [nf-docs](https://ewels.github.io/nf-docs/running/) - for user docs
 - [aci](https://github.com/erinyoung/ACI) - for depth estimation over amplicons (optional, set params.aci = true)
 - [artic network](https://github.com/artic-network) - for aligning and consensus creation of nanopore reads
 - [bbnorm](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbnorm-guide/) - for normalizing reads (optional, set params.bbnorm = true)
