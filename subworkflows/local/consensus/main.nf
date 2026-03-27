@@ -76,6 +76,7 @@ Relevant params and their values:
   ch_trim_bam = channel.empty()
   ch_nanopore_bam = channel.empty()
   ch_consensus = channel.empty()
+  ch_clean_reads = channel.empty()
 
   // only show the following if there are illumina fastq files present
   if (params.sample_sheet || params.reads) {
@@ -104,7 +105,7 @@ Relevant params and their values:
           keepHeader: true,
           storeDir: "${params.outdir}/seqyclean")
 
-      ch_clean_reads = SEQYCLEAN.out.clean_reads
+      ch_clean_reads = ch_clean_reads.mix(SEQYCLEAN.out.clean_reads)
       ch_multiqc     = ch_multiqc.mix(SEQYCLEAN.out.seqyclean_files_collect_paired).mix(SEQYCLEAN.out.seqyclean_files_collect_single)
       ch_versions    = ch_versions.mix(SEQYCLEAN.out.versions.first())
 
@@ -112,11 +113,9 @@ Relevant params and their values:
       // running fastp
       FASTP(ch_norm_reads)
 
-      ch_clean_reads = FASTP.out.clean_reads
+      ch_clean_reads = ch_clean_reads.mix(FASTP.out.clean_reads)
       ch_multiqc     = ch_multiqc.mix(FASTP.out.fastp_files) 
       ch_versions    = ch_versions.mix(FASTP.out.versions.first())
-    } else {
-      ch_clean_reads = channel.empty()
     }
 
     // aligning reads to reference
@@ -218,9 +217,6 @@ Relevant params and their values:
     trim_bam         = ch_trim_bam.mix(ch_nanopore_bam)
     clean_reads      = ch_clean_reads
     filtered_reads   = ch_filtered_reads
-
-
     for_multiqc      = ch_multiqc 
-
     versions         = ch_versions
 }
