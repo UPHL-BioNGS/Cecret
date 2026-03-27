@@ -72,6 +72,8 @@ Relevant params and their values:
 
   ch_multiqc  = channel.empty()
   ch_versions = channel.empty()
+  ch_nanopore_bam = channel.empty()
+  ch_consensus = channel.empty()
 
   // running bbnorm to normalize large datasets
   // this is not recommended for wastewater
@@ -168,6 +170,7 @@ Relevant params and their values:
 
   // getting a consensus with ivar
   IVAR(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_reference))
+  ch_consensus = ch_consensus.mix(IVAR.out.consensus)
   ch_versions = ch_versions.mix(IVAR.out.versions.first())
 
   // running artic on nanopore reads
@@ -189,6 +192,8 @@ Relevant params and their values:
       if (params.artic) {
         ARTIC(ARTIC_FILTER.out.fastq.combine(ch_reference).combine(ch_primer))
         ch_versions = ch_versions.mix(ARTIC.out.versions.first())
+        ch_nanopore_bam = ch_nanopore_bam.mix(ARTIC.out.bam)
+        ch_consensus = ch_consensus.mix(ARTIC.out.consensus)
       }
     }
   }
@@ -196,7 +201,7 @@ Relevant params and their values:
   // remove all non-target-organism reads
   // simpler for non-human hosts or when more than one organism needs to be removed
   if ( params.filter ) { 
-    FILTER(ch_sam.mix(ARTIC.out.bam))
+    FILTER(ch_sam.mix(ch_nanopore_bam))
     ch_filtered_reads = FILTER.out.filtered_reads
     ch_versions       = ch_versions.mix(FILTER.out.versions.first())
   } else {
@@ -204,9 +209,9 @@ Relevant params and their values:
   }
 
   emit:
-    consensus        = IVAR.out.consensus.mix(ARTIC.out.consensus)
+    consensus        = ch_consensus
     just_bam         = ch_bam
-    trim_bam         = ch_trim_bam.mix(ARTIC.out.bam)
+    trim_bam         = ch_trim_bam.mix(ch_nanopore_bam)
     clean_reads      = ch_clean_reads
     filtered_reads   = ch_filtered_reads
 
