@@ -73,6 +73,7 @@ Relevant params and their values:
   ch_multiqc  = channel.empty()
   ch_versions = channel.empty()
   ch_bam      = channel.empty()
+  ch_trim_bam = channel.empty()
   ch_nanopore_bam = channel.empty()
   ch_consensus = channel.empty()
 
@@ -154,7 +155,7 @@ Relevant params and their values:
       // running ivar trim
       IVAR_TRIM(ch_bam.filter{ it -> it[1].size() > 500 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
 
-      ch_trim_bam = IVAR_TRIM.out.bam_bai
+      ch_trim_bam = ch_trim_bam.mix(IVAR_TRIM.out.bam_bai)
       ch_multiqc  = ch_multiqc.mix(IVAR_TRIM.out.ivar_trim_files)
       ch_versions = ch_versions.mix(IVAR_TRIM.out.versions.first())
 
@@ -162,13 +163,13 @@ Relevant params and their values:
       // running samtools ampliconclip
       AMPLICONCLIP(ch_bam.filter{ it -> it[1].size() > 500 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
       
-      ch_trim_bam = AMPLICONCLIP.out.bam_bai
+      ch_trim_bam = ch_trim_bam.mix(AMPLICONCLIP.out.bam_bai)
       ch_versions = ch_versions.mix(AMPLICONCLIP.out.versions.first())
     
     } else if ( params.trimmer == 'none' ) {
       // mostly for bait-derived libraries
       // skipping trimming (not recommended for amplicon-created libraries)
-      ch_trim_bam = ch_bam
+      ch_trim_bam = ch_trim_bam.mix(ch_bam)
     }
 
     // getting a consensus with ivar
@@ -217,6 +218,7 @@ Relevant params and their values:
     trim_bam         = ch_trim_bam.mix(ch_nanopore_bam)
     clean_reads      = ch_clean_reads
     filtered_reads   = ch_filtered_reads
+
 
     for_multiqc      = ch_multiqc 
 
