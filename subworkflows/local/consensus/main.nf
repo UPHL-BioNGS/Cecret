@@ -1,5 +1,6 @@
 include { ARTIC                                 } from '../../../modules/local/artic'
 include { ARTIC_FILTER                          } from '../../../modules/local/artic_filter'
+include { ARTIC_TOOLS                           } from '../../../modules/local/artic_tools'
 include { BBNORM                                } from '../../../modules/local/bbnorm'
 include { BWA                                   } from '../../../modules/local/bwa/'
 include { FASTP                                 } from '../../../modules/local/fastp'
@@ -63,6 +64,7 @@ Relevant params and their values:
 ┃ IVAR / AMPLICONCLIP┃ Trims amplicon primer sequences from the BAM alignments.          ┃
 ┃ IVAR CONSENSUS     ┃ Calls variants and generates the final consensus sequence.        ┃
 ┃ ARTIC              ┃ Filters Nanopore reads and generates Nanopore consensus fastas.   ┃
+┃ ARTIC-TOOLS        ┃ Validates input primer bedfile for ARTIC.                         ┃
 ┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 """
@@ -169,14 +171,25 @@ Relevant params and their values:
   ch_versions = ch_versions.mix(IVAR.out.versions.first())
 
   // running artic on nanopore reads
-  // TODO : Hide this if there are no nanopore reads
-  if (params.artic && params.artic_filter) {
-    ARTIC_FILTER(ch_nanopore)
-    ch_versions = ch_versions.mix(ARTIC_FILTER.out.versions.first())
+  // only show if there is a sample sheet as input (which could have nanopor reads),
+  // or nanopore reads are read in through a channel
+  if (params.sample_sheet || params.nanopore) {
+    if (params.artic && params.artic_filter) {
+      ARTIC_FILTER(ch_nanopore)
+      ch_versions = ch_versions.mix(ARTIC_FILTER.out.versions.first())
 
-    if (params.artic) {
-      ARTIC(ARTIC_FILTER.out.fastq.combine(ch_reference).combine(ch_primer_bed))
-      ch_versions = ch_versions.mix(ARTIC.out.versions.first())
+      if (params.primer_bed) {
+        ARTIC_TOOLS(ch_primer_bed)
+        ch_versions = ch_versions.mix(ARTIC_TOOLS.out.versions.first())
+        ch_primer = ARTIC_TOOLS.out.bed
+      } else {
+        ch_primer = ch_primer_bed
+      }
+
+      if (params.artic) {
+        ARTIC(ARTIC_FILTER.out.fastq.combine(ch_reference).combine(ch_primer))
+        ch_versions = ch_versions.mix(ARTIC.out.versions.first())
+      }
     }
   }
 
