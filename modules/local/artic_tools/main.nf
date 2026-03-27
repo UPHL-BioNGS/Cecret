@@ -25,7 +25,7 @@ process ARTIC_TOOLS {
     artic-tools validate_scheme \
         ${args} \
         ${bed} \
-        --outputInserts ${prefix}_insert.bed |
+        --outputInserts ${prefix}_insert.bed | \
         tee -a >> \log
     
     mv ${prefix}_insert.bed artic_tools/.
