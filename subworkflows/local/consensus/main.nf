@@ -72,6 +72,7 @@ Relevant params and their values:
 
   ch_multiqc  = channel.empty()
   ch_versions = channel.empty()
+  ch_bam      = channel.empty()
   ch_nanopore_bam = channel.empty()
   ch_consensus = channel.empty()
 
@@ -139,12 +140,12 @@ Relevant params and their values:
     // removing duplicates
     if ( params.markdup ) {
       MARKDUP(ch_reads.join(ch_sam).map { it -> tuple(it[0], it[2], it[3])} )
-      ch_bam      = MARKDUP.out.bam_bai
+      ch_bam      = ch_bam.mix(MARKDUP.out.bam_bai)
       ch_versions = ch_versions.mix(MARKDUP.out.versions.first())
     
     } else {
       SORT(ch_sam)
-      ch_bam = SORT.out.bam_bai
+      ch_bam = ch_bam.mix(SORT.out.bam_bai)
       ch_versions = ch_versions.mix(SORT.out.versions.first())
     }
 
