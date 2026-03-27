@@ -75,104 +75,106 @@ Relevant params and their values:
   ch_nanopore_bam = channel.empty()
   ch_consensus = channel.empty()
 
-  // running bbnorm to normalize large datasets
-  // this is not recommended for wastewater
-  if ( params.bbnorm ){
-    BBNORM(ch_reads)
-    ch_norm_reads = BBNORM.out.fastq
-    ch_versions   = ch_versions.mix(BBNORM.out.versions.first())
-  } else {
-    ch_norm_reads = ch_reads
-  }
+  // only show the following if there are illumina fastq files present
+  if (params.sample_sheet || params.reads) {
+    // running bbnorm to normalize large datasets
+    // this is not recommended for wastewater
+    if ( params.bbnorm ){
+      BBNORM(ch_reads)
+      ch_norm_reads = BBNORM.out.fastq
+      ch_versions   = ch_versions.mix(BBNORM.out.versions.first())
+    } else {
+      ch_norm_reads = ch_reads
+    }
 
-  // filtering out low quality reads
-  if ( params.cleaner == 'seqyclean') {
-    // running seqyclean
-    SEQYCLEAN(ch_norm_reads)
+    // filtering out low quality reads
+    if ( params.cleaner == 'seqyclean') {
+      // running seqyclean
+      SEQYCLEAN(ch_norm_reads)
 
-    SEQYCLEAN.out.seqyclean_files_collect_paired
-      .collectFile(name: "Combined_SummaryStatistics.tsv",
-        keepHeader: true,
-        storeDir: "${params.outdir}/seqyclean")
+      SEQYCLEAN.out.seqyclean_files_collect_paired
+        .collectFile(name: "Combined_SummaryStatistics.tsv",
+          keepHeader: true,
+          storeDir: "${params.outdir}/seqyclean")
 
-    SEQYCLEAN.out.seqyclean_files_collect_single
-      .collectFile(name: "Combined_seqyclean_SummaryStatistics.tsv",
-        keepHeader: true,
-        storeDir: "${params.outdir}/seqyclean")
+      SEQYCLEAN.out.seqyclean_files_collect_single
+        .collectFile(name: "Combined_seqyclean_SummaryStatistics.tsv",
+          keepHeader: true,
+          storeDir: "${params.outdir}/seqyclean")
 
-    ch_clean_reads = SEQYCLEAN.out.clean_reads
-    ch_multiqc     = ch_multiqc.mix(SEQYCLEAN.out.seqyclean_files_collect_paired).mix(SEQYCLEAN.out.seqyclean_files_collect_single)
-    ch_versions    = ch_versions.mix(SEQYCLEAN.out.versions.first())
+      ch_clean_reads = SEQYCLEAN.out.clean_reads
+      ch_multiqc     = ch_multiqc.mix(SEQYCLEAN.out.seqyclean_files_collect_paired).mix(SEQYCLEAN.out.seqyclean_files_collect_single)
+      ch_versions    = ch_versions.mix(SEQYCLEAN.out.versions.first())
 
-  } else if ( params.cleaner == 'fastp' ) {
-    // running fastp
-    FASTP(ch_norm_reads)
+    } else if ( params.cleaner == 'fastp' ) {
+      // running fastp
+      FASTP(ch_norm_reads)
 
-    ch_clean_reads = FASTP.out.clean_reads
-    ch_multiqc     = ch_multiqc.mix(FASTP.out.fastp_files) 
-    ch_versions    = ch_versions.mix(FASTP.out.versions.first())
-  } else {
-    ch_clean_reads = channel.empty()
-  }
+      ch_clean_reads = FASTP.out.clean_reads
+      ch_multiqc     = ch_multiqc.mix(FASTP.out.fastp_files) 
+      ch_versions    = ch_versions.mix(FASTP.out.versions.first())
+    } else {
+      ch_clean_reads = channel.empty()
+    }
 
-  // aligning reads to reference
-  if ( params.aligner == 'bwa' ) {
-    // running bwa
-    BWA(ch_clean_reads.combine(ch_reference))
+    // aligning reads to reference
+    if ( params.aligner == 'bwa' ) {
+      // running bwa
+      BWA(ch_clean_reads.combine(ch_reference))
 
-    ch_sam      = BWA.out.sam
-    ch_versions = ch_versions.mix(BWA.out.versions.first())
-  
-  } else if ( params.aligner == 'minimap2') {
-    // running minimap2
-    MINIMAP2(ch_clean_reads.combine(ch_reference))
+      ch_sam      = BWA.out.sam
+      ch_versions = ch_versions.mix(BWA.out.versions.first())
     
-    ch_sam      = MINIMAP2.out.sam
-    ch_versions = ch_versions.mix(MINIMAP2.out.versions.first())
-  
-  } else {
-    ch_sam = channel.empty()
-  }
-
-  // removing duplicates
-  if ( params.markdup ) {
-    MARKDUP(ch_reads.join(ch_sam).map { it -> tuple(it[0], it[2], it[3])} )
-    ch_bam      = MARKDUP.out.bam_bai
-    ch_versions = ch_versions.mix(MARKDUP.out.versions.first())
-  
-  } else {
-    SORT(ch_sam)
-    ch_bam = SORT.out.bam_bai
-    ch_versions = ch_versions.mix(SORT.out.versions.first())
-  }
-
-  // removing primers
-  if ( params.trimmer == 'ivar' ) {
-    // running ivar trim
-    IVAR_TRIM(ch_bam.filter{ it -> it[1].size() > 500 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
-
-    ch_trim_bam = IVAR_TRIM.out.bam_bai
-    ch_multiqc  = ch_multiqc.mix(IVAR_TRIM.out.ivar_trim_files)
-    ch_versions = ch_versions.mix(IVAR_TRIM.out.versions.first())
-
-  } else if ( params.trimmer == 'samtools' || params.trimmer == 'ampliconclip' ) {
-    // running samtools ampliconclip
-    AMPLICONCLIP(ch_bam.filter{ it -> it[1].size() > 500 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
+    } else if ( params.aligner == 'minimap2') {
+      // running minimap2
+      MINIMAP2(ch_clean_reads.combine(ch_reference))
+      
+      ch_sam      = MINIMAP2.out.sam
+      ch_versions = ch_versions.mix(MINIMAP2.out.versions.first())
     
-    ch_trim_bam = AMPLICONCLIP.out.bam_bai
-    ch_versions = ch_versions.mix(AMPLICONCLIP.out.versions.first())
-  
-  } else if ( params.trimmer == 'none' ) {
-    // mostly for bait-derived libraries
-    // skipping trimming (not recommended for amplicon-created libraries)
-    ch_trim_bam = ch_bam
+    } else {
+      ch_sam = channel.empty()
+    }
+
+    // removing duplicates
+    if ( params.markdup ) {
+      MARKDUP(ch_reads.join(ch_sam).map { it -> tuple(it[0], it[2], it[3])} )
+      ch_bam      = MARKDUP.out.bam_bai
+      ch_versions = ch_versions.mix(MARKDUP.out.versions.first())
+    
+    } else {
+      SORT(ch_sam)
+      ch_bam = SORT.out.bam_bai
+      ch_versions = ch_versions.mix(SORT.out.versions.first())
+    }
+
+    // removing primers
+    if ( params.trimmer == 'ivar' ) {
+      // running ivar trim
+      IVAR_TRIM(ch_bam.filter{ it -> it[1].size() > 500 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
+
+      ch_trim_bam = IVAR_TRIM.out.bam_bai
+      ch_multiqc  = ch_multiqc.mix(IVAR_TRIM.out.ivar_trim_files)
+      ch_versions = ch_versions.mix(IVAR_TRIM.out.versions.first())
+
+    } else if ( params.trimmer == 'samtools' || params.trimmer == 'ampliconclip' ) {
+      // running samtools ampliconclip
+      AMPLICONCLIP(ch_bam.filter{ it -> it[1].size() > 500 }.map{it -> tuple( it[0], it[1])}.combine(ch_primer_bed))
+      
+      ch_trim_bam = AMPLICONCLIP.out.bam_bai
+      ch_versions = ch_versions.mix(AMPLICONCLIP.out.versions.first())
+    
+    } else if ( params.trimmer == 'none' ) {
+      // mostly for bait-derived libraries
+      // skipping trimming (not recommended for amplicon-created libraries)
+      ch_trim_bam = ch_bam
+    }
+
+    // getting a consensus with ivar
+    IVAR(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_reference))
+    ch_consensus = ch_consensus.mix(IVAR.out.consensus)
+    ch_versions = ch_versions.mix(IVAR.out.versions.first())
   }
-
-  // getting a consensus with ivar
-  IVAR(ch_trim_bam.map{ it -> tuple(it[0], it[1])}.combine(ch_reference))
-  ch_consensus = ch_consensus.mix(IVAR.out.consensus)
-  ch_versions = ch_versions.mix(IVAR.out.versions.first())
-
   // running artic on nanopore reads
   // only show if there is a sample sheet as input (which could have nanopor reads),
   // or nanopore reads are read in through a channel
