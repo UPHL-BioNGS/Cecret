@@ -7,7 +7,7 @@ process ARTIC_TOOLS {
     file(bed)
 
     output:
-    path "artic-tools/*_insert.bed", emit: insert_bed
+    path "artic_tools/*_insert.bed", emit: insert_bed
     path bed, emit: bed
     path "logs/${task.process}/*.log", emit: log
     path "versions.yml", emit: versions
@@ -19,14 +19,16 @@ process ARTIC_TOOLS {
     def args   = task.ext.args   ?: ""
     def prefix = task.ext.prefix ?: bed.baseName
     """
-    mkdir -p artic-tools logs/${task.process}
+    mkdir -p artic_tools logs/${task.process}
     log=logs/${task.process}/${prefix}.${workflow.sessionId}.log
 
     artic-tools validate_scheme \
         ${args} \
         ${bed} \
-        --outputInserts artic-tools/${prefix}_insert.bed |
+        --outputInserts ${prefix}_insert.bed |
         tee -a >> \log
+    
+    mv ${prefix}_insert.bed artic_tools/.
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
