@@ -26,7 +26,7 @@ process ARTIC_TOOLS {
         ${args} \
         ${bed} \
         --outputInserts ${prefix}_insert.bed | \
-        tee -a >> \log
+        tee -a >> \$log
     
     mv ${prefix}_insert.bed artic_tools/.
 
