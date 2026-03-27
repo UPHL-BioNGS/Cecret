@@ -1,0 +1,40 @@
+name: Test ARTIC TOOLS primer schema validation workflow
+
+on: [pull_request, workflow_dispatch]
+
+run-name: nanopore
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Clean up Disk space
+        uses: jlumbroso/free-disk-space@main
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Download reads
+        run: |
+          mkdir nanopore
+          cd nanopore
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR305/026/SRR30517726/SRR30517726_1.fastq.gz
+          cd ../
+
+      - name: Run Cecret
+        run: |
+          nextflow run . -profile docker -c .github/workflows/github_actions.config --nanopore nanopore --primer_bed schema/midnight_idt_V1_SARS-CoV-2.primer.bed
+
+          ls cecret*
+            
+          ls cecret/consensus/*consensus.fa
+          
+          head cecret*/cecret_results.txt
+
+      - name: Clean
+        run: rm -rf work .nextflow*
