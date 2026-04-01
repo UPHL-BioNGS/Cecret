@@ -38,7 +38,7 @@ process KRAKEN2 {
       --report kraken2/${prefix}_kraken2_report.txt \
       | tee -a \$log
 
-    gzip kraken2/*.fastq
+    find kraken2 -name "*.fastq" -print0 | xargs -0 -n1 -P ${task.cpus} gzip -f
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -86,6 +86,8 @@ process KRAKEN2_DB {
       ${reads} \
       --report kraken2/${prefix}_kraken2_report.txt \
       | tee -a \$log
+
+    find kraken2 -name "*.fastq" -print0 | xargs -0 -n1 -P ${task.cpus} gzip -f
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
