@@ -5,7 +5,6 @@ lint:
   files_unchanged: False
   multiqc_config: False
   template_strings: False
-  version_consistency: False
   nextflow_config:
     - manifest_version_dev  # This is the specific key for the 'dev' version check
     - manifest_name
