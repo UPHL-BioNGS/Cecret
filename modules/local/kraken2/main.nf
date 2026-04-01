@@ -30,13 +30,15 @@ process KRAKEN2 {
 
     kraken2 ${args} \
       ${paired} \
-      --classified-out kraken2/${prefix}.cseqs#.fastq.gz \
-      --unclassified-out kraken2/${prefix}.useqs#.fastq.gz \
+      --classified-out kraken2/${prefix}.cseqs#.fastq \
+      --unclassified-out kraken2/${prefix}.useqs#.fastq \
       --threads ${task.cpus} \
       --db /kraken2-db \
       ${reads} \
       --report kraken2/${prefix}_kraken2_report.txt \
       | tee -a \$log
+
+    gzip kraken2/*.fastq
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
