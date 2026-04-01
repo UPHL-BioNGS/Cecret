@@ -50,14 +50,14 @@
                 "description": "input channel for multifasta files"
             },
             "sra_accessions": {
-                "type": "array",
-                "default": "[]",
+                "type": "string",
+                "default": [],
                 "hidden": true,
                 "description": "list encased in [] brackets of fastq accessions to download from SRA/ENA (Illumina reads only)"
             },
             "genome_accessions": {
-                "type": "array",
-                "default": "[]",
+                "type": "string",
+                "default": [],
                 "hidden": true,
                 "description": "list encased in [] brackets of genome accessions to download with datasets"
             },
