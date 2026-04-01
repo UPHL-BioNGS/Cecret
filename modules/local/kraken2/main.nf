@@ -79,8 +79,8 @@ process KRAKEN2_DB {
 
     kraken2 ${args} \
       ${paired} \
-      --classified-out kraken2/${prefix}.cseqs#.fastq.gz \
-      --unclassified-out kraken2/${prefix}.useqs#.fastq.gz \
+      --classified-out kraken2/${prefix}.cseqs#.fastq \
+      --unclassified-out kraken2/${prefix}.useqs#.fastq \
       --threads ${task.cpus} \
       --db ${kraken2_db} \
       ${reads} \
