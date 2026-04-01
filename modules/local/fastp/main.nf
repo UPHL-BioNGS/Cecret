@@ -8,8 +8,8 @@ process FASTP {
 
   output:
   tuple val(meta), file("fastp/*_{clean_PE1,clean_PE2,cln}.fastq.gz"), optional: true,  emit: clean_reads
-  path "fastp/*_fastp.html", emit: html
-  tuple val(meta), file("fastp/*_fastp.json"), emit: fastp_files
+  path "fastp/*_fastp.html", emit: html, optional: true
+  tuple val(meta), file("fastp/*_fastp.json"), emit: fastp_files, optional: true
   path "logs/${task.process}/*", emit: log
   path "versions.yml", emit: versions
 

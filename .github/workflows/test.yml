@@ -24,12 +24,12 @@ jobs:
           docker --version
 
           mkdir reads
-          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_1.fastq.gz
-          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_2.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_1.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR139/023/SRR13957123/SRR13957123_2.fastq.gz
           mv *fastq.gz reads/.
 
           mkdir -p fastas
-          wget -q https://raw.githubusercontent.com/StaPH-B/docker-builds/master/tests/SARS-CoV-2/SRR13957123.consensus.fa
+          wget https://raw.githubusercontent.com/StaPH-B/docker-builds/master/tests/SARS-CoV-2/SRR13957123.consensus.fa
           mv SRR13957123.consensus.fa SRR13957123DB.fa
           mv *fa fastas/.
 

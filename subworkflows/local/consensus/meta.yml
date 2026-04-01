@@ -57,6 +57,7 @@ tools:
 components:
   - artic
   - artic/filter
+  - artic/tools
   - bwa
   - minimap2
   - fastp

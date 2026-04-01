@@ -24,7 +24,7 @@ jobs:
           docker --version
 
           mkdir single_reads
-          wget -q ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR194/096/SRR19433296/SRR19433296.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR194/096/SRR19433296/SRR19433296.fastq.gz
           mv *fastq.gz single_reads/.
 
           nextflow run . -profile docker -c .github/workflows/github_actions.config --primer_set ncov_V3 --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200 --single_reads single_reads

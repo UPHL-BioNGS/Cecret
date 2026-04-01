@@ -30,13 +30,15 @@ process KRAKEN2 {
 
     kraken2 ${args} \
       ${paired} \
-      --classified-out kraken2/${prefix}.cseqs#.fastq.gz \
-      --unclassified-out kraken2/${prefix}.useqs#.fastq.gz \
+      --classified-out kraken2/${prefix}.cseqs#.fastq \
+      --unclassified-out kraken2/${prefix}.useqs#.fastq \
       --threads ${task.cpus} \
       --db /kraken2-db \
       ${reads} \
       --report kraken2/${prefix}_kraken2_report.txt \
       | tee -a \$log
+
+    find kraken2 -name "*.fastq" -print0 | xargs -0 -n1 -P ${task.cpus} gzip -f
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -77,13 +79,15 @@ process KRAKEN2_DB {
 
     kraken2 ${args} \
       ${paired} \
-      --classified-out kraken2/${prefix}.cseqs#.fastq.gz \
-      --unclassified-out kraken2/${prefix}.useqs#.fastq.gz \
+      --classified-out kraken2/${prefix}.cseqs#.fastq \
+      --unclassified-out kraken2/${prefix}.useqs#.fastq \
       --threads ${task.cpus} \
       --db ${kraken2_db} \
       ${reads} \
       --report kraken2/${prefix}_kraken2_report.txt \
       | tee -a \$log
+
+    find kraken2 -name "*.fastq" -print0 | xargs -0 -n1 -P ${task.cpus} gzip -f
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

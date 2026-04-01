@@ -38,8 +38,8 @@ if exists(fastqc_file) and exists(fastq_names_file):
     fastqc_tmp_df['sample'] = fastqc_tmp_df['sample'].astype(str)
     
     summary_df = pd.merge(summary_df, fastqc_tmp_df, left_on = 'sample_id', right_on = 'sample', how = 'outer' )
-    summary_df['sample_id'].fillna(summary_df['sample'], inplace=True)
-    summary_df.drop('sample', axis=1, inplace=True)
+    summary_df['sample_id'] = summary_df['sample_id'].fillna(summary_df['sample'])
+    summary_df = summary_df.drop('sample', axis=1)
     columns = columns + ['fastqc_raw_reads_1', 'fastqc_raw_reads_2']
 
 fasta_df = pd.DataFrame(columns=['fasta_sample', "fasta_line", "num_N", "num_total"])
@@ -90,8 +90,8 @@ if exists(fastp_file) :
             fastp_columns.remove('fastp_sample_match')
 
             summary_df = pd.merge(summary_df, fastp_tmp1_df, left_on = 'sample_id', right_on = 'fastp_sample_match', how = 'outer')
-            summary_df['sample_id'].fillna(summary_df['fastp_sample_match'], inplace=True)
-            summary_df.drop('fastp_sample_match', axis=1, inplace=True)
+            summary_df['sample_id'] = summary_df['fastp_sample_match'].fillna(summary_df['sample'])
+            summary_df = summary_df.drop('fastp_sample_match', axis=1)
             columns = columns + fastp_columns
 
 if exists(seqyclean_file) :
@@ -114,8 +114,8 @@ if exists(seqyclean_file) :
     seqyclean_df['seqyclean_name'] = seqyclean_df['seqyclean_name'].astype(str)
 
     summary_df = pd.merge(summary_df, seqyclean_df, left_on = 'sample_id', right_on = 'seqyclean_name', how = 'outer')
-    summary_df['sample_id'].fillna(summary_df['seqyclean_name'], inplace=True)
-    summary_df.drop('seqyclean_name', axis=1, inplace=True)
+    summary_df['sample_id'] = summary_df['sample_id'].fillna(summary_df['seqyclean_name'])
+    summary_df = summary_df.drop(columns=['seqyclean_name'])
     columns = columns + seqyclean_columns
 
 kraken2_df = pd.DataFrame(columns=['kraken2_sample', '%_human_reads', 'top_organism', 'percent_reads_top_organism'])
@@ -185,8 +185,8 @@ if exists(aci_file) :
     aci_df['aci_name'] = aci_df['aci_name'].astype(str)
 
     summary_df = pd.merge(summary_df, aci_df[['aci_name', 'aci_num_failed_amplicons']], left_on = 'sample_id', right_on = 'aci_name', how = 'outer')
-    summary_df['sample_id'].fillna(summary_df['aci_name'], inplace=True)
-    summary_df.drop('aci_name', axis=1, inplace=True)
+    summary_df['sample_id'] = summary_df['sample_id'].fillna(summary_df['aci_name'])
+    summary_df = summary_df.drop('aci_name', axis=1)
     columns = columns + ['aci_num_failed_amplicons']
 
 if not ( os.stat(ampliconstats_file).st_size==0 ) : 
@@ -199,8 +199,8 @@ if not ( os.stat(ampliconstats_file).st_size==0 ) :
     amp_tmp_df['sample_name'] = amp_tmp_df['sample_name'].astype(str)
     
     summary_df = pd.merge(summary_df, amp_tmp_df, left_on = 'sample_id', right_on = 'sample_name', how = 'outer' )
-    summary_df['sample_id'].fillna(summary_df['sample_name'], inplace=True)
-    summary_df.drop('sample_name', axis=1, inplace=True)
+    summary_df['sample_id'] = summary_df['sample_id'].fillna(summary_df['sample_name'])
+    summary_df = summary_df.drop('sample_name', axis=1)
     columns = columns + ['samtools_num_failed_amplicons']
 
 stats_df = pd.DataFrame(columns=['samtools_sample', 'insert_size_after_trimming'])
@@ -301,16 +301,15 @@ if exists(vadr_file) :
 
     if 'fasta_line' in summary_df.columns.tolist():
         summary_df = pd.merge(summary_df, vadr_df, left_on = 'fasta_line', right_on = 'vadr_name', how = 'outer')
-        summary_df['sample_id'].fillna(summary_df['vadr_name'], inplace=True)
-        summary_df.drop('vadr_name', axis=1, inplace=True)
+        summary_df['sample_id'] = summary_df['sample_id'].fillna(summary_df['vadr_name'])
+        summary_df = summary_df.drop('vadr_name', axis=1)
         columns = ['vadr_p/f'] + columns + vadr_columns
     else:
         vadr_df['sample_match'] = vadr_df['vadr_name'].str.replace('Consensus_', '', regex =  False).apply(vadr_sample_name)
 
         summary_df = pd.merge(summary_df, vadr_df, left_on = 'sample_id', right_on = 'sample_match', how = 'outer')
-        summary_df['sample_id'].fillna(summary_df['sample_match'], inplace=True)
-        summary_df.drop('vadr_name', axis=1, inplace=True)
-        summary_df.drop('sample_match', axis=1, inplace=True)
+        summary_df['sample_id'] = summary_df['sample_id'].fillna(summary_df['sample_match'])
+        summary_df = summary_df.drop(columns=['vadr_name', 'sample_match'])
         columns = ['vadr_p/f'] + columns + vadr_columns 
 
 if exists(nextclade_file) :
@@ -335,9 +334,8 @@ if exists(nextclade_file) :
     nextclade_df['sample_match'] = nextclade_df['sample_match'].astype(str)
 
     summary_df = pd.merge(summary_df, nextclade_df, left_on = 'sample_id', right_on = 'sample_match', how = 'outer')
-    summary_df['sample_id'].fillna(summary_df['sample_match'], inplace=True)
-    summary_df.drop('nextclade_seqName', axis=1, inplace=True)
-    summary_df.drop('sample_match', axis = 1, inplace = True )
+    summary_df['sample_id'] = summary_df['sample_id'].fillna(summary_df['sample_match'])
+    summary_df = summary_df.drop(columns=['nextclade_seqName', 'sample_match'])
     columns = ['nextclade_clade'] + columns + nextclade_columns
 
 if exists(pangolin_file) :
@@ -352,9 +350,8 @@ if exists(pangolin_file) :
     pangolin_columns.remove('pangolin_lineage')
 
     summary_df = pd.merge(summary_df, pangolin_df, left_on = 'sample_id', right_on = 'sample_match', how = 'outer')
-    summary_df['sample_id'].fillna(summary_df['sample_match'], inplace=True)
-    summary_df.drop('pangolin_taxon', axis=1, inplace=True)
-    summary_df.drop('sample_match', axis=1, inplace=True)
+    summary_df['sample_id'] = summary_df['sample_id'].fillna(summary_df['sample_match'])
+    summary_df = summary_df.drop(columns=['pangolin_taxon', 'sample_match'])
     columns = ['pangolin_lineage'] + columns + pangolin_columns
 
 if exists(pango_aliasor_file) :
@@ -376,10 +373,11 @@ if exists(freyja_file) :
     freyja_columns = ['freyja_summarized']
     
     summary_df = pd.merge(summary_df, freyja_df, left_on = 'sample_id', right_on = 'freyja_Unnamed: 0', how = 'outer')
-    summary_df['sample_id'].fillna(summary_df['freyja_Unnamed: 0'], inplace=True)
-    summary_df.drop('freyja_Unnamed: 0', axis=1, inplace=True)
+    summary_df['sample_id'] = summary_df['sample_id'].fillna(summary_df['freyja_Unnamed: 0'])
+    summary_df = summary_df.drop('freyja_Unnamed: 0', axis=1)
     columns = columns + freyja_columns
 
+summary_df['sample_id'] = summary_df['sample_id'].astype(str)
 summary_df['sample']    = summary_df['sample_id'].str.split("_").str[0]
 summary_df = summary_df.astype(str)
 summary_df = summary_df.replace({",": " ", "\t": " ", "\n": " "}, regex=True)

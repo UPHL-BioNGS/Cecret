@@ -1,0 +1,24 @@
+name: nf-core pipeline linting
+
+on: [pull_request, workflow_dispatch]
+
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+          nextflow -version
+
+      - name: Install nf-core tools
+        run: pip install nf-core
+
+      - name: Run nf-core lint
+        run: nf-core pipelines lint

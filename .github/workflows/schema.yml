@@ -1,0 +1,26 @@
+name: Validate schema
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  schema:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+          nextflow -version
+
+      - name: Install nf-core tools + jsonschema
+        run: pip install nf-core jsonschema
+
+      - name: Validate JSON schema syntax
+        run: python -m json.tool nextflow_schema.json
+
+      - name: Validate schema structure (nf-core)
+        run: nf-core pipelines schema lint .
