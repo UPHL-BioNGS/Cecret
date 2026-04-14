@@ -68,4 +68,4 @@ We use the standard GitHub **fork and pull request** workflow.
 
 ## 🏛️ Code of Conduct
 
-Please note that this project is governed by a **Code of Conduct**. By participating, you are expected to uphold this code. Please report unacceptable behavior to (eriny@utah.gov)[eriny@utah.gov].
+Please note that this project is governed by a **Code of Conduct**. By participating, you are expected to uphold this code. Please report unacceptable behavior to [eriny@utah.gov](eriny@utah.gov).
