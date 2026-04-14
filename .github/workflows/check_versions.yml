@@ -15,11 +15,10 @@ jobs:
 
       - name: versions
         run: |
-          # 1. Initialize the issue file and a tracking variable
           echo "Dependency changes:" > issue_body.txt
           changes_found=false
 
-          # 2. Robust regex to grab ONLY the container strings, ensuring sort -u removes all duplicates
+          # Grab ONLY the container strings and remove duplicates
           workflow_containers=($(grep -hoP "staphb/[^'\":\s]+:[^'\":\s]+" modules/local/*/main.nf | sort -u))
           
           for container in "${workflow_containers[@]}"
@@ -27,28 +26,25 @@ jobs:
             base=$(echo "$container" | cut -f 1 -d ":")
             workflow_version=$(echo "$container" | cut -f 2 -d ":")
             
-            docker pull "$base:latest"
-            # Get the version label
+            docker pull "$base:latest" --quiet
             latest_version=$(docker inspect --format '{{ index .Config.Labels "software.version"}}' "$base:latest")
             
-            # 3. Clean versions for comparison (strip leading 'v' and drop anything after the first hyphen)
             clean_workflow=$(echo "$workflow_version" | sed -E 's/^v//' | cut -d'-' -f1)
             clean_latest=$(echo "$latest_version" | sed -E 's/^v//' | cut -d'-' -f1)
             
-            # 4. Compare cleaned versions
             if [[ "$clean_latest" != "$clean_workflow" && -n "$latest_version" ]]
             then
-              echo "New version for $base! Upgrade to $latest_version from $workflow_version." | tee -a versions.txt
-              echo "$base from $workflow_version to $latest_version" >> issue_body.txt
+              # Add the asterisk for markdown bullet points
+              echo "* $base from $workflow_version to $latest_version" >> issue_body.txt
               changes_found=true
-            else
-              echo "No version change for $base: $workflow_version (Latest base: $clean_latest)" | tee -a versions.txt
             fi
 
-            docker rmi "$base:latest"
+            docker rmi "$base:latest" > /dev/null 2>&1
           done
 
-          # 5. Handle nextclade with the same robust regex and cleaning logic
+          # Handle nextclade
+          docker pull nextstrain/nextclade:latest --quiet
+          
           latest_nextclade_version=$(docker run --rm nextstrain/nextclade:latest nextclade --version | awk '{print $2}')
           workflow_nextclade_container=$(grep -hoP "nextstrain/nextclade:[^'\":\s]+" modules/local/nextclade/main.nf | head -n 1)
           worfklow_nextclade_version=$(echo "$workflow_nextclade_container" | cut -f 2 -d ":")
@@ -58,14 +54,14 @@ jobs:
 
           if [[ "$clean_lt_nextclade" != "$clean_wf_nextclade" && -n "$latest_nextclade_version" ]]
           then
-            echo "New version for nextstrain/nextclade! Upgrade to $latest_nextclade_version from $worfklow_nextclade_version." | tee -a versions.txt
-            echo "nextstrain/nextclade from $worfklow_nextclade_version to $latest_nextclade_version" >> issue_body.txt
+            # Add the asterisk for markdown bullet points
+            echo "* nextstrain/nextclade from $worfklow_nextclade_version to $latest_nextclade_version" >> issue_body.txt
             changes_found=true
-          else
-            echo "No version change for nextstrain/nextclade:$worfklow_nextclade_version" | tee -a versions.txt
           fi
 
-          # 6. Pass the multiline text and boolean flag to GITHUB_ENV securely
+          docker rmi nextstrain/nextclade:latest > /dev/null 2>&1
+
+          # Pass the multiline text and boolean flag to GITHUB_ENV securely
           echo "CHANGES_FOUND=$changes_found" >> $GITHUB_ENV
           
           echo "ISSUE_TEXT<<EOF" >> $GITHUB_ENV
