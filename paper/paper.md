@@ -15,6 +15,9 @@ authors:
   - name: Olinto Linares-Perdomo
     orcid: 0009-0006-4344-7795
     affiliation: 2
+  - name: John Arnn
+    orcid: 0009-0005-2783-3744
+    affiliation: 1
     # Add other authors here
 affiliations:
  - name: Utah Public Health Laboratory, Department of Health and Human Services, State of Utah, Salt Lake City, Utah, USA
