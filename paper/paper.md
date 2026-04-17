@@ -138,36 +138,36 @@ Operational benchmarking highlighted differences in input schema resilience. We 
 To evaluate performance, CECRET was compared against an established reference-based workflow using a set of amplicon sequencing samples spanning a range of coverage profiles. Summary metrics are shown in Table 1, with performance stratified by sample type in Table 2.
 
 ### Table 1. Selected results for Samples Run with CECRET and VIRAL RECON
-| Sample      | Category      | Status    |   SNPs |   Cecret_N |   VR_N | Pango_C    | Pango_V    | Next_C      | Next_V      |
-|:------------|:--------------|:----------|-------:|-----------:|-------:|:-----------|:-----------|:------------|:------------|
-| SRR38049469 | Measles       | Success   |      1 |       1.74 |   1.35 | -          | -          | D8          | D8          |
-| SRR38049468 | Measles       | Success   |      1 |      11.66 |   6.07 | -          | -          | D8          | D8          |
-| SRR38049458 | Measles       | Success   |      2 |       1.2  |   0.39 | -          | -          | D8          | D8          |
-| SRR38049457 | Measles       | Success   |      1 |       1.11 |   0.93 | -          | -          | D8          | D8          |
-| SRR38049456 | Measles       | Success   |      2 |       0.61 |   0.39 | -          | -          | D8          | D8          |
-| SRR37335748 | Measles       | Success   |      1 |       9.71 |   4.64 | -          | -          | B3          | B3          |
-| SRR38006100 | High coverage | Success   |      7 |      22.64 |   4.22 | XFG.2.5    | XFG.2.5.1  | 25C         | 25C         |
-| SRR38006099 | High coverage | Success   |      0 |       1.34 |   0.56 | XFG.23.1.4 | XFG.23.1.4 | 25C         | 25C         |
-| SRR38006098 | High coverage | Success   |      1 |       1.68 |   0.35 | XFG.14.1   | XFG.14.1   | 25C         | 25C         |
-| SRR38006097 | High coverage | Success   |      0 |       1.54 |   0.33 | XFG.2.5.1  | XFG.2.5.1  | 25C         | 25C         |
-| SRR38006096 | High coverage | Success   |      0 |       7.73 |   1.62 | XFG.6.2.2  | XFG.6.2.2  | 25C         | 25C         |
-| SRR38006095 | High coverage | Success   |      0 |      31.9  |   9.47 | Unassigned | XFG.3.6    | 25C         | 25C         |
-| SRR38006093 | High coverage | Success   |      0 |      30.68 |  10.47 | Unassigned | XFZ.2      | recombinant | recombinant |
-| SRR38006092 | High coverage | Success   |      0 |       5.49 |   1.43 | XFG.3.6    | XFG.3.6    | 25C         | 25C         |
-| SRR38006091 | High coverage | Success   |      0 |      10.03 |   3.15 | XFG.1.1    | XFG.1.1    | 25C         | 25C         |
-| SRR38006090 | High coverage | Success   |      0 |       0.73 |   0.6  | PQ.2.1.6   | PQ.2.1.6   | 25B         | 25B         |
-| SRR36104323 | Low coverage  | VR Failed |    nan |      99.5  | 100    | Unassigned | N/A        | N/A         | N/A         |
-| SRR36104328 | Low coverage  | VR Failed |    nan |     100    | 100    | Unassigned | N/A        | N/A         | N/A         |
-| SRR36104302 | Low coverage  | Success   |      0 |      94.68 |  88.59 | Unassigned | Unassigned | N/A         | 25C         |
-| SRR36020460 | Low coverage  | Success   |      0 |      96.07 |  93.08 | Unassigned | Unassigned | N/A         | N/A         |
-| SRR35862479 | Low coverage  | Success   |      0 |      97.83 |  97.83 | Unassigned | Unassigned | N/A         | N/A         |
+| Sample      | Category      |   Reads |   SNPs |   Cecret_N |   VR_N | Pango_C    | Pango_V    | Next_C      | Next_V      |
+|:------------|:--------------|--------:|-------:|-----------:|-------:|:-----------|:-----------|:------------|:------------|
+| SRR38049469 | Measles       |  621680 |      1 |       1.74 |   1.35 | -          | -          | D8          | D8          |
+| SRR38049468 | Measles       |  545404 |      1 |      11.66 |   6.07 | -          | -          | D8          | D8          |
+| SRR38049458 | Measles       |  765014 |      2 |       1.2  |   0.39 | -          | -          | D8          | D8          |
+| SRR38049457 | Measles       |  692631 |      1 |       1.11 |   0.93 | -          | -          | D8          | D8          |
+| SRR38049456 | Measles       |  547665 |      2 |       0.61 |   0.39 | -          | -          | D8          | D8          |
+| SRR37335748 | Measles       |  424030 |      1 |       9.71 |   4.64 | -          | -          | B3          | B3          |
+| SRR38006100 | High coverage |  299159 |      7 |      22.64 |   4.22 | XFG.2.5    | XFG.2.5.1  | 25C         | 25C         |
+| SRR38006099 | High coverage |  537532 |      0 |       1.34 |   0.56 | XFG.23.1.4 | XFG.23.1.4 | 25C         | 25C         |
+| SRR38006098 | High coverage | 1659941 |      1 |       1.68 |   0.35 | XFG.14.1   | XFG.14.1   | 25C         | 25C         |
+| SRR38006097 | High coverage | 1420309 |      0 |       1.54 |   0.33 | XFG.2.5.1  | XFG.2.5.1  | 25C         | 25C         |
+| SRR38006096 | High coverage |  873801 |      0 |       7.73 |   1.62 | XFG.6.2.2  | XFG.6.2.2  | 25C         | 25C         |
+| SRR38006095 | High coverage |  233207 |      0 |      31.9  |   9.47 | Unassigned | XFG.3.6    | 25C         | 25C         |
+| SRR38006093 | High coverage |  174702 |      0 |      30.68 |  10.47 | Unassigned | XFZ.2      | recombinant | recombinant |
+| SRR38006092 | High coverage |  318099 |      0 |       5.49 |   1.43 | XFG.3.6    | XFG.3.6    | 25C         | 25C         |
+| SRR38006091 | High coverage |  695713 |      0 |      10.03 |   3.15 | XFG.1.1    | XFG.1.1    | 25C         | 25C         |
+| SRR38006090 | High coverage |  817668 |      0 |       0.73 |   0.6  | PQ.2.1.6   | PQ.2.1.6   | 25B         | 25B         |
+| SRR36104323 | Low coverage  |   12482 |    nan |      99.5  | 100    | Unassigned | N/A        | N/A         | N/A         |
+| SRR36104328 | Low coverage  |  102505 |    nan |     100    | 100    | Unassigned | N/A        | N/A         | N/A         |
+| SRR36104302 | Low coverage  |  461127 |      0 |      94.68 |  88.59 | Unassigned | Unassigned | N/A         | 25C         |
+| SRR36020460 | Low coverage  |  671807 |      0 |      96.07 |  93.08 | Unassigned | Unassigned | N/A         | N/A         |
+| SRR35862479 | Low coverage  |  750481 |      0 |      97.83 |  97.83 | Unassigned | Unassigned | N/A         | N/A         |
 
 ### Table 2. Performance by Sample Type
-| Category      |   N |   Med SNP Diff |   Med % N (Cecret) |   Med % N (VR) | Concordance   |
-|:--------------|----:|---------------:|-------------------:|---------------:|:--------------|
-| High coverage |  10 |              0 |               6.61 |           1.52 | 70.0%         |
-| Low coverage  |   5 |              0 |              97.83 |          97.83 | 100.0%        |
-| Measles       |   6 |              1 |               1.47 |           1.14 | 100.0%        |
+| Category      |   N |   Med Reads |   Med SNP Diff |   Med % N (Cecret) |   Med % N (VR) | Concordance   |
+|:--------------|----:|------------:|---------------:|-------------------:|---------------:|:--------------|
+| High coverage |  10 |      616622 |              0 |               6.61 |           1.52 | 70.0%         |
+| Low coverage  |   5 |      461127 |              0 |              97.83 |          97.83 | 100.0%        |
+| Measles       |   6 |      584672 |              1 |               1.47 |           1.14 | 100.0%        |
 
 
 
