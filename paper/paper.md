@@ -32,7 +32,7 @@ bibliography: paper.bib
 
 ## Summary
 
-CECRET is an open-source bioinformatics workflow for reference-based consensus genome generation from amplicon sequencing data. The pipeline was developed at the Utah Public Health Laboratory (UPHL) to address a specific operational need of producing high-quality consensus sequences from Illumina data generated using ARTIC-style amplicon protocols.
+CECRET is an open-source bioinformatics workflow for reference-based consensus genome generation from amplicon sequencing data. The pipeline was developed at the Utah Public Health Laboratory (UPHL) to address a specific operational need of producing high-quality consensus sequences from Illumina data generated using ARTIC-style amplicon protocols. CECRET is released under the MIT license The source code and archived release are available at https://github.com/UPHL-BioNGS/Cecret and Zenodo (DOI: 10.5281/zenodo.16414959) [@cecret].
 
 While widely adopted bioinformatics workflows exist, many were initially optimized for Oxford Nanopore Technologies (ONT) data [@Quick:2017]. In contrast, CECRET is purpose-built for amplicon-based Illumina sequencing, where accurate primer trimming, depth-aware filtering, and standardized downstream lineage assignment are critical for reliable consensus generation.
 
@@ -52,7 +52,7 @@ CECRET was developed to address this gap by providing a standardized, reference-
 * minimum depth thresholds for high-confidence consensus generation,
 * and automated integration of lineage and clade assignment tools.
 
-Unlike broader viral analysis workflows (e.g., nf-core/viralrecon), which support diverse sequencing strategies including shotgun metagenomics and *de novo* assembly, CECRET prioritizes a constrained, reference-guided approach optimized for high-throughput public health surveillance. This design enables consistent, reproducible outputs with minimal parameter tuning, making it suitable for routine operational use.
+In contrast to general-purpose workflows such as nf-core/viralrecon (e.g., nf-core/viralrecon [@viralrecon:2024]), which support diverse sequencing strategies including shotgun metagenomics and *de novo* assembly, CECRET prioritizes a constrained, reference-guided design optimized for high-throughput public health surveillance. This design enables consistent, reproducible outputs with minimal parameter tuning, making it suitable for routine operational use.
 
 The primary users of CECRET are public health laboratories, clinical genomics groups, and researchers conducting targeted viral surveillance using amplicon sequencing. The workflow is particularly suited to scenarios requiring rapid turnaround and standardized outputs, such as outbreak response and longitudinal monitoring programs.
 
@@ -87,9 +87,9 @@ CECRET is implemented using the Nextflow workflow manager (DSL2), enabling modul
 The workflow is structured into several primary subworkflows:
 
 * Initialization: Standardizes input formats (paired-end Illumina reads, single-end reads, nanopore reads, and FASTA inputs), validates parameters, and prepares reference genome resources.
-* Consensus Generation: Performs read preprocessing, alignment, and primer trimming. Preprocessing consists of filtering Illumina reads with either SeqyClean or fastp, followed by an optional normalization step using BBNorm []. Illumina reads are then aligned using BWA by default (with optional minimap2 support), followed by primer trimming and consensus generation using iVar [@Grubaugh:2019], although samtools ampliconclip is also supported. For nanopore data, ARTIC-based tools are used for filtering and consensus generation.
+* Consensus Generation: Performs read preprocessing, alignment, and primer trimming. Preprocessing consists of filtering Illumina reads with either SeqyClean or fastp, followed by an optional normalization step using BBNorm [@Zhbannikov:2017; @Chen:2018; @Bushnell:2014]. Illumina reads are then aligned using BWA by default (with optional minimap2 support), followed by primer trimming and consensus generation using iVar [@Grubaugh:2019], although samtools ampliconclip is also supported. For nanopore data, ARTIC-based tools are used for filtering and consensus generation.
 * Quality Control and Variant Calling: Generates coverage metrics, depth summaries, and optional variant call outputs using tools such as samtools and BCFtools [@Danecek:2021]. Minimum depth thresholds are enforced to support high-confidence consensus generation. ACI, Kraken2, and IGV-Reports are also included to provide insight into amplicon metrics, contamination, and variant visualizations [@Young:ACI; @Wood:2019; @igv-reports:2024].
-* Downstream Interpretation: Executes pathogen-specific analyses, including lineage and clade assignment with Pangolin and Nextclade [@Aksamentov:2021; @OToole:2021], wastewater lineage deconvolution with Freyja [@Karthikeyan:2022]), and reference inspection with VADR [@Schaffer:2020].
+* Downstream Interpretation: Executes pathogen-specific analyses, including lineage and clade assignment with Pangolin and Nextclade [@Aksamentov:2021; @OToole:2021], wastewater lineage deconvolution with Freyja [@Karthikeyan:2022], and reference inspection with VADR [@Schaffer:2020].
 * Phylogenetic Analysis (Optional): Supports multiple sequence alignment with MAFFT [@Katoh:2013] and phylogenetic tree construction with IQ-TREE [@Nguyen:2015] for comparative analyses and outbreak investigations. The pipeline utilizes snp-dists [@Seemann:snpdists] to generate SNP distance matrices, with heatcluster [@BeckstromSternberg:heatcluster] and phyTreeViz [@Moshi4:phytreeviz] integrated for the visual interpretation of clusters and phylogenetic relationships.
 
 Each subworkflow is composed of modular Nextflow processes with containerized dependencies, allowing individual components to be enabled, disabled, or replaced through parameter configuration.
