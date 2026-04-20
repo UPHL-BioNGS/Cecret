@@ -23,7 +23,6 @@ authors:
   - name: Robert Sainsbury
     orcid: 0009-0001-7253-7777
     affiliation: 1
-    # Add other authors here
 affiliations:
  - name: Utah Public Health Laboratory, Department of Health and Human Services, State of Utah, Salt Lake City, Utah, USA
    index: 1
@@ -35,7 +34,7 @@ bibliography: paper.bib
 
 ## Summary
 
-CECRET is an open-source bioinformatics workflow for reference-based consensus genome generation from amplicon sequencing data. The pipeline was developed at the Utah Public Health Laboratory (UPHL) to address a specific operational need of producing high-quality consensus sequences from Illumina data generated using ARTIC-style amplicon protocols. CECRET is released under the MIT license The source code and archived release are available at https://github.com/UPHL-BioNGS/Cecret and Zenodo (DOI: 10.5281/zenodo.16414959) [@cecret].
+CECRET is an open-source bioinformatics workflow for reference-based consensus genome generation from amplicon sequencing data. The pipeline was developed at the Utah Public Health Laboratory (UPHL) to address a specific operational need of producing high-quality consensus sequences from Illumina data generated using ARTIC-style amplicon protocols. CECRET is released under the MIT license. The source code and archived release are available at https://github.com/UPHL-BioNGS/Cecret and Zenodo (DOI: 10.5281/zenodo.16414959) [@cecret].
 
 While widely adopted bioinformatics workflows exist, many were initially optimized for Oxford Nanopore Technologies (ONT) data [@Quick:2017]. In contrast, CECRET is purpose-built for amplicon-based Illumina sequencing, where accurate primer trimming, depth-aware filtering, and standardized downstream lineage assignment are critical for reliable consensus generation.
 
@@ -55,7 +54,7 @@ CECRET was developed to address this gap by providing a standardized, reference-
 * minimum depth thresholds for high-confidence consensus generation,
 * and automated integration of lineage and clade assignment tools.
 
-In contrast to general-purpose workflows such as nf-core/viralrecon (e.g., nf-core/viralrecon [@viralrecon:2024]), which support diverse sequencing strategies including shotgun metagenomics and *de novo* assembly, CECRET prioritizes a constrained, reference-guided design optimized for high-throughput public health surveillance. This design enables consistent, reproducible outputs with minimal parameter tuning, making it suitable for routine operational use.
+In contrast to general-purpose workflows such as nf-core/viralrecon [@viralrecon:2024], which support diverse sequencing strategies including shotgun metagenomics and *de novo* assembly, CECRET prioritizes a constrained, reference-guided design optimized for high-throughput public health surveillance. This design enables consistent, reproducible outputs with minimal parameter tuning, making it suitable for routine operational use.
 
 The primary users of CECRET are public health laboratories, clinical genomics groups, and researchers conducting targeted viral surveillance using amplicon sequencing. The workflow is particularly suited to scenarios requiring rapid turnaround and standardized outputs, such as outbreak response and longitudinal monitoring programs.
 
@@ -79,7 +78,7 @@ Developing a dedicated workflow enabled the encoding of these domain-specific re
 
 In addition, CECRET integrates pathogen-specific downstream tools (e.g., lineage and clade assignment, wastewater deconvolution) into a single pipeline, reducing the need for manual chaining of independent tools. This level of integration would have required substantial restructuring of existing general-purpose workflows.
 
-As the field has matured, comprehensive pipelines such as nf-core/viralrecon has expanded in scope and capability. However, CECRET continues to serve a complementary role by providing a constrained, production-oriented workflow optimized for high-throughput amplicon-based surveillance using Illumina data.
+As the field has matured, comprehensive pipelines such as nf-core/viralrecon have expanded in scope and capability. However, CECRET continues to serve a complementary role by providing a constrained, production-oriented workflow optimized for high-throughput amplicon-based surveillance using Illumina data.
 
 ## Software Design
 
@@ -125,9 +124,11 @@ At the Utah Public Health Laboratory (UPHL), the pipeline was deployed to genera
 
 The software is distributed as part of the StaPH-B toolkit [@Florek:staphb], facilitating adoption across public health laboratories and providing integration within a broader ecosystem of bioinformatics tools. The repository includes predefined test datasets, multiple execution profiles, and continuous integration workflows that support reproducibility and validation across environments.
 
-CECRET is actively maintained, with regular updates to ensure compatibility with evolving lineage classification tools and to incorporate updated primer schemes and pathogen-specific configurations. The pipeline’s modular design has enabled rapid adaptation to new surveillance contexts, including wastewater-based epidemiology through integration with lineage deconvolution tools.
+CECRET is actively maintained, with regular updates to ensure compatibility with evolving lineage classification tools and to incorporate updated primer schemes and pathogen-specific configurations. The pipeline’s modular design has enabled rapid adaptation to new surveillance contexts, including wastewater-based epidemiology through integration with lineage deconvolution tools. 
 
-Together, these features support the use of CECRET as a stable, reproducible, and operationally focused workflow for high-throughput viral genomic surveillance.
+Within the StaPH-B consortium, Cecret is a widely used workflow for generating SARS-CoV-2 consensus genomes from amplicon-based Illumina sequencing data [@CDCgov:SARS2Sequencing]. The CDC's Enterics Diseases Laboratory Branch, with assistance from the Respiratory Viruses Branch, developed SC2CLIA Cecret, a CLIA-ready SARS-CoV-2 analysis workflow that builds on the Cecret pipeline by adding CDC-specific QA/QC metrics, CLIA-ready reports, and automated consensus sequence uploads to NCBI [@CDCgov:SC2CLIA].
+
+Together, these features establish CECRET as a stable, reproducible, and operationally validated workflow — from state public health laboratories to federal CDC infrastructure — supporting high-throughput viral genomic surveillance across the United States.
 
 ## Validation and Benchmarking
 
