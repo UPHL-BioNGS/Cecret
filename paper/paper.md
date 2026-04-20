@@ -20,6 +20,9 @@ authors:
   - name: John Arnn
     orcid: 0009-0005-2783-3744
     affiliation: 1
+  - name: Robert Sainsbury
+    orcid: 0009-0001-7253-7777
+    affiliation: 1
     # Add other authors here
 affiliations:
  - name: Utah Public Health Laboratory, Department of Health and Human Services, State of Utah, Salt Lake City, Utah, USA
