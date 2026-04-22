@@ -184,8 +184,15 @@ Relevant params and their values:
       ARTIC_FILTER(ch_nanopore)
       ch_versions = ch_versions.mix(ARTIC_FILTER.out.versions.first())
 
+      ARTIC_FILTER.out.filtered_nanopore_reads
+        .combine(ch_primer_bed)
+        .filter()
+        .map{ it -> it[-1] }
+        .unique()
+        .set { ch_nanopore_primer_bed }
+
       if (params.primer_bed) {
-        ARTIC_TOOLS(ch_primer_bed)
+        ARTIC_TOOLS(ch_nanopore_primer_bed)
         ch_versions = ch_versions.mix(ARTIC_TOOLS.out.versions.first())
         ch_primer = ARTIC_TOOLS.out.bed
       } else {
