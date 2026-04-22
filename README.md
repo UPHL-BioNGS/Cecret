@@ -80,6 +80,12 @@ WIKI can be found at [https://github.com/UPHL-BioNGS/Cecret/wiki](https://github
 ## Usage
 
 ```bash
+nextflow run UPHL-BioNGS/Cecret -profile docker,test
+```
+
+### Help
+
+```bash
 $ nextflow run UPHL-BioNGS/Grandeur --help
 
  N E X T F L O W   ~  version 25.10.0
@@ -114,6 +120,8 @@ Workflow Components
 
 ------------------------------------------------------
 ```
+
+### Using a Sample Sheet
 
 Cecret can also use a sample sheet for input with the sample name and reads separated by commas. The header must be `sample,fastq_1,fastq_2`. The general rule is the identifier for the file(s), the file locations, and the type if not paired-end fastq files.
 
