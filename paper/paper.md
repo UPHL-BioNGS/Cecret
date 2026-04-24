@@ -14,17 +14,17 @@ authors:
   - name: Erin L. Young
     orcid: 0000-0002-7535-006X
     affiliation: 1
-  - name: Olinto Linares-Perdomo
-    orcid: 0009-0006-4344-7795
-    affiliation: 2
+  - name: Thomas Iverson
+    orcid: 0009-0002-1670-0928
+    affiliation: 1
   - name: John Arnn
     orcid: 0009-0005-2783-3744
     affiliation: 1
+  - name: Olinto Linares-Perdomo
+    orcid: 0009-0006-4344-7795
+    affiliation: 2
   - name: Robert Sainsbury
     orcid: 0009-0001-7253-7777
-    affiliation: 1
-  - name: Thomas Iverson
-    orcid: 0009-0002-1670-0928
     affiliation: 1
   - name: Elizabeth Anderson
     orcid: 0000-0002-1050-5470
