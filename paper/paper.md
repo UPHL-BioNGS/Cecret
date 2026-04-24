@@ -26,6 +26,9 @@ authors:
   - name: Thomas Iverson
     orcid: 0009-0002-1670-0928
     affiliation: 1
+  - name: Elizabeth Anderson
+    orcid: 0000-0002-1050-5470
+    affiliation: 1
 affiliations:
  - name: Utah Public Health Laboratory, Department of Health and Human Services, State of Utah, Salt Lake City, Utah, USA
    index: 1
