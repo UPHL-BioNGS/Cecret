@@ -23,6 +23,9 @@ authors:
   - name: Robert Sainsbury
     orcid: 0009-0001-7253-7777
     affiliation: 1
+  - name: Thomas Iverson
+    orcid: 0009-0002-1670-0928
+    affiliation: 1
     # Add other authors here
 affiliations:
  - name: Utah Public Health Laboratory, Department of Health and Human Services, State of Utah, Salt Lake City, Utah, USA
