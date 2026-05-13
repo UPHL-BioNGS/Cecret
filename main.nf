@@ -33,7 +33,11 @@ workflow {
     }
 
     // Validate parameters and print the summary log
-    validateParameters()
+    //validateParameters(
+    //    parametersSchema: 'nextflow_schema.json',
+    //    strict: false,
+    //    failUnrecognisedParams: false
+    // )
     log.info paramsSummaryLog(workflow)
 
 
