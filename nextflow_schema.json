@@ -96,13 +96,13 @@
                 "description": "outgroup for multiple sequence alignment"
             },
             "minimum_depth": {
-                "type": "integer",
+                "type": "string",
                 "default": 100,
                 "hidden": true,
                 "description": "minimum depth for calling a variant"
             },
             "mpileup_depth": {
-                "type": "integer",
+                "type": "string",
                 "default": 8000,
                 "hidden": true,
                 "description": "number of reads put into memory by samtools/bcftools"
