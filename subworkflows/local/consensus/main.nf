@@ -73,6 +73,7 @@ Relevant params and their values:
   ch_multiqc  = channel.empty()
   ch_versions = channel.empty()
   ch_bam      = channel.empty()
+  ch_sam      = channel.empty()
   ch_trim_bam = channel.empty()
   ch_nanopore_bam = channel.empty()
   ch_consensus = channel.empty()
@@ -123,18 +124,16 @@ Relevant params and their values:
       // running bwa
       BWA(ch_clean_reads.combine(ch_reference))
 
-      ch_sam      = BWA.out.sam
+      ch_sam      = ch_sam.mix(BWA.out.sam)
       ch_versions = ch_versions.mix(BWA.out.versions.first())
     
     } else if ( params.aligner == 'minimap2') {
       // running minimap2
       MINIMAP2(ch_clean_reads.combine(ch_reference))
       
-      ch_sam      = MINIMAP2.out.sam
+      ch_sam      = ch_sam.mix(MINIMAP2.out.sam)
       ch_versions = ch_versions.mix(MINIMAP2.out.versions.first())
     
-    } else {
-      ch_sam = channel.empty()
     }
 
     // removing duplicates
