@@ -17,7 +17,7 @@ lint:
     - readme_nextflow_badge # Specific key for the version badge
   pipeline_name_conventions: False
 
-nf_core_version: 3.5.2
+nf_core_version: 4.0.2
 repository_type: pipeline
 template:
   author: Erin Young

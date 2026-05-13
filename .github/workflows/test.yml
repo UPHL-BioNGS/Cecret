@@ -2,24 +2,34 @@ name: Test SARS-CoV-2 workflow
 
 on: [pull_request, workflow_dispatch]
 
-run-name: Download fastq and fasta and run
+run-name: Test SARS-CoV-2 workflow
 
 jobs:
   test:
+    strategy:
+      fail-fast: false
+      matrix:
+        nxf_ver:
+          # - '23.10.1'
+          # - '24.10.6'
+          - '25.10.4'
+          - '26.04.0'
+          - 'latest-stable'
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@master
-
+        uses: actions/checkout@main
+            
       - name: Clean up Disk space
         uses: jlumbroso/free-disk-space@main
-
+            
       - name: Install Nextflow
-        run: |
-          wget -qO- get.nextflow.io | bash
-          sudo mv nextflow /usr/local/bin/
+        uses: nf-core/setup-nextflow@master
+        with:
+          version: "${{ matrix.nxf_ver }}"
 
-      - name: Run Cecret
+      - name: Get Files
         run: |
           docker --version
 
@@ -32,6 +42,9 @@ jobs:
           wget https://raw.githubusercontent.com/StaPH-B/docker-builds/master/tests/SARS-CoV-2/SRR13957123.consensus.fa
           mv SRR13957123.consensus.fa SRR13957123DB.fa
           mv *fa fastas/.
+
+      - name: Run Cecret
+        run: |
 
           nextflow run . -profile docker -c .github/workflows/github_actions.config --primer_set ncov_V3 --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200 --fastas fastas --reads reads
 

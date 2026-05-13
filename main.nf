@@ -33,7 +33,11 @@ workflow {
     }
 
     // Validate parameters and print the summary log
-    validateParameters()
+    //validateParameters(
+    //    parametersSchema: 'nextflow_schema.json',
+    //    strict: false,
+    //    failUnrecognisedParams: false
+    // )
     log.info paramsSummaryLog(workflow)
 
 
@@ -59,25 +63,9 @@ workflow {
       INITIALIZE.out.scripts, // channel: [scripts]
       INITIALIZE.out.nextclade_dataset // channel: file
     )
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    THE END
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-
-workflow.onComplete {
-    if (workflow.success) {
-        log.info """
-        =============================================================================
-        Cecret pipeline execution completed successfully
-        =============================================================================
-        Completed at: ${workflow.complete}
-        Duration    : ${workflow.duration}
-
-        Primary Output Locations:
+    
+    log.info """
+        Cecret Output Locations:
         -----------------------------------------------------------------------------
         • Results Summary (CSV)  : ${params.outdir}/cecret_results.csv
         • MultiQC Report         : ${params.outdir}/multiqc/multiqc_report.html
@@ -86,20 +74,12 @@ workflow.onComplete {
         • Wastewater Abundance   : ${params.outdir}/freyja/
         • Phylogeny              : ${params.outdir}/iqtree/
         -----------------------------------------------------------------------------
-        """
-    } else {
-        log.info """
-        =============================================================================
-        Cecret pipeline execution failed
-        =============================================================================
-        Completed at: ${workflow.complete}
-        Duration    : ${workflow.duration}
-        
-        Error message:
-        ${workflow.errorMessage ?: 'No specific error message provided by Nextflow.'}
+"""
 
-        Check the '.nextflow.log' file in the execution directory for full details.
-        -----------------------------------------------------------------------------
-        """
-    }
 }
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    THE END
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/

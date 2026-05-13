@@ -78,7 +78,7 @@ Relevant params and their values:
   // run freyja only if freyja is expected to run
   if (params.freyja_pathogen && params.freyja_pathogen != 'SARS-CoV-2') {
 
-    if (params.freyja_update) {
+    if (params.freyja_update?.toString()?.toBoolean()) {
       FREYJA_UPDATE(params.freyja_pathogen)
       ch_versions = ch_versions.mix(FREYJA_UPDATE.out.versions)
 
@@ -91,7 +91,7 @@ Relevant params and their values:
       ch_freyja_out = FREYJA.out.demix
     }
 
-    if (params.freyja_aggregate) {
+    if (params.freyja_aggregate?.toString()?.toBoolean()) {
       FREYJA_AGGREGATE(ch_freyja_out.collect(), ch_script)
       ch_versions    = ch_versions.mix(FREYJA_AGGREGATE.out.versions)
       ch_for_multiqc = ch_for_multiqc.mix(FREYJA_AGGREGATE.out.for_multiqc)
@@ -100,10 +100,10 @@ Relevant params and their values:
   }
 
   // run nextclade only if nextclade is expected to run
-  if (( params.nextclade_dataset && params.nextclade_dataset != 'sars-cov-2' && params.download_nextclade_dataset ) || params.predownloaded_nextclade_dataset ) {
+  if (( params.nextclade_dataset && params.nextclade_dataset != 'sars-cov-2' && params.download_nextclade_dataset?.toString()?.toBoolean() ) || params.predownloaded_nextclade_dataset ) {
 
     // running nextclade
-    if ( params.download_nextclade_dataset && !params.predownloaded_nextclade_dataset ) {
+    if ( params.download_nextclade_dataset?.toString()?.toBoolean() && !params.predownloaded_nextclade_dataset ) {
       DATASET()
       ch_dataset  = DATASET.out.dataset
       ch_versions = ch_versions.mix(DATASET.out.versions)

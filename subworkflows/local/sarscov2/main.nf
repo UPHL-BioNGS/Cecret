@@ -48,14 +48,14 @@ Relevant params and their values:
         ch_multiqc  = channel.empty()
         ch_summary  = channel.empty()
 
-        if (params.vadr) {
+        if (params.vadr?.toString()?.toBoolean()) {
             // running vadr
             VADR(ch_fastas.collect())
             ch_versions = ch_versions.mix(VADR.out.versions)
             ch_summary  = ch_summary.mix(VADR.out.vadr_file)
         }
 
-        if (params.pangolin) {
+        if (params.pangolin?.toString()?.toBoolean()) {
             // running pangolin
             PANGOLIN(ch_fastas.collect())
             ch_versions = ch_versions.mix(PANGOLIN.out.versions)
@@ -63,7 +63,7 @@ Relevant params and their values:
             ch_multiqc  = ch_multiqc.mix(PANGOLIN.out.pangolin_file)
         }
 
-        if (params.pango_aliasor && params.pangolin) {
+        if (params.pango_aliasor?.toString()?.toBoolean() && params.pangolin?.toString()?.toBoolean()) {
             // running pango aliasor
             PANGO_ALIASOR(PANGOLIN.out.pangolin_file)
             ch_versions = ch_versions.mix(PANGO_ALIASOR.out.versions)
@@ -71,8 +71,8 @@ Relevant params and their values:
         }
 
         // running nextclade
-        if (params.nextclade) {
-            if ( params.download_nextclade_dataset && !params.predownloaded_nextclade_dataset ) {
+        if (params.nextclade?.toString()?.toBoolean()) {
+            if ( params.download_nextclade_dataset?.toString()?.toBoolean() && !params.predownloaded_nextclade_dataset ) {
                 DATASET()
                 ch_dataset = DATASET.out.dataset
                 ch_versions = ch_versions.mix(DATASET.out.versions)
@@ -88,12 +88,12 @@ Relevant params and their values:
             ch_multiqc  = ch_multiqc.mix(NEXTCLADE.out.nextclade_file)
         }
 
-        if (params.freyja) {
+        if (params.freyja?.toString()?.toBoolean()) {
             // running freyja
             FREYJA(ch_bam.map{it -> tuple(it[0], it[1])}.combine(ch_reference_genome))
             ch_versions = ch_versions.mix(FREYJA.out.versions.first())
 
-            if (params.freyja_aggregate) {
+            if (params.freyja_aggregate?.toString()?.toBoolean()) {
                 AGGREGATE(FREYJA.out.demix.collect(), ch_script)
                 ch_versions = ch_versions.mix(AGGREGATE.out.versions)
                 ch_multiqc  = ch_multiqc.mix(AGGREGATE.out.for_multiqc)

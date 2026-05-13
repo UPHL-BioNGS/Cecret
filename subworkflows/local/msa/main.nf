@@ -56,27 +56,27 @@ Relevant params and their values:
     }
     
     // run iqtree
-    if (params.iqtree) {
+    if (params.iqtree?.toString()?.toBoolean()) {
       IQTREE(ch_msa)
       ch_versions = ch_versions.mix(IQTREE.out.versions)
       ch_nwk      = ch_nwk.mix(IQTREE.out.newick)
     }
 
-    if (params.phytreeviz) {
+    if (params.phytreeviz?.toString()?.toBoolean()) {
       // run phytreeviz for a basic visualization
       PHYTREEVIZ(ch_nwk)
       ch_versions = ch_versions.mix(PHYTREEVIZ.out.versions)
       ch_multiqc  = ch_multiqc.mix(PHYTREEVIZ.out.for_multiqc)
     }
 
-    if (params.snpdists) {
+    if (params.snpdists?.toString()?.toBoolean()) {
       // run snp-dists for a snp matrix
       SNPDISTS(ch_msa)
       ch_matrix = ch_matrix.mix(SNPDISTS.out.matrix)
       ch_versions = ch_versions.mix(SNPDISTS.out.versions)
     }
 
-    if (params.heatcluster && params.snpdists ) {
+    if (params.heatcluster?.toString()?.toBoolean() && params.snpdists?.toString()?.toBoolean()) {
       // run heatcluster for a basic visualization
       HEATCLUSTER(SNPDISTS.out.matrix)
       ch_versions = ch_versions.mix(HEATCLUSTER.out.versions)

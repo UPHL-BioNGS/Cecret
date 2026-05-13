@@ -73,6 +73,7 @@ Relevant params and their values:
   ch_multiqc  = channel.empty()
   ch_versions = channel.empty()
   ch_bam      = channel.empty()
+  ch_sam      = channel.empty()
   ch_trim_bam = channel.empty()
   ch_nanopore_bam = channel.empty()
   ch_consensus = channel.empty()
@@ -82,7 +83,7 @@ Relevant params and their values:
   if (params.sample_sheet || params.reads || params.single_reads || ! params.sra_accessions.isEmpty()) {
     // running bbnorm to normalize large datasets
     // this is not recommended for wastewater
-    if ( params.bbnorm ){
+    if ( params.bbnorm?.toString()?.toBoolean() ){
       BBNORM(ch_reads)
       ch_norm_reads = BBNORM.out.fastq
       ch_versions   = ch_versions.mix(BBNORM.out.versions.first())
@@ -123,22 +124,20 @@ Relevant params and their values:
       // running bwa
       BWA(ch_clean_reads.combine(ch_reference))
 
-      ch_sam      = BWA.out.sam
+      ch_sam      = ch_sam.mix(BWA.out.sam)
       ch_versions = ch_versions.mix(BWA.out.versions.first())
     
     } else if ( params.aligner == 'minimap2') {
       // running minimap2
       MINIMAP2(ch_clean_reads.combine(ch_reference))
       
-      ch_sam      = MINIMAP2.out.sam
+      ch_sam      = ch_sam.mix(MINIMAP2.out.sam)
       ch_versions = ch_versions.mix(MINIMAP2.out.versions.first())
     
-    } else {
-      ch_sam = channel.empty()
     }
 
     // removing duplicates
-    if ( params.markdup ) {
+    if ( params.markdup?.toString()?.toBoolean() ) {
       MARKDUP(ch_reads.join(ch_sam).map { it -> tuple(it[0], it[2], it[3])} )
       ch_bam      = ch_bam.mix(MARKDUP.out.bam_bai)
       ch_versions = ch_versions.mix(MARKDUP.out.versions.first())
@@ -180,7 +179,7 @@ Relevant params and their values:
   // only show if there is a sample sheet as input (which could have nanopor reads),
   // or nanopore reads are read in through a channel
   if (params.sample_sheet || params.nanopore) {
-    if (params.artic && params.artic_filter) {
+    if (params.artic?.toString()?.toBoolean() && params.artic_filter?.toString()?.toBoolean()) {
       ARTIC_FILTER(ch_nanopore)
       ch_versions = ch_versions.mix(ARTIC_FILTER.out.versions.first())
 
@@ -199,7 +198,7 @@ Relevant params and their values:
         ch_primer = ch_primer_bed
       }
 
-      if (params.artic) {
+      if (params.artic?.toString()?.toBoolean()) {
         ARTIC(ARTIC_FILTER.out.fastq.combine(ch_reference).combine(ch_primer))
         ch_versions = ch_versions.mix(ARTIC.out.versions.first())
         ch_nanopore_bam = ch_nanopore_bam.mix(ARTIC.out.bam)
@@ -210,7 +209,7 @@ Relevant params and their values:
 
   // remove all non-target-organism reads
   // simpler for non-human hosts or when more than one organism needs to be removed
-  if ( params.filter ) { 
+  if ( params.filter?.toString()?.toBoolean() ) { 
     FILTER(ch_sam.mix(ch_nanopore_bam))
     ch_filtered_reads = FILTER.out.filtered_reads
     ch_versions       = ch_versions.mix(FILTER.out.versions.first())
