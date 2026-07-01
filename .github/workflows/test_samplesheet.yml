@@ -39,7 +39,7 @@ jobs:
 
           mkdir nanopore
           wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR314/070/SRR31458670/SRR31458670_1.fastq.gz
-          mv SRR31458670_1.fastq.gz nanopore/SRR31458670_1.fastq.gz
+          mv SRR38226090_1.fastq.gz nanopore/SRR38226090_1.fastq.gz
 
           nextflow run . -profile docker -c .github/workflows/github_actions.config --cleaner 'fastp' --aligner 'minimap2' --mpileup_depth 200 --sample_sheet .github/workflows/sample_sheet.csv --vadr false
 
