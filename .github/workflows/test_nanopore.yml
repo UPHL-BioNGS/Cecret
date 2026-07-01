@@ -23,13 +23,13 @@ jobs:
         run: |
           mkdir nanopore
           cd nanopore
-          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR224/050/SRR22452250/SRR22452250_1.fastq.gz
-          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR224/031/SRR22452231/SRR22452231_1.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR382/090/SRR38226090/SRR38226090_1.fastq.gz
+          wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR382/089/SRR38226089/SRR38226089_1.fastq.gz
           cd ../
 
       - name: Run Cecret
         run: |
-          nextflow run . -profile docker -c .github/workflows/github_actions.config --freyja false --nanopore nanopore
+          nextflow run . -profile docker -c .github/workflows/github_actions.config --nanopore nanopore
 
           ls cecret*
             
