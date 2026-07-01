@@ -1,7 +1,7 @@
 process FREYJA {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/freyja:2.0.3-SARS-CoV-2-06_01_2026-01-12-2026-06-01'
+  container     'staphb/freyja:2.0.3-SARS-CoV-2-06_29_2026-01-12-2026-06-29'
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
