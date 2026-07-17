@@ -23,8 +23,8 @@ jobs:
         run: |
           mkdir reads
           cd reads
-          wget --show-progress=off ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR256/074/SRR25601474/SRR25601474_1.fastq.gz
-          wget --show-progress=off ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR272/083/SRR27235483/SRR27235483_1.fastq.gz
+          wget --show-progress=off ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_1.fastq.gz
+          wget --show-progress=off ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR206/024/SRR20689724/SRR20689724_2.fastq.gz
           cd ../
 
       - name: Run Cecret

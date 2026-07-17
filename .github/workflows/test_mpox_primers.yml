@@ -1,4 +1,4 @@
-name: Test MPOX primers
+name: Test MPX primers
 
 on: [pull_request, workflow_dispatch]
 
