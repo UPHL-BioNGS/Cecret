@@ -23,7 +23,7 @@ jobs:
         run: |
           mkdir kraken2_db
           cd kraken2_db
-          wget https://genome-idx.s3.amazonaws.com/kraken/k2_viral_20240112.tar.gz 
+          wget --show-progress=false https://genome-idx.s3.amazonaws.com/kraken/k2_viral_20240112.tar.gz 
           tar -zxvf k2_viral_20240112.tar.gz
           cd ../
 

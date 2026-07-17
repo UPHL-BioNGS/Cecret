@@ -21,7 +21,7 @@ jobs:
 
       - name: Install Datasets
         run: |
-          wget https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/LATEST/linux-amd64/datasets
+          wget --show-progress=false https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/LATEST/linux-amd64/datasets
           chmod +x datasets
           sudo mv datasets /usr/local/bin/
 
