@@ -1,4 +1,4 @@
-name: Test SARS-CoV-2 primers
+name: Test MPOX primers
 
 on: [pull_request, workflow_dispatch]
 
@@ -11,14 +11,9 @@ jobs:
       matrix:
         primer:
           [ 
-            "midnight_idt_V1",
-            "midnight_ont_V1",
-            "midnight_ont_V2",
-            "midnight_ont_V3",
-            "ncov_V3",
-            "ncov_V4",
-            "ncov_V4.1",
-            "ncov_V5.3.2",
+            "mpx_primalseq",
+            "mpx_yale",
+            "mpx_idt",
           ]
 
     steps:
@@ -37,8 +32,8 @@ jobs:
         run: |
           mkdir nanopore
           cd nanopore
-          wget --show-progress=off ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR382/090/SRR38226090/SRR38226090_1.fastq.gz
-          wget --show-progress=off ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR382/089/SRR38226089/SRR38226089_1.fastq.gz
+          wget --show-progress=off ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR256/074/SRR25601474/SRR25601474_1.fastq.gz
+          wget --show-progress=off ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR272/083/SRR27235483/SRR27235483_1.fastq.gz
           cd ../
 
       - name: Run Cecret
