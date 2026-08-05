@@ -413,15 +413,15 @@ Initializing References and Databases
     if ( params.ivar_variants ) {
         if (params.gff) {
             channel
-            .fromPath(
-                params.gff, 
-                type:'file'
-            )
-            .ifEmpty{
-                log.warn "No gff file was selected. Set with 'params.gff'"
-                exit 1
-            }
-            .set { ch_gff }
+                .fromPath(
+                    params.gff, 
+                    type:'file'
+                )
+                .ifEmpty{
+                    log.warn "No gff file was selected. Set with 'params.gff'"
+                    exit 1
+                }
+                .set { ch_gff }
 
         } else {
             if ( params.primer_set && primer_presets.containsKey(params.primer_set)) {
@@ -451,16 +451,18 @@ Initializing References and Databases
 
         //# Getting the primer file
         if (params.primer_bed) {
-            channel.fromPath(
-                params.primer_bed,
-                type:'file'
-            )
-            .ifEmpty{
-                log.warn "A bedfile for primers is required. Set with 'params.primer_bed'."
-                log.warn "or use a provided primer set in ${primer_presets.keySet()}"
-                exit 1
-            }
-            .set { ch_primer_bed }
+            channel
+                .fromPath(
+                    params.primer_bed,
+                    type:'file',
+                    checkIfExists: true
+                )
+                .ifEmpty{
+                    log.warn "A bedfile for primers is required. Set with 'params.primer_bed'."
+                    log.warn "or use a provided primer set in ${primer_presets.keySet()}"
+                    exit 1
+                }
+                .set { ch_primer_bed }
 
         } else if ( params.primer_set ) {
 
@@ -471,6 +473,12 @@ Initializing References and Databases
                         type:'file',
                         checkIfExists: true
                     )
+                    .ifEmpty{
+                        log.warn "A bedfile for primers is required. Set with 'params.primer_bed'."
+                        log.warn "or use a provided primer set in ${primer_presets.keySet()}"
+                        exit 1
+                    }
+                    .view()
                     .set { ch_primer_bed }
 
             } else {
