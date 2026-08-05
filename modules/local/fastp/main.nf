@@ -1,7 +1,7 @@
 process FASTP {
   tag        "${meta.id}"
   label      "process_single"
-  container  'staphb/fastp:1.3.3'
+  container  'staphb/fastp:1.3.6'
 
   input:
   tuple val(meta), file(reads)
