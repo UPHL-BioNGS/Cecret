@@ -1,0 +1,67 @@
+name: Test MPX primers
+
+on: [pull_request, workflow_dispatch]
+
+run-name: primers
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        primer:
+          [ 
+            "mpx_primalseq",
+            "mpx_yale",
+            "mpx_idt",
+          ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Clean up Disk space
+        uses: jlumbroso/free-disk-space@main
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Download reads
+        run: |
+          mkdir nanopore
+          cd nanopore
+          wget --show-progress=off ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR256/074/SRR25601474/SRR25601474_1.fastq.gz
+          wget --show-progress=off ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR272/083/SRR27235483/SRR27235483_1.fastq.gz
+          cd ../
+
+      - name: Run Cecret
+        run: |
+          nextflow run . -profile docker -c .github/workflows/github_actions.config \
+              --primer_set ${{ matrix.primer }} \
+              --bcftools_variants false \
+              --fastqc false \
+              --ivar_variants false \
+              --samtools_stats false \
+              --samtools_coverage false \
+              --samtools_depth false \
+              --samtools_flagstat false \
+              --kraken2 false \
+              --nextclade false \
+              --pangolin false \
+              --freyja false \
+              --vadr false \
+              --relatedness false \
+              --snpdists false \
+              --iqtree false \
+              --bamsnap false \
+              --rename false \
+              --filter false \
+              --multiqc false \
+              --nanopore nanopore
+
+          ls cecret*
+
+      - name: Clean
+        run: rm -rf work .nextflow*
