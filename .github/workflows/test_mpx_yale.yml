@@ -2,6 +2,10 @@ name: Test mpx workflow with yale primers
 
 on: [pull_request, workflow_dispatch]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+  
 run-name: mpx_yale
 
 jobs:
