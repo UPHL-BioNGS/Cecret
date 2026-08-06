@@ -482,7 +482,6 @@ Initializing References and Databases
                         log.warn "or use a provided primer set in ${primer_presets.keySet()}"
                         exit 1
                     }
-                    .view()
                     .set { ch_primer_bed }
 
             } else {
@@ -597,7 +596,7 @@ Initializing References and Databases
         ch_prepped_fastas = channel.empty()
     }
 
-    if ( ! params.sra_accessions.isEmpty() || ! params.genome_accessions.isEmpty() ) { 
+    if ( params.sra_accessions || params.genome_accessions ) { 
         TEST(
             ch_sra_accessions,
             ch_genome_accessions

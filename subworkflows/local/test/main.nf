@@ -34,7 +34,7 @@ Relevant params and their values:
 
     // downloads fastq files from the ENA
     // note: works with GA, but not locally
-    if ( ! params.sra_accessions.isEmpty() ) {
+    if ( params.sra_accessions ) {
         ENA(ch_sra_accessions)
 
         ENA.out.paired
@@ -49,7 +49,7 @@ Relevant params and their values:
     }
 
     // downloads genomes with datasets
-    if ( ! params.genome_accessions.isEmpty() ) {
+    if ( params.genome_accessions ) {
         DOWNLOAD_GENOME(ch_genome_accessions)
         ch_fastas = ch_fastas.mix(DOWNLOAD_GENOME.out.fasta)
         ch_versions = ch_versions.mix(DOWNLOAD_GENOME.out.versions)
