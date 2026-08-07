@@ -1,7 +1,7 @@
 name: Test SARS-CoV-2 profile 2 workflow
 
 on: [pull_request, workflow_dispatch]
-
+ 
 run-name: Profile 2
 
 jobs:

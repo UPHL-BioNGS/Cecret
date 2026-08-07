@@ -285,14 +285,18 @@ Initializing Sample Input Files
     }
 
     // getting fastq files from sra accessions (Illumina only)
-    ch_sra_accessions = params.sra_accessions
-        ? channel.from(params.sra_accessions)
-        : channel.empty()
+    def sra_list = params.sra_accessions 
+        ? [params.sra_accessions].flatten() 
+        : []
+
+    ch_sra_accessions = sra_list ? Channel.fromList(sra_list) : Channel.empty()
 
     // getting genome accessions (ncbi virus is default)
-    ch_genome_accessions = params.genome_accessions
-        ? channel.from(params.genome_accessions)
-        : channel.empty()
+    def genomes_list = params.genome_accessions 
+        ? [params.genome_accessions].flatten() 
+        : []
+
+    ch_genome_accessions = genomes_list ? Channel.fromList(genomes_list) : Channel.empty()
 
     log.info """
 ------------------------------------------------------
@@ -413,15 +417,15 @@ Initializing References and Databases
     if ( params.ivar_variants ) {
         if (params.gff) {
             channel
-            .fromPath(
-                params.gff, 
-                type:'file'
-            )
-            .ifEmpty{
-                log.warn "No gff file was selected. Set with 'params.gff'"
-                exit 1
-            }
-            .set { ch_gff }
+                .fromPath(
+                    params.gff, 
+                    type:'file'
+                )
+                .ifEmpty{
+                    log.warn "No gff file was selected. Set with 'params.gff'"
+                    exit 1
+                }
+                .set { ch_gff }
 
         } else {
             if ( params.primer_set && primer_presets.containsKey(params.primer_set)) {
@@ -451,16 +455,18 @@ Initializing References and Databases
 
         //# Getting the primer file
         if (params.primer_bed) {
-            channel.fromPath(
-                params.primer_bed,
-                type:'file'
-            )
-            .ifEmpty{
-                log.warn "A bedfile for primers is required. Set with 'params.primer_bed'."
-                log.warn "or use a provided primer set in ${primer_presets.keySet()}"
-                exit 1
-            }
-            .set { ch_primer_bed }
+            channel
+                .fromPath(
+                    params.primer_bed,
+                    type:'file',
+                    checkIfExists: true
+                )
+                .ifEmpty{
+                    log.warn "A bedfile for primers is required. Set with 'params.primer_bed'."
+                    log.warn "or use a provided primer set in ${primer_presets.keySet()}"
+                    exit 1
+                }
+                .set { ch_primer_bed }
 
         } else if ( params.primer_set ) {
 
@@ -471,6 +477,11 @@ Initializing References and Databases
                         type:'file',
                         checkIfExists: true
                     )
+                    .ifEmpty{
+                        log.warn "A bedfile for primers is required. Set with 'params.primer_bed'."
+                        log.warn "or use a provided primer set in ${primer_presets.keySet()}"
+                        exit 1
+                    }
                     .set { ch_primer_bed }
 
             } else {
@@ -585,7 +596,7 @@ Initializing References and Databases
         ch_prepped_fastas = channel.empty()
     }
 
-    if ( ! params.sra_accessions.isEmpty() || ! params.genome_accessions.isEmpty() ) { 
+    if ( params.sra_accessions || params.genome_accessions ) { 
         TEST(
             ch_sra_accessions,
             ch_genome_accessions

@@ -66,7 +66,7 @@ submit an issue on GitHub at https://github.com/UPHL-BioNGS/Cecret/issues
     ch_consensus   = ch_fastas.mix(ch_multifasta)
     ch_wo_mltifna  = ch_fastas
 
-    if (params.reads || params.single_reads || params.sample_sheet || params.nanopore || ! params.sra_accessions.isEmpty()) {
+    if (params.reads || params.single_reads || params.sample_sheet || params.nanopore || params.sra_accessions ) {
       CONSENSUS(
           ch_reads,
           ch_nanopore,

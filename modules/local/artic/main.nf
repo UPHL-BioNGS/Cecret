@@ -1,14 +1,14 @@
 process ARTIC {
     tag        "${meta.id}"
     label      "process_high"
-    container  'staphb/artic:1.10.1'
+    container  'staphb/artic:1.11.1'
 
     input:
     tuple val(meta), file(fastq), file(reference), file(bed)
 
     output:
     tuple val(meta), file("artic/*.primertrim.sorted.bam"), file("artic/*.primertrim.sorted.bam.bai"), emit: bam, optional: true
-    path "consensus/*.consensus.fa", emit: consensus //, optional: true
+    path "consensus/*.consensus.fa", emit: consensus, optional: true
     path "artic/*vcf*", emit: vcf, optional: true
     path "artic/*{tsv,txt}", emit: txt, optional: true
     path "artic/*preconsensus*", emit: preconsensus, optional: true

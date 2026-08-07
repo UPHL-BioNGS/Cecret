@@ -17,7 +17,7 @@ lint:
     - readme_nextflow_badge # Specific key for the version badge
   pipeline_name_conventions: False
 
-nf_core_version: 4.0.2
+nf_core_version: 4.1.0
 repository_type: pipeline
 template:
   author: Erin Young
@@ -27,4 +27,4 @@ template:
   name: Cecret
   org: UPHL-BioNGS/Cecret
   outdir: .
-  version: 1.0.0
+  version: 1.0.0dev
