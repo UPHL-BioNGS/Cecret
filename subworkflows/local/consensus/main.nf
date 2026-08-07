@@ -80,7 +80,7 @@ Relevant params and their values:
   ch_clean_reads = channel.empty()
 
   // only show the following if there are illumina fastq files present
-  if (params.sample_sheet || params.reads || params.single_reads || ! params.sra_accessions.isEmpty()) {
+  if (params.sample_sheet || params.reads || params.single_reads || params.sra_accessions ) {
     // running bbnorm to normalize large datasets
     // this is not recommended for wastewater
     if ( params.bbnorm?.toString()?.toBoolean() ){
