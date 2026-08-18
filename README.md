@@ -19,8 +19,6 @@
 <br>
 
 
-**A Nextflow workflow for reference-based amplicon consensus generation.**
-
 Named after the beautiful [Cecret lake](https://en.wikipedia.org/wiki/Cecret_Lake)
 
 Location: 40.570°N 111.622°W , Elevation: 9,875 feet (3,010 m), [Hiking level: easy](https://www.alltrails.com/trail/us/utah/cecret-lake-trail)
