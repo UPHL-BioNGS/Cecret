@@ -233,3 +233,7 @@ params.rename = false                     # needs a corresponding sample file an
 params.filter = false                     # takes the aligned reads and turns them back into fastq.gz files
 params.multiqc = true                     # aggregates data into single report
 ```
+
+## Contributing
+
+We welcome contributions from the community! For those interested in contributing to Cecret, improving the code, or reporting issues, please read the [Contributing Guidelines](https://github.com/UPHL-BioNGS/Cecret/blob/master/CONTRIBUTING.md) for more information on how to get started.
