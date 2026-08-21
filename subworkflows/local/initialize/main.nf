@@ -150,10 +150,10 @@ Initializing Sample Input Files
                 tuple(meta, files) 
             }
             .branch { row ->
-                single     : row[1] =~ /single/
-                multifasta : row[1] =~ /multifasta/
-                fasta      : row[1] =~ /fasta/
-                ont        : row[1] =~ /ont/       
+                single     : row[1] == 'single'
+                multifasta : row[1] == 'multifasta'
+                fasta      : row[1] == 'fasta'
+                ont        : row[1] == 'ont'       
                 paired     : true 
             }
             .set { inputs }
