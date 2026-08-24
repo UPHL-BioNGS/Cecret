@@ -147,13 +147,13 @@ Initializing Sample Input Files
                 def meta = [id:it.sample, single_end:is_single]
                 def files = is_single ? [file("${it.fastq_1}", checkIfExists: true)] : [file("${it.fastq_1}", checkIfExists: true), file("${it.fastq_2}", checkIfExists: true)]
                 
-                tuple(meta, files) 
+                tuple(meta, files, it.fastq_2) 
             }
-            .branch { row ->
-                single     : row[1] == 'single'
-                multifasta : row[1] == 'multifasta'
-                fasta      : row[1] == 'fasta'
-                ont        : row[1] == 'ont'       
+            .branch { it ->
+                single     : it[2] == 'single'
+                multifasta : it[2] == 'multifasta'
+                fasta      : it[2] == 'fasta'
+                ont        : it[2] == 'ont'       
                 paired     : true 
             }
             .set { inputs }
