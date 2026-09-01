@@ -1,7 +1,7 @@
 process BBNORM {
     tag           "${meta.id}"
     label         'process_medium'
-    container     'staphb/bbtools:39.91'
+    container     'staphb/bbtools:40.02'
 
 
     input:
