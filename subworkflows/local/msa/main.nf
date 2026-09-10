@@ -44,7 +44,7 @@ Relevant params and their values:
 
     ch_fasta
       .collect()
-      .filter { it -> it.size() >= 3 }
+      .filter { it -> it.size() >= 2 }
       .set{ch_collected_fastas }
 
     if ( params.msa == 'mafft' ) {
@@ -54,10 +54,24 @@ Relevant params and their values:
     } else {
       ch_msa = channel.empty()
     }
-    
-    // run iqtree
+
+    // Warn if fewer than 2 sequences are present
+    ch_collected_fastas
+      .filter { it.size() < 3 }
+      .subscribe { fastas ->
+        log.warn "Skipping MSA: At least 2 sequences are required for alignment, but found ${fastas.size()}."
+      }
+
+    // IQ-TREE requires at least 3 sequences
+    ch_msa
+      .combine(ch_collected_fastas)
+      .filter { msa, fastas -> fastas.size() >= 3 }
+      .map { msa, fastas -> msa }
+      .set { ch_for_iqtree }
+
+    // Run IQ-TREE
     if (params.iqtree?.toString()?.toBoolean()) {
-      IQTREE(ch_msa)
+      IQTREE(ch_for_iqtree)
       ch_versions = ch_versions.mix(IQTREE.out.versions)
       ch_nwk      = ch_nwk.mix(IQTREE.out.newick)
     }
