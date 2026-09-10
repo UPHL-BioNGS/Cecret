@@ -52,7 +52,7 @@ Relevant params and their values:
       .collect()
       .subscribe { it ->
         if (it.size() < 3) {
-            log.warn "MSA / phylogenetic analysis requires at least 3 sequences, but found ${fastas.size()}. Workflow will be skipped."
+            log.warn "MSA / phylogenetic analysis requires at least 3 sequences, but found ${it.size()}. Workflow will be skipped."
         }
     }
 
