@@ -158,7 +158,7 @@ process FREYJA_PATHOGEN {
 
 process FREYJA_UPDATE {
   tag           "Downloading Freyja Barcodes"
-  label         "process_medium"
+  label         "process_low"
   container     'staphb/freyja:2.0.3'
 
   input:
