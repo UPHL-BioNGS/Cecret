@@ -1,6 +1,6 @@
 process PHYTREEVIZ {
   tag           "Tree visualization"
-  label         "process_medium"
+  label         "process_low"
   container     'staphb/phytreeviz:0.2.0'
   
   

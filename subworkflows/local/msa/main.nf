@@ -47,6 +47,15 @@ Relevant params and their values:
       .filter { it -> it.size() >= 3 }
       .set{ch_collected_fastas }
 
+    // Log a warning if fewer than 3 sequences are present
+    ch_fasta
+      .collect()
+      .subscribe { it ->
+        if (it.size() < 3) {
+            log.warn "MSA / phylogenetic analysis requires at least 3 sequences, but found ${it.size()}. Workflow will be skipped."
+        }
+    }
+
     if ( params.msa == 'mafft' ) {
       MAFFT(ch_collected_fastas, ch_reference_genome)
       ch_msa = MAFFT.out.msa

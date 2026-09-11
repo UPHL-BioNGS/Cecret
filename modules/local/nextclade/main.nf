@@ -1,6 +1,6 @@
 process NEXTCLADE_DATASET {
   tag        "Downloading Nextclade Dataset"
-  label      "process_medium"
+  label      "process_low"
   container  'nextstrain/nextclade:3.23.0'
 
   output:
