@@ -1,7 +1,7 @@
 process ARTIC {
     tag        "${meta.id}"
     label      "process_high"
-    container  'staphb/artic:1.11.1'
+    container  'staphb/artic:1.11.2'
 
     input:
     tuple val(meta), file(fastq), file(reference), file(bed)
