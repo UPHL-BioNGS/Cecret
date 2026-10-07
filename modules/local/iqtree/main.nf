@@ -1,7 +1,7 @@
 process IQTREE {
   tag        "Creating phylogenetic tree with iqtree"
   label      "process_high"
-  container  'staphb/iqtree3:3.1.3'
+  container  'staphb/iqtree3:3.1.4'
 
   input:
   file(msa)
