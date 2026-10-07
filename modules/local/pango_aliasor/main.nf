@@ -1,7 +1,7 @@
 process PANGO_ALIASOR {
   tag        "SARS-CoV-2 lineage mapping"
   label      "process_low"
-  container  'staphb/pango_aliasor:0.3.0-260623'
+  container  'staphb/pango_aliasor:0.3.0-261007'
 
   input:
   file(file)
