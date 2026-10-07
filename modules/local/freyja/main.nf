@@ -1,7 +1,7 @@
 process FREYJA {
   tag           "${meta.id}"
   label         "process_medium"
-  container     'staphb/freyja:2.0.5-SARS-CoV-2-09_29_2026-00-48-2026-09-29'
+  container     'staphb/freyja:2.0.5-SARS-CoV-2-10_03_2026-04-19-2026-10-05'
 
   input:
   tuple val(meta), file(bam), file(reference_genome)
@@ -51,7 +51,7 @@ process FREYJA {
 process FREYJA_AGGREGATE {
   tag        "Aggregating results from freyja"
   label      "process_single"
-  container  'staphb/freyja:2.0.5-SARS-CoV-2-09_29_2026-00-48-2026-09-29'
+  container  'staphb/freyja:2.0.5-SARS-CoV-2-10_03_2026-04-19-2026-10-05'
 
 
   input:

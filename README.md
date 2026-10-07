@@ -203,6 +203,18 @@ Cecret has a weekly update schedule. Cecret's versions have three numbers : X.Y.
 - [snp-dists](https://github.com/tseemann/snp-dists) - for relatedness determination (optional, relatedness must be set to "true")
 - [vadr](https://github.com/ncbi/vadr) - for annotating fastas like NCBI
 
+### Consensus sequence cutoffs
+
+Cecret defaults to a `0.6` (60%) minimum allele frequency threshold for consensus calling. Any genomic site falling below the minimum depth or 60% allele frequency is masked with an N.
+
+This threshold was empirically selected to balance technical noise and consensus stability across real-world public health surveillance workflows. Amplicon amplification dynamics and pool imbalances routinely introduce technical noise into library preparations. While Cecret historically defaulted to a stricter `0.9` allele frequency threshold, real-world data demonstrated this cutoff was overly stringent. Conversely, internal testing showed that thresholds below `0.5` produced unstable consensus genomes and an excessive number of ambiguous base calls. The `0.6` cutoff accommodates common laboratory prep variations without over-calling ambiguous sites.
+
+If an analysis requires a stricter cutoff (such as `0.75` or `0.9`) or additional custom flags, override the `params.ivar_consensus_options` setting in a custom nextflow.config file with the cutoff placed with the `-t` flag.
+
+```
+params.ivar_consensus_options = '-q 20 -t 0.75 -n N'
+```
+
 ### Turning off unneeded processes
 
 It came to my attention that some processes (like bcftools) do not work consistently. Also, they might take longer than wanted and might not even be needed for the end user. Here's the processes that can be turned off with their default values:
