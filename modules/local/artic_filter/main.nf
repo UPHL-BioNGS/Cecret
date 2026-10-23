@@ -1,6 +1,6 @@
 process ARTIC_FILTER {
     tag        "${meta.id}"
-    container  'staphb/artic:1.11.1'
+    container  'staphb/artic:1.11.2'
     label      "process_low"
 
     input:
