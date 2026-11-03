@@ -1,4 +1,105 @@
 #!/usr/bin/env nextflow
+
+
+/*
+ * Generate pipeline help directly from nextflow_schema.json.
+ */
+def generateHelp(boolean showHidden = false, boolean fullHelp = false) {
+
+    def schemaFile = new File("${projectDir}/nextflow_schema.json")
+
+    if (!schemaFile.exists()) {
+        throw new IllegalStateException(
+            "Cannot find nextflow_schema.json at: ${schemaFile}"
+        )
+    }
+
+    def schema = new groovy.json.JsonSlurper().parse(schemaFile)
+    def output = []
+
+    output << ""
+    output << schema.title
+    output << schema.description
+    output << ""
+    output << "USAGE:"
+    output << "  nextflow run UPHL-BioNGS/Cecret -profile docker --sample_sheet samplesheet.csv --outdir cecret"
+    output << ""
+    output << "OPTIONS:"
+
+    // Follow the schema's allOf references to retrieve parameter groups.
+    schema.allOf.each { groupRef ->
+
+        def groupName = groupRef['$ref'].tokenize('/').last()
+        def group = schema['$defs'][groupName]
+
+        if (!group) {
+            return
+        }
+
+        output << ""
+        output << group.title.toUpperCase()
+
+        if (group.description) {
+            output << group.description
+        }
+
+        def requiredParams = group.required ?: []
+
+        group.properties.each { paramName, option ->
+
+            // Skip hidden parameters unless explicitly requested.
+            if (option.hidden && !showHidden) {
+                return
+            }
+
+            def description = option.description ?: "No description available."
+
+            output << ""
+            output << String.format(
+                "  --%-32s %s",
+                paramName,
+                description
+            )
+
+            def details = []
+
+            if (requiredParams.contains(paramName)) {
+                details << "Required"
+            }
+
+            if (option.type) {
+                def type = option.type instanceof List ?
+                    option.type.join(" or ") : option.type
+                details << "Type: ${type}"
+            }
+
+            if (option.containsKey('default')) {
+                details << "Default: ${option.default}"
+            }
+
+            if (option['enum']) {
+                details << "Choices: ${option['enum'].join(', ')}"
+            }
+
+            if (details) {
+                output << "    ${details.join(' | ')}"
+            }
+
+            // Include extended help text in full-help mode.
+            if (fullHelp && option.help_text) {
+                output << "    ${option.help_text}"
+            }
+        }
+    }
+
+    output << ""
+    output << "Run with --help_full to display all parameters."
+    output << ""
+
+    return output.join('\n')
+}
+
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     erinyoung/Cecret
@@ -16,8 +117,6 @@
 include { INITIALIZE } from './subworkflows/local/initialize'
 include { CECRET     } from './workflows/cecret'
 
-include { paramsHelp; validateParameters; paramsSummaryLog } from 'plugin/nf-schema'
-
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,21 +124,16 @@ include { paramsHelp; validateParameters; paramsSummaryLog } from 'plugin/nf-sch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 workflow {
-
     main:
-    if (params.help) {
-        log.info paramsHelp("nextflow run UPHL-BioNGS/Cecret -profile docker --sample_sheet samplesheet.csv --outdir cecret")
+    if (params.help || params.help_full) {
+        def helpText = generateHelp(
+            params.show_hidden || params.help_full,
+            params.help_full
+        )
+
+        log.info(helpText)
         exit 0
     }
-
-    // Validate parameters and print the summary log
-    //validateParameters(
-    //    parametersSchema: 'nextflow_schema.json',
-    //    strict: false,
-    //    failUnrecognisedParams: false
-    // )
-    log.info paramsSummaryLog(workflow)
-
 
     //
     // SUBWORKFLOW: Initialize files and tasks
