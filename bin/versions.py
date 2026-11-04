@@ -69,7 +69,7 @@ def main():
     versions_mqc = {
         "id": "software_versions",
         "section_name": "CECRET Software Versions",
-        "section_href": "https://github.com/UPHL-BioNGS/Grandeur",
+        "section_href": "https://github.com/UPHL-BioNGS/Cecret",
         "plot_type": "html",
         "description": "Collected at run time from the software output.",
         "data": _make_versions_html(versions_by_module),

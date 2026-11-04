@@ -86,39 +86,85 @@ nextflow run UPHL-BioNGS/Cecret -profile docker,test
 ### Help
 
 ```bash
-$ nextflow run UPHL-BioNGS/Grandeur --help
+$ nextflow run . --help
 
- N E X T F L O W   ~  version 25.10.0
+ N E X T F L O W   ~  version 26.04.6
 
-Launching `./main.nf` [special_lovelace] DSL2 - revision: 944ec1d4ed
-            
-Typical pipeline command:
+Launching `./main.nf` [extravagant_mahavira] revision: 734e57c941
 
+
+UPHL-BioNGS/Cecret pipeline parameters
+Reference-based consensus creation
+
+USAGE:
   nextflow run UPHL-BioNGS/Cecret -profile docker --sample_sheet samplesheet.csv --outdir cecret
 
+OPTIONS:
 
-Input/output options
-  --sample_sheet                    [string] sample sheet with sample, fastq_1, and fastq_2 columns 
-  --species                         [string] specifies species-specific sub-workflows [default: sarscov2] 
-  --kraken2_db                      [string] directory to kraken2 database 
-  --outdir                          [string] The output directory where the results will be saved. Absolute paths are required on cloud infrastructure. [default: cecret] 
+TOGGLES
+Toggles processes on (true)/off (false)
 
-Reference files
-  --reference_genome                [string] THE Reference genome 
-  --amplicon_bed                    [string] Bedfile for amplicons 
-  --gff                             [string] File used in ivar variants. Must correspond with reference genome. 
-  --primer_bed                      [string] File with bedfile of primers used in the analysis 
-  --primer_set                      [string] Specifies a primer set included in repo  (accepted: midnight_idt_V1, midnight_ont_V1, midnight_ont_V2, midnight_ont_V3, ncov_V3, ncov_V4, ncov_V4.1, 
-ncov_V5.3.2, mpx_primalseq, mpx_idt, mpx_yale) [default: ncov_V5.3.2]  
+PROCESS ADJUSTMENTS
+Adjusts how processes are run. These are similar to how task.ext values in modern nf-core workflows.
 
-Workflow Components
-  --download_nextclade_dataset      [boolean] Uses included nextclade dataset for SARS-CoV-2 during runtime when false. [default: true] 
-  --predownloaded_nextclade_dataset [string]  Path to predownloaded nextclade dataset 
-  --filter                          [boolean] Specifies if reference-mapped fastq files should be extracted 
-  --markdup                         [boolean] Specifies if duplicate reads should be removed (not recommended for nanopore) 
-  --relatedness                     [boolean] Turns on multiple sequence alignment subworkflow when true 
+WORKFLOW COMPONENTS
+The basic workflow components can be adjusted between some options
 
-------------------------------------------------------
+  --download_nextclade_dataset       Uses included nextclade dataset for SARS-CoV-2 during runtime when false.
+    Type: boolean | Default: true
+
+  --predownloaded_nextclade_dataset  Path to predownloaded nextclade dataset
+    Type: string
+
+  --filter                           Specifies if reference-mapped fastq files should be extracted
+    Type: boolean
+
+  --markdup                          Specifies if duplicate reads should be removed (not recommended for nanopore)
+    Type: boolean
+
+  --relatedness                      Turns on multiple sequence alignment subworkflow when true
+    Type: boolean
+
+REFERENCE FILES
+Files related to the reference genome
+
+  --reference_genome                 THE Reference genome
+    Type: string
+
+  --amplicon_bed                     Bedfile for amplicons
+    Type: string
+
+  --gff                              File used in ivar variants. Must correspond with reference genome.
+    Type: string
+
+  --primer_bed                       File with bedfile of primers used in the analysis
+    Type: string
+
+  --primer_set                       Specifies a primer set included in repo
+    Type: string | Default: ncov_V5.3.2 | Choices: midnight_idt_V1, midnight_ont_V1, midnight_ont_V2, midnight_ont_V3, ncov_V3, ncov_V4, ncov_V4.1, ncov_V5.3.2, mpx_primalseq, mpx_idt, mpx_yale
+
+INPUT/OUTPUT OPTIONS
+Define where the pipeline should find input data and save output data.
+
+  --sample_sheet                     sample sheet with sample, fastq_1, and fastq_2 columns
+    Type: string
+
+  --species                          specifies species-specific sub-workflows
+    Type: string | Default: sarscov2
+
+  --kraken2_db                       directory to kraken2 database
+    Type: string
+
+  --outdir                           The output directory where the results will be saved. Absolute paths are required on cloud infrastructure.
+    Required | Type: string | Default: cecret
+
+INSTITUTIONAL CONFIG OPTIONS
+Parameters used to describe centralised config profiles. These should not be edited.
+
+GENERIC OPTIONS
+Less common options for the pipeline, typically set in a config file.
+
+Run with --help_full to display all parameters.
 ```
 
 ### Using a Sample Sheet
