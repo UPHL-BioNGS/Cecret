@@ -30,7 +30,6 @@ process FASTQC {
     fastqc --version >> \$log
 
     fastqc ${args} \
-      --threads ${task.cpus} \
       --outdir fastqc \
       --threads ${task.cpus} \
       ${reads} \
